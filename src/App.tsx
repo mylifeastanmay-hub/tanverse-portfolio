@@ -16,6 +16,8 @@ import charmLightbulb from './assets/charms/charm-lightbulb.png';
 import charmGear from './assets/charms/charm-gear.png';
 import SpaceCanvas from './components/SpaceCanvas';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
+
 
 
 // ==========================================
@@ -2856,7 +2858,7 @@ function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
     setIsSubmitting(true);
-    fetch('http://localhost:5000/api/messages', {
+    fetch(`${API_BASE}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -3085,7 +3087,7 @@ export default function App() {
     document.title = 'Tanverse -- 3D Creator';
     
     // Fetch data from backend
-    fetch('http://localhost:5000/api/portfolio')
+    fetch(`${API_BASE}/portfolio`)
       .then(res => res.json())
       .then(data => {
         if (data.skills) setSkills(data.skills);
@@ -3102,7 +3104,7 @@ export default function App() {
     fetch('https://ipapi.co/json/')
       .then(res => res.json())
       .then(geo => {
-        return fetch('http://localhost:5000/api/visits', {
+        return fetch(`${API_BASE}/visits`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3115,7 +3117,7 @@ export default function App() {
       })
       .catch(err => {
         console.warn('Geolocation telemetry failed. Logging generic visit.', err);
-        fetch('http://localhost:5000/api/visits', {
+        fetch(`${API_BASE}/visits`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

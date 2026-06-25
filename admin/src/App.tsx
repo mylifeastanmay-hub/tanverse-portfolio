@@ -32,7 +32,7 @@ const LinkedinIcon = () => (
   </svg>
 );
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
 // Interfaces matching backend models
 interface Skill {
