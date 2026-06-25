@@ -2287,16 +2287,6 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
     return () => document.removeEventListener('click', handleClick);
   }, [expandedIssuer]);
 
-  // Group certificates by issuer for the fan deck
-  const certsByIssuer = useMemo(() => {
-    const grouped: Record<string, typeof displayCertificates> = {};
-    for (const cert of displayCertificates) {
-      const issuer = cert.issuer || 'Other';
-      if (!grouped[issuer]) grouped[issuer] = [];
-      grouped[issuer].push(cert);
-    }
-    return grouped;
-  }, [displayCertificates]);
 
   const experienceData: ExperienceItem[] = [
     {
@@ -2434,6 +2424,17 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
           : c.logo
       }))
     : CERTIFICATES;
+
+  // Group certificates by issuer for the fan deck
+  const certsByIssuer = useMemo(() => {
+    const grouped: Record<string, typeof displayCertificates> = {};
+    for (const cert of displayCertificates) {
+      const issuer = cert.issuer || 'Other';
+      if (!grouped[issuer]) grouped[issuer] = [];
+      grouped[issuer].push(cert);
+    }
+    return grouped;
+  }, [displayCertificates]);
 
   return (
     <section id="experience" className="relative z-20 bg-[#0C0C0C] py-12 sm:py-24 md:py-36 px-5 sm:px-8 md:px-10 overflow-hidden">
