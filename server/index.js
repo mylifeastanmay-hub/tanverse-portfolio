@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { initDatabase, query, run } from './db.js';
+import { put } from '@vercel/blob';
 
 dotenv.config();
 
@@ -146,8 +147,20 @@ app.post('/api/upload', authenticateToken, async (req, res) => {
     // Sanitize filename to prevent path traversal issues
     const baseName = path.basename(filename).replace(/[^a-zA-Z0-9.\-_]/g, '');
     const safeFilename = `${Date.now()}_${baseName}`;
-    const filepath = path.join(uploadsDir, safeFilename);
 
+    // 1. If Vercel Blob is configured, upload to it permanently
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      console.log(`Uploading ${safeFilename} to Vercel Blob...`);
+      const blob = await put(safeFilename, buffer, {
+        access: 'public',
+        token: process.env.BLOB_READ_WRITE_TOKEN
+      });
+      console.log(`Uploaded successfully. Blob URL: ${blob.url}`);
+      return res.json({ success: true, url: blob.url });
+    }
+
+    // 2. Local fallback for local development or if token is missing
+    const filepath = path.join(uploadsDir, safeFilename);
     await fs.promises.writeFile(filepath, buffer);
 
     const host = req.get('host');
@@ -156,7 +169,7 @@ app.post('/api/upload', authenticateToken, async (req, res) => {
     res.json({ success: true, url: publicUrl });
   } catch (err) {
     console.error('Image upload write error:', err);
-    res.status(500).json({ error: 'Failed to write uploaded image to disk.' });
+    res.status(500).json({ error: 'Failed to write uploaded image.' });
   }
 });
 
