@@ -82,6 +82,7 @@ interface Certificate {
   glow_color: string;
   logo_svg: string;
   display_order: number;
+  deck_name?: string;
 }
 
 interface Contact {
@@ -567,7 +568,8 @@ export default function App() {
     verify_url: '',
     glow_color: '#4285F4',
     logo_svg: '',
-    display_order: 1
+    display_order: 1,
+    deck_name: ''
   });
 
   const [contactForm, setContactForm] = useState<Contact>({
@@ -892,7 +894,8 @@ export default function App() {
             verify_url: item.verify_url || '',
             glow_color: item.glow_color || '#4285F4',
             logo_svg: item.logo_svg || '',
-            display_order: item.display_order || 1
+            display_order: item.display_order || 1,
+            deck_name: item.deck_name || item.deckName || ''
           });
         } else {
           const maxOrder = certificates.reduce((max, c) => c.display_order > max ? c.display_order : max, 0);
@@ -904,7 +907,8 @@ export default function App() {
             verify_url: '',
             glow_color: '#4285F4',
             logo_svg: '<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg">\n  <path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/>\n  <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/>\n  <path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/>\n  <path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/>\n</svg>',
-            display_order: maxOrder + 1
+            display_order: maxOrder + 1,
+            deck_name: ''
           });
         }
       }
@@ -1013,7 +1017,8 @@ export default function App() {
       verify_url: certificateForm.verify_url,
       glow_color: certificateForm.glow_color,
       logo_svg: certificateForm.logo_svg,
-      display_order: Number(certificateForm.display_order)
+      display_order: Number(certificateForm.display_order),
+      deck_name: certificateForm.deck_name || certificateForm.issuer
     };
 
     let response;
@@ -1143,7 +1148,8 @@ export default function App() {
           verify_url: i.verify_url,
           glow_color: i.glow_color,
           logo_svg: i.logo_svg,
-          display_order: i.display_order
+          display_order: i.display_order,
+          deck_name: i.deck_name || i.issuer
         };
       }
       return i;
@@ -1639,7 +1645,7 @@ export default function App() {
                             <span className="item-badge" style={{ opacity: 0.7 }}>{cert.date}</span>
                           </div>
                           <h3 className="item-title">{cert.course}</h3>
-                          <div className="item-subtitle">Authorized by {cert.issuer}</div>
+                          <div className="item-subtitle">Authorized by {cert.issuer} • Deck: {cert.deck_name || cert.issuer || 'Other'}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                           <div 
@@ -2427,6 +2433,56 @@ export default function App() {
                       onChange={(e) => setCertificateForm({ ...certificateForm, issuer: e.target.value })}
                       required
                     />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="cert-deck-name">Deck Name (Group / Sub-topic)</label>
+                    <input 
+                      id="cert-deck-name" 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. Google or Google ML (Leave empty to use Issuer)" 
+                      value={certificateForm.deck_name} 
+                      onChange={(e) => setCertificateForm({ ...certificateForm, deck_name: e.target.value })}
+                    />
+                    {certificates.length > 0 && (() => {
+                      const existingDecks = Array.from(new Set(
+                        certificates.map(c => c.deck_name || c.issuer)
+                      )).filter(Boolean);
+                      if (existingDecks.length === 0) return null;
+                      return (
+                        <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280', alignSelf: 'center' }}>Use existing deck:</span>
+                          {existingDecks.map(deckName => (
+                            <button
+                              key={deckName}
+                              type="button"
+                              onClick={() => setCertificateForm({ ...certificateForm, deck_name: deckName })}
+                              style={{
+                                padding: '4px 8px',
+                                fontSize: '0.7rem',
+                                borderRadius: '4px',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: '#c8d0d9',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 242, 254, 0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(0, 242, 254, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                              }}
+                            >
+                              {deckName}
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="form-group">

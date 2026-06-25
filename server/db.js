@@ -103,7 +103,8 @@ const defaultCertificates = [
     verify_url: 'https://coursera.org/verify/NFAGLH20ZUAB',
     glow_color: '#4285F4',
     logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/><path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/><path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/></svg>`,
-    display_order: 1
+    display_order: 1,
+    deck_name: 'Google'
   }
 ];
 
@@ -295,8 +296,14 @@ async function setupMssqlTables() {
       verify_url VARCHAR(500),
       glow_color VARCHAR(100),
       logo_svg TEXT,
-      display_order INT
+      display_order INT,
+      deck_name VARCHAR(100)
     );
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('certificates') AND name = 'deck_name')
+    BEGIN
+        ALTER TABLE certificates ADD deck_name VARCHAR(100) NULL;
+    END
 
     IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'visits')
     CREATE TABLE visits (
@@ -393,7 +400,8 @@ async function setupMssqlTables() {
         .input('glow', c.glow_color)
         .input('logo', c.logo_svg)
         .input('order', c.display_order)
-        .query('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order) VALUES (@course, @issuer, @platform, @date, @url, @glow, @logo, @order)');
+        .input('deck', c.deck_name || c.issuer)
+        .query('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (@course, @issuer, @platform, @date, @url, @glow, @logo, @order, @deck)');
     }
   }
 }
@@ -489,9 +497,15 @@ async function setupSqliteTables() {
             verify_url TEXT,
             glow_color TEXT,
             logo_svg TEXT,
-            display_order INTEGER
+            display_order INTEGER,
+            deck_name TEXT
           )
         `);
+
+        // Safe ALTER TABLE to add deck_name column to existing DB
+        sqliteDb.run("ALTER TABLE certificates ADD COLUMN deck_name TEXT", (alterErr) => {
+          // Ignore error if column already exists
+        });
 
         sqliteDb.run(`
           CREATE TABLE IF NOT EXISTS visits (
@@ -558,8 +572,8 @@ async function setupSqliteTables() {
           if (certCheck[0].count === 0) {
             console.log('Seeding SQLite certificates...');
             for (const c of defaultCertificates) {
-              await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-                c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order
+              await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer
               ]);
             }
           }
@@ -639,9 +653,16 @@ async function setupPostgresTables() {
       verify_url VARCHAR(500),
       glow_color VARCHAR(100),
       logo_svg TEXT,
-      display_order INT
+      display_order INT,
+      deck_name VARCHAR(100)
     )
   `);
+
+  try {
+    await query("ALTER TABLE certificates ADD COLUMN IF NOT EXISTS deck_name VARCHAR(100)");
+  } catch (e) {
+    // Ignore
+  }
 
   await query(`
     CREATE TABLE IF NOT EXISTS visits (
@@ -707,8 +728,8 @@ async function setupPostgresTables() {
   if (parseInt(certCheck[0].count, 10) === 0) {
     console.log('Seeding PostgreSQL certificates...');
     for (const c of defaultCertificates) {
-      await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-        c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order
+      await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer
       ]);
     }
   }

@@ -2196,6 +2196,7 @@ interface CertificateData {
   verifyUrl: string;
   glowColor: string;
   logo: React.ReactNode;
+  deckName?: string;
 }
 
 const CERTIFICATES: CertificateData[] = [
@@ -2419,19 +2420,23 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
         ...c,
         verifyUrl: c.verify_url || c.verifyUrl || '',
         glowColor: c.glow_color || c.glowColor || '#4285F4',
+        deckName: c.deck_name || c.deckName || c.issuer || 'Other',
         logo: typeof c.logo_svg === 'string'
           ? <div dangerouslySetInnerHTML={{ __html: c.logo_svg }} className="w-8 h-8 flex items-center justify-center" />
           : c.logo
       }))
-    : CERTIFICATES;
+    : CERTIFICATES.map(c => ({
+        ...c,
+        deckName: c.deckName || c.issuer || 'Other'
+      }));
 
-  // Group certificates by issuer for the fan deck
+  // Group certificates by deck name for the fan deck
   const certsByIssuer = useMemo(() => {
     const grouped: Record<string, typeof displayCertificates> = {};
     for (const cert of displayCertificates) {
-      const issuer = cert.issuer || 'Other';
-      if (!grouped[issuer]) grouped[issuer] = [];
-      grouped[issuer].push(cert);
+      const deck = cert.deckName || cert.issuer || 'Other';
+      if (!grouped[deck]) grouped[deck] = [];
+      grouped[deck].push(cert);
     }
     return grouped;
   }, [displayCertificates]);
@@ -3083,7 +3088,7 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
                               <div className="flex flex-col flex-grow min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="text-[9px] font-mono tracking-widest uppercase font-bold" style={{ color: cert.glowColor }}>
-                                    {cert.platform}
+                                    {cert.issuer} • {cert.platform}
                                   </span>
                                   <span className="text-[9px] font-mono text-slate-500">{cert.date}</span>
                                 </div>

@@ -289,11 +289,11 @@ app.delete('/api/experiences/:id', authenticateToken, async (req, res) => {
 
 // CERTIFICATES CRUD
 app.post('/api/certificates', authenticateToken, async (req, res) => {
-  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order } = req.body;
+  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name } = req.body;
   try {
     await run(
-      'INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order || 99]
+      'INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order || 99, deck_name || issuer || 'Other']
     );
     res.json({ success: true, message: 'Certificate successfully created.' });
   } catch (err) {
@@ -303,11 +303,11 @@ app.post('/api/certificates', authenticateToken, async (req, res) => {
 
 app.put('/api/certificates/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order } = req.body;
+  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name } = req.body;
   try {
     await run(
-      'UPDATE certificates SET course = ?, issuer = ?, platform = ?, date = ?, verify_url = ?, glow_color = ?, logo_svg = ?, display_order = ? WHERE id = ?',
-      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, id]
+      'UPDATE certificates SET course = ?, issuer = ?, platform = ?, date = ?, verify_url = ?, glow_color = ?, logo_svg = ?, display_order = ?, deck_name = ? WHERE id = ?',
+      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name || issuer || 'Other', id]
     );
     res.json({ success: true, message: 'Certificate successfully updated.' });
   } catch (err) {
