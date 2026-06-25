@@ -206,22 +206,48 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
 
     // Helper functions for parsing
     const extractCourseName = (t) => {
-      const courseraRegex = /successfully completed\s+([\s\S]+?)\s+(?:an?\s+online|online|a course|authorized by|offered through)/i;
-      const match = t.match(courseraRegex);
+      // Clean up whitespace
+      const cleanText = t.replace(/\s+/g, ' ');
+      
+      // Pattern 1: Coursera "successfully completed [Course Name] an online non-credit course..."
+      const pattern1 = /successfully completed\s+([\s\S]+?)\s+(?:an?\s+online|online|a\s+course|authorized by|offered through)/i;
+      let match = cleanText.match(pattern1);
       if (match && match[1]) {
-        const course = match[1].replace(/\s+/g, ' ').trim();
-        if (course.length > 5 && course.length < 150) return course;
+        const course = match[1].trim();
+        if (course.length > 3 && course.length < 120) return course;
       }
+      
+      // Pattern 2: Google Certificates "successfully completed the online course [Course Name]"
+      const pattern2 = /successfully completed the online course\s+([\s\S]+?)(?:\s+offered\s+through|\s+authorized\s+by|\s+a\s+course|\s+under\s+the)/i;
+      match = cleanText.match(pattern2);
+      if (match && match[1]) {
+        const course = match[1].trim();
+        if (course.length > 3 && course.length < 120) return course;
+      }
+
+      // Pattern 3: "has successfully completed [Course Name] to certify that..."
+      const pattern3 = /has successfully completed\s+([\s\S]+?)(?:\s+offered\s+by|\s+on\s+date|\s+under\s+the|\s+a\s+non-credit|\s+a\s+program|\s+specialization|\s+professional)/i;
+      match = cleanText.match(pattern3);
+      if (match && match[1]) {
+        const course = match[1].trim();
+        if (course.length > 3 && course.length < 120) return course;
+      }
+
+      // Fallback: search for lines
       const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].toLowerCase().includes('successfully completed') && i + 1 < lines.length) {
+        const lineLower = lines[i].toLowerCase();
+        if (lineLower.includes('successfully completed') && i + 1 < lines.length) {
           const nextLine = lines[i + 1].trim();
-          if (nextLine.length > 5 && nextLine.length < 150 && !nextLine.toLowerCase().includes('online') && !nextLine.toLowerCase().includes('authorized')) {
+          if (nextLine.length > 3 && nextLine.length < 120 && 
+              !nextLine.toLowerCase().includes('online') && 
+              !nextLine.toLowerCase().includes('authorized') &&
+              !nextLine.toLowerCase().includes('offered')) {
             return nextLine;
           }
         }
       }
-      return '';
+      return 'AI Certification Course';
     };
 
     const extractIssuer = (t) => {
@@ -232,6 +258,10 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
       if (lower.includes('microsoft')) return 'Microsoft';
       if (lower.includes('stanford')) return 'Stanford';
       if (lower.includes('amazon') || lower.includes('aws')) return 'Amazon Web Services';
+      if (lower.includes('deeplearning.ai') || lower.includes('deeplearning')) return 'DeepLearning.AI';
+      if (lower.includes('nvidia')) return 'NVIDIA';
+      if (lower.includes('hugging face') || lower.includes('huggingface')) return 'Hugging Face';
+      if (lower.includes('openai')) return 'OpenAI';
       return 'Google';
     };
 
@@ -244,21 +274,66 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
       return 'Coursera';
     };
 
+    const extractDuration = (t) => {
+      const cleanText = t.replace(/\s+/g, ' ');
+      // Look for patterns like "12 hours", "approx. 10 hours", "4 weeks", etc.
+      const hoursRegex = /\b(\d+)\s*(?:hours|hrs)\b/i;
+      let match = cleanText.match(hoursRegex);
+      if (match && match[1]) {
+        return `${match[1]} hours`;
+      }
+      const weeksRegex = /\b(\d+)\s*(?:weeks|wks)\b/i;
+      match = cleanText.match(weeksRegex);
+      if (match && match[1]) {
+        return `${match[1]} weeks`;
+      }
+      return '';
+    };
+
     const extractDate = (t) => {
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
                       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      const duration = extractDuration(t);
+      const suffix = duration ? ` • ${duration}` : '';
+
+      // Pattern 1: standard Month Day, Year or Month Year
       const dateRegex = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2},?\s+)?(\d{4})\b/i;
-      const match = t.match(dateRegex);
+      let match = t.match(dateRegex);
       if (match) {
         const monthStr = match[1];
         const yearStr = match[3];
         const shortMonth = monthStr.substring(0, 3);
         const capitalizedMonth = shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1).toLowerCase();
-        return `${capitalizedMonth} ${yearStr}`;
+        return `${capitalizedMonth} ${yearStr}${suffix}`;
       }
+
+      // Pattern 2: Day-Month-Year (e.g. 25-Jun-2026)
+      const format2 = /\b(\d{1,2})-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*-(\d{4})\b/i;
+      match = t.match(format2);
+      if (match) {
+        const monthStr = match[2];
+        const yearStr = match[3];
+        const shortMonth = monthStr.substring(0, 3);
+        const capitalizedMonth = shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1).toLowerCase();
+        return `${capitalizedMonth} ${yearStr}${suffix}`;
+      }
+
+      // Pattern 3: YYYY-MM-DD
+      const format3 = /\b(\d{4})-(\d{2})-(\d{2})\b/;
+      match = t.match(format3);
+      if (match) {
+        const yearStr = match[1];
+        const monthNum = parseInt(match[2], 10);
+        if (monthNum >= 1 && monthNum <= 12) {
+          const capitalizedMonth = months[monthNum - 1].substring(0, 3);
+          return `${capitalizedMonth} ${yearStr}${suffix}`;
+        }
+      }
+
       const now = new Date();
       const currentMonth = months[now.getMonth()].substring(0, 3);
-      return `${currentMonth} ${now.getFullYear()}`;
+      return `${currentMonth} ${now.getFullYear()}${suffix}`;
     };
 
     const extractVerifyUrl = (t) => {
@@ -282,7 +357,12 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
         case 'Meta': return '#0668E1';
         case 'IBM': return '#052FAD';
         case 'Microsoft': return '#F25022';
+        case 'Stanford': return '#8C1515';
         case 'Amazon Web Services': return '#FF9900';
+        case 'DeepLearning.AI': return '#FF6B00';
+        case 'NVIDIA': return '#76B900';
+        case 'Hugging Face': return '#FFD21E';
+        case 'OpenAI': return '#00A3A3';
         default: return '#00F2FE';
       }
     };
@@ -293,6 +373,21 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
       }
       if (issuer === 'Meta') {
         return `<svg viewBox="0 0 24 24" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="#0668E1"><path d="M18.896 11.233c.462-1.782.502-3.238.125-4.321C18.423 5.16 16.92 4 14.945 4c-1.705 0-3.328.784-4.343 2.195C9.587 4.784 7.964 4 6.259 4c-1.975 0-3.478 1.16-4.076 2.912-.377 1.083-.337 2.539.125 4.321C2.96 13.67 4.417 17 9.587 17c1.015 0 2.015-.224 2.015-.224s1-.224 2.015-.224c5.17 0 6.627-3.33 7.279-5.767zM12 15c-3.86 0-4.957-2.613-5.438-4.469-.328-1.266-.3-2.125-.125-2.625.219-.625.75-.906 1.438-.906.656 0 1.281.344 1.719.969C10.094 8.625 10.75 10.5 12 10.5s1.906-1.875 2.406-2.531c.438-.625 1.063-.969 1.719-.969.688 0 1.219.281 1.438.906.175.5.203 1.359-.125 2.625C16.957 12.387 15.86 15 12 15z"/></svg>`;
+      }
+      if (issuer === 'IBM') {
+        return `<svg viewBox="0 0 24 24" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="#052FAD"><rect y="2" width="24" height="1"/><rect y="4.5" width="24" height="1"/><rect y="7" width="24" height="1"/><rect y="9.5" width="24" height="1"/><rect y="12" width="24" height="1"/><rect y="14.5" width="24" height="1"/><rect y="17" width="24" height="1"/><rect y="19.5" width="24" height="1"/></svg>`;
+      }
+      if (issuer === 'Microsoft') {
+        return `<svg viewBox="0 0 23 23" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="11" height="11" fill="#F25022"/><rect x="12" y="0" width="11" height="11" fill="#7FBA00"/><rect x="0" y="12" width="11" height="11" fill="#00A4EF"/><rect x="12" y="12" width="11" height="11" fill="#FFB900"/></svg>`;
+      }
+      if (issuer === 'Amazon Web Services') {
+        return `<svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="#FF9900" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M4 15c4.5 4 11.5 4 16 0" stroke-linecap="round"/><path d="M18 12l2 3-3 1" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      }
+      if (issuer === 'Stanford') {
+        return `<svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="#8C1515" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="rgba(140, 21, 21, 0.1)"/><path d="M12 22V12M12 12l-4 4m4-4l4 4" stroke-linecap="round"/></svg>`;
+      }
+      if (issuer === 'DeepLearning.AI') {
+        return `<svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="#FF6B00" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke-dasharray="4 4"/><circle cx="12" cy="12" r="4" fill="#FF6B00"/><circle cx="6" cy="6" r="1.5" fill="#FF6B00"/><circle cx="18" cy="18" r="1.5" fill="#FF6B00"/></svg>`;
       }
       return `<svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     };
