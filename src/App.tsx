@@ -2197,6 +2197,7 @@ interface CertificateData {
   glowColor: string;
   logo: React.ReactNode;
   deckName?: string;
+  pdfUrl?: string;
 }
 
 const CERTIFICATES: CertificateData[] = [
@@ -2421,13 +2422,15 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
         verifyUrl: c.verify_url || c.verifyUrl || '',
         glowColor: c.glow_color || c.glowColor || '#4285F4',
         deckName: c.deck_name || c.deckName || c.issuer || 'Other',
+        pdfUrl: c.pdf_url || c.pdfUrl || '',
         logo: typeof c.logo_svg === 'string'
           ? <div dangerouslySetInnerHTML={{ __html: c.logo_svg }} className="w-8 h-8 flex items-center justify-center" />
           : c.logo
       }))
     : CERTIFICATES.map(c => ({
         ...c,
-        deckName: c.deckName || c.issuer || 'Other'
+        deckName: c.deckName || c.issuer || 'Other',
+        pdfUrl: c.pdfUrl || ''
       }));
 
   // Group certificates by deck name for the fan deck
@@ -3112,6 +3115,23 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
                                 >
                                   <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover/verify:translate-x-0.5 group-hover/verify:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                </a>
+                              )}
+
+                              {/* View PDF link */}
+                              {cert.pdfUrl && (
+                                <a
+                                  href={cert.pdfUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex-shrink-0 w-8 h-8 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center text-[#EF4444] hover:bg-[#EF4444]/10 hover:border-[#EF4444]/40 transition-all duration-200 group/pdf"
+                                  title="View PDF Certificate"
+                                >
+                                  <svg className="w-4 h-4 transition-transform duration-200 group-hover/pdf:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h1.5M9 13h6m-6 4h6" />
                                   </svg>
                                 </a>
                               )}

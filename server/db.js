@@ -297,12 +297,18 @@ async function setupMssqlTables() {
       glow_color VARCHAR(100),
       logo_svg TEXT,
       display_order INT,
-      deck_name VARCHAR(100)
+      deck_name VARCHAR(100),
+      pdf_url VARCHAR(500)
     );
 
     IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('certificates') AND name = 'deck_name')
     BEGIN
         ALTER TABLE certificates ADD deck_name VARCHAR(100) NULL;
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('certificates') AND name = 'pdf_url')
+    BEGIN
+        ALTER TABLE certificates ADD pdf_url VARCHAR(500) NULL;
     END
 
     IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'visits')
@@ -401,7 +407,8 @@ async function setupMssqlTables() {
         .input('logo', c.logo_svg)
         .input('order', c.display_order)
         .input('deck', c.deck_name || c.issuer)
-        .query('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (@course, @issuer, @platform, @date, @url, @glow, @logo, @order, @deck)');
+        .input('pdf', c.pdf_url || '')
+        .query('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url) VALUES (@course, @issuer, @platform, @date, @url, @glow, @logo, @order, @deck, @pdf)');
     }
   }
 }
@@ -498,12 +505,18 @@ async function setupSqliteTables() {
             glow_color TEXT,
             logo_svg TEXT,
             display_order INTEGER,
-            deck_name TEXT
+            deck_name TEXT,
+            pdf_url TEXT
           )
         `);
 
         // Safe ALTER TABLE to add deck_name column to existing DB
         sqliteDb.run("ALTER TABLE certificates ADD COLUMN deck_name TEXT", (alterErr) => {
+          // Ignore error if column already exists
+        });
+
+        // Safe ALTER TABLE to add pdf_url column to existing DB
+        sqliteDb.run("ALTER TABLE certificates ADD COLUMN pdf_url TEXT", (alterErr) => {
           // Ignore error if column already exists
         });
 
@@ -572,8 +585,8 @@ async function setupSqliteTables() {
           if (certCheck[0].count === 0) {
             console.log('Seeding SQLite certificates...');
             for (const c of defaultCertificates) {
-              await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-                c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer
+              await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer, c.pdf_url || ''
               ]);
             }
           }
@@ -654,12 +667,19 @@ async function setupPostgresTables() {
       glow_color VARCHAR(100),
       logo_svg TEXT,
       display_order INT,
-      deck_name VARCHAR(100)
+      deck_name VARCHAR(100),
+      pdf_url VARCHAR(500)
     )
   `);
 
   try {
     await query("ALTER TABLE certificates ADD COLUMN IF NOT EXISTS deck_name VARCHAR(100)");
+  } catch (e) {
+    // Ignore
+  }
+
+  try {
+    await query("ALTER TABLE certificates ADD COLUMN IF NOT EXISTS pdf_url VARCHAR(500)");
   } catch (e) {
     // Ignore
   }
@@ -728,8 +748,8 @@ async function setupPostgresTables() {
   if (parseInt(certCheck[0].count, 10) === 0) {
     console.log('Seeding PostgreSQL certificates...');
     for (const c of defaultCertificates) {
-      await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [
-        c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer
+      await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer, c.pdf_url || ''
       ]);
     }
   }

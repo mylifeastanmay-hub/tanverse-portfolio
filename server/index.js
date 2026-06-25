@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { initDatabase, query, run } from './db.js';
 import { put } from '@vercel/blob';
+import { PDFParse } from 'pdf-parse';
 
 dotenv.config();
 
@@ -173,6 +174,144 @@ app.post('/api/upload', authenticateToken, async (req, res) => {
   }
 });
 
+// Parse certificate PDF to extract details
+app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
+  const { base64Data } = req.body;
+  if (!base64Data) {
+    return res.status(400).json({ error: 'Missing base64Data payload.' });
+  }
+
+  try {
+    const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ error: 'Invalid base64 encoding format.' });
+    }
+
+    const buffer = Buffer.from(matches[2], 'base64');
+    
+    // Parse PDF text
+    const parser = new PDFParse({ data: new Uint8Array(buffer) });
+    const textResult = await parser.getText();
+    const text = textResult.text;
+
+    // Helper functions for parsing
+    const extractCourseName = (t) => {
+      const courseraRegex = /successfully completed\s+([\s\S]+?)\s+(?:an?\s+online|online|a course|authorized by|offered through)/i;
+      const match = t.match(courseraRegex);
+      if (match && match[1]) {
+        const course = match[1].replace(/\s+/g, ' ').trim();
+        if (course.length > 5 && course.length < 150) return course;
+      }
+      const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].toLowerCase().includes('successfully completed') && i + 1 < lines.length) {
+          const nextLine = lines[i + 1].trim();
+          if (nextLine.length > 5 && nextLine.length < 150 && !nextLine.toLowerCase().includes('online') && !nextLine.toLowerCase().includes('authorized')) {
+            return nextLine;
+          }
+        }
+      }
+      return '';
+    };
+
+    const extractIssuer = (t) => {
+      const lower = t.toLowerCase();
+      if (lower.includes('google')) return 'Google';
+      if (lower.includes('meta')) return 'Meta';
+      if (lower.includes('ibm')) return 'IBM';
+      if (lower.includes('microsoft')) return 'Microsoft';
+      if (lower.includes('stanford')) return 'Stanford';
+      if (lower.includes('amazon') || lower.includes('aws')) return 'Amazon Web Services';
+      return 'Google';
+    };
+
+    const extractPlatform = (t) => {
+      const lower = t.toLowerCase();
+      if (lower.includes('coursera')) return 'Coursera';
+      if (lower.includes('edx')) return 'edX';
+      if (lower.includes('udacity')) return 'Udacity';
+      if (lower.includes('udemy')) return 'Udemy';
+      return 'Coursera';
+    };
+
+    const extractDate = (t) => {
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
+                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const dateRegex = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2},?\s+)?(\d{4})\b/i;
+      const match = t.match(dateRegex);
+      if (match) {
+        const monthStr = match[1];
+        const yearStr = match[3];
+        const shortMonth = monthStr.substring(0, 3);
+        const capitalizedMonth = shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1).toLowerCase();
+        return `${capitalizedMonth} ${yearStr}`;
+      }
+      const now = new Date();
+      const currentMonth = months[now.getMonth()].substring(0, 3);
+      return `${currentMonth} ${now.getFullYear()}`;
+    };
+
+    const extractVerifyUrl = (t) => {
+      const urlRegex = /https?:\/\/[^\s]+/g;
+      const matches = t.match(urlRegex) || [];
+      for (const url of matches) {
+        const cleanUrl = url.replace(/[.,;:)\]]+$/, '');
+        if (cleanUrl.includes('verify') || cleanUrl.includes('coursera.org/verify') || cleanUrl.includes('credential')) {
+          return cleanUrl;
+        }
+      }
+      if (matches.length > 0) {
+        return matches[0].replace(/[.,;:)\]]+$/, '');
+      }
+      return '';
+    };
+
+    const getGlowColor = (issuer) => {
+      switch (issuer) {
+        case 'Google': return '#4285F4';
+        case 'Meta': return '#0668E1';
+        case 'IBM': return '#052FAD';
+        case 'Microsoft': return '#F25022';
+        case 'Amazon Web Services': return '#FF9900';
+        default: return '#00F2FE';
+      }
+    };
+
+    const getLogoSvg = (issuer) => {
+      if (issuer === 'Google') {
+        return `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/><path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/><path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/></svg>`;
+      }
+      if (issuer === 'Meta') {
+        return `<svg viewBox="0 0 24 24" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="#0668E1"><path d="M18.896 11.233c.462-1.782.502-3.238.125-4.321C18.423 5.16 16.92 4 14.945 4c-1.705 0-3.328.784-4.343 2.195C9.587 4.784 7.964 4 6.259 4c-1.975 0-3.478 1.16-4.076 2.912-.377 1.083-.337 2.539.125 4.321C2.96 13.67 4.417 17 9.587 17c1.015 0 2.015-.224 2.015-.224s1-.224 2.015-.224c5.17 0 6.627-3.33 7.279-5.767zM12 15c-3.86 0-4.957-2.613-5.438-4.469-.328-1.266-.3-2.125-.125-2.625.219-.625.75-.906 1.438-.906.656 0 1.281.344 1.719.969C10.094 8.625 10.75 10.5 12 10.5s1.906-1.875 2.406-2.531c.438-.625 1.063-.969 1.719-.969.688 0 1.219.281 1.438.906.175.5.203 1.359-.125 2.625C16.957 12.387 15.86 15 12 15z"/></svg>`;
+      }
+      return `<svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    };
+
+    const issuer = extractIssuer(text);
+    const course = extractCourseName(text);
+    const platform = extractPlatform(text);
+    const date = extractDate(text);
+    const verify_url = extractVerifyUrl(text);
+    const glow_color = getGlowColor(issuer);
+    const logo_svg = getLogoSvg(issuer);
+
+    res.json({
+      success: true,
+      course,
+      issuer,
+      platform,
+      date,
+      verify_url,
+      glow_color,
+      logo_svg,
+      deck_name: issuer
+    });
+  } catch (err) {
+    console.error('PDF parsing error:', err);
+    res.status(500).json({ error: 'Failed to parse PDF.' });
+  }
+});
+
 // SKILLS CRUD
 app.post('/api/skills', authenticateToken, async (req, res) => {
   const { num, title, category, desc, glow_color, tools, display_order, logo_svg } = req.body;
@@ -289,11 +428,11 @@ app.delete('/api/experiences/:id', authenticateToken, async (req, res) => {
 
 // CERTIFICATES CRUD
 app.post('/api/certificates', authenticateToken, async (req, res) => {
-  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name } = req.body;
+  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url } = req.body;
   try {
     await run(
-      'INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order || 99, deck_name || issuer || 'Other']
+      'INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order || 99, deck_name || issuer || 'Other', pdf_url || '']
     );
     res.json({ success: true, message: 'Certificate successfully created.' });
   } catch (err) {
@@ -303,11 +442,11 @@ app.post('/api/certificates', authenticateToken, async (req, res) => {
 
 app.put('/api/certificates/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name } = req.body;
+  const { course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url } = req.body;
   try {
     await run(
-      'UPDATE certificates SET course = ?, issuer = ?, platform = ?, date = ?, verify_url = ?, glow_color = ?, logo_svg = ?, display_order = ?, deck_name = ? WHERE id = ?',
-      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name || issuer || 'Other', id]
+      'UPDATE certificates SET course = ?, issuer = ?, platform = ?, date = ?, verify_url = ?, glow_color = ?, logo_svg = ?, display_order = ?, deck_name = ?, pdf_url = ? WHERE id = ?',
+      [course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name || issuer || 'Other', pdf_url || '', id]
     );
     res.json({ success: true, message: 'Certificate successfully updated.' });
   } catch (err) {

@@ -83,6 +83,7 @@ interface Certificate {
   logo_svg: string;
   display_order: number;
   deck_name?: string;
+  pdf_url?: string;
 }
 
 interface Contact {
@@ -569,8 +570,11 @@ export default function App() {
     glow_color: '#4285F4',
     logo_svg: '',
     display_order: 1,
-    deck_name: ''
+    deck_name: '',
+    pdf_url: ''
   });
+
+  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
 
   const [contactForm, setContactForm] = useState<Contact>({
     email: '',
@@ -589,6 +593,93 @@ export default function App() {
     setTimeout(() => {
       setAlert(null);
     }, 4000);
+  };
+
+  const handlePdfUploadAndParse = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+      showAlert('Please select a PDF file.', 'error');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      showAlert('PDF file must be under 10MB.', 'error');
+      return;
+    }
+
+    setIsPdfProcessing(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result as string;
+        try {
+          // 1. Extract Details
+          const parseRes = await fetch(`${API_BASE}/parse-pdf`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ base64Data })
+          });
+
+          if (!parseRes.ok) {
+            throw new Error('Failed to parse PDF metadata.');
+          }
+
+          const parseData = await parseRes.json();
+          if (parseData.success) {
+            setCertificateForm(prev => ({
+              ...prev,
+              course: parseData.course || prev.course,
+              issuer: parseData.issuer || prev.issuer,
+              platform: parseData.platform || prev.platform,
+              date: parseData.date || prev.date,
+              verify_url: parseData.verify_url || prev.verify_url,
+              glow_color: parseData.glow_color || prev.glow_color,
+              logo_svg: parseData.logo_svg || prev.logo_svg,
+              deck_name: parseData.deck_name || prev.deck_name
+            }));
+            showAlert('PDF parsed successfully! Details loaded.');
+          }
+
+          // 2. Upload PDF
+          const uploadRes = await fetch(`${API_BASE}/upload`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              base64Data
+            })
+          });
+
+          const uploadData = await uploadRes.json();
+          if (uploadRes.ok && uploadData.url) {
+            setCertificateForm(prev => ({
+              ...prev,
+              pdf_url: uploadData.url
+            }));
+            showAlert('PDF uploaded and attached.');
+          } else {
+            showAlert('PDF parsed but file upload failed.', 'error');
+          }
+        } catch (err: any) {
+          showAlert(err.message || 'Error processing PDF.', 'error');
+        } finally {
+          setIsPdfProcessing(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      showAlert('Error reading file.', 'error');
+      setIsPdfProcessing(false);
+    }
   };
 
   // Check login on load
@@ -895,7 +986,8 @@ export default function App() {
             glow_color: item.glow_color || '#4285F4',
             logo_svg: item.logo_svg || '',
             display_order: item.display_order || 1,
-            deck_name: item.deck_name || item.deckName || ''
+            deck_name: item.deck_name || item.deckName || '',
+            pdf_url: item.pdf_url || item.pdfUrl || ''
           });
         } else {
           const maxOrder = certificates.reduce((max, c) => c.display_order > max ? c.display_order : max, 0);
@@ -908,7 +1000,8 @@ export default function App() {
             glow_color: '#4285F4',
             logo_svg: '<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg">\n  <path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/>\n  <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/>\n  <path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/>\n  <path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/>\n</svg>',
             display_order: maxOrder + 1,
-            deck_name: ''
+            deck_name: '',
+            pdf_url: ''
           });
         }
       }
@@ -1018,7 +1111,8 @@ export default function App() {
       glow_color: certificateForm.glow_color,
       logo_svg: certificateForm.logo_svg,
       display_order: Number(certificateForm.display_order),
-      deck_name: certificateForm.deck_name || certificateForm.issuer
+      deck_name: certificateForm.deck_name || certificateForm.issuer,
+      pdf_url: certificateForm.pdf_url || ''
     };
 
     let response;
@@ -1149,7 +1243,8 @@ export default function App() {
           glow_color: i.glow_color,
           logo_svg: i.logo_svg,
           display_order: i.display_order,
-          deck_name: i.deck_name || i.issuer
+          deck_name: i.deck_name || i.issuer,
+          pdf_url: i.pdf_url || ''
         };
       }
       return i;
@@ -2408,6 +2503,65 @@ export default function App() {
             {/* CERTIFICATES FORM */}
             {activeTab === 'certificates' && (
               <form onSubmit={handleCertificateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                
+                {/* 🚀 PDF Upload & Auto-fill */}
+                <div className="glass-panel" style={{ padding: '16px', border: '1px dashed var(--color-cyan)', borderRadius: '12px', background: 'rgba(0, 242, 254, 0.02)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-cyan)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      PDF Auto-Fill & Attachment
+                    </span>
+                    {isPdfProcessing && (
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280', fontFamily: 'monospace' }}>Processing PDF...</span>
+                    )}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <input 
+                      type="file" 
+                      accept=".pdf"
+                      id="cert-pdf-upload"
+                      style={{ display: 'none' }}
+                      onChange={handlePdfUploadAndParse}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => document.getElementById('cert-pdf-upload')?.click()}
+                      disabled={isPdfProcessing}
+                      style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.8rem', padding: '10px' }}
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      {certificateForm.pdf_url ? 'Change PDF Certificate File' : 'Upload PDF (Auto-fill Details)'}
+                    </button>
+                    {certificateForm.pdf_url && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setCertificateForm({ ...certificateForm, pdf_url: '' })}
+                        style={{ padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }}
+                        title="Remove Attached PDF"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {certificateForm.pdf_url && (
+                    <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Attached PDF: <a href={certificateForm.pdf_url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-cyan)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>{certificateForm.pdf_url.split('/').pop()}</a>
+                    </div>
+                  )}
+                </div>
+
                 <div className="details-grid">
                   <div className="form-group">
                     <label className="form-label" htmlFor="cert-course">Course Name</label>
