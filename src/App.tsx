@@ -1777,6 +1777,7 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
 
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const popupTouchStartY = useRef<number | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -1859,6 +1860,22 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
       handleNext();
     } else if (distance < -minSwipeDistance) {
       handlePrev();
+    }
+  };
+
+  const handlePopupTouchStart = (e: React.TouchEvent) => {
+    popupTouchStartY.current = e.targetTouches[0].clientY;
+  };
+
+  const handlePopupTouchMove = (e: React.TouchEvent) => {
+    if (popupTouchStartY.current === null) return;
+    const currentY = e.targetTouches[0].clientY;
+    const diffY = currentY - popupTouchStartY.current;
+    const dismissDistance = 25; // Close if swiped up or down by ~25px (~0.5cm)
+    if (Math.abs(diffY) > dismissDistance) {
+      setActivePopupProject(null);
+      playCyberSound('click');
+      popupTouchStartY.current = null;
     }
   };
 
@@ -2004,6 +2021,8 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              onTouchStart={handlePopupTouchStart}
+              onTouchMove={handlePopupTouchMove}
               onClick={() => {
                 setActivePopupProject(null);
                 playCyberSound('click');
@@ -2017,6 +2036,8 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
               animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%', filter: 'blur(0px)' }}
               exit={{ opacity: 0, scale: 0.75, x: '-50%', y: '-60%', filter: 'blur(12px)' }}
               transition={{ type: 'spring', damping: 22, stiffness: 140 }}
+              onTouchStart={handlePopupTouchStart}
+              onTouchMove={handlePopupTouchMove}
               className="popup-box fixed z-50 left-1/2 backdrop-blur-2xl bg-black/95 border rounded-2xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.9)] text-white w-[90%] max-w-[640px] pointer-events-auto select-text"
               style={{
                 top: '50%',
