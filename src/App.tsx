@@ -2221,6 +2221,8 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [activePopupExperience, setActivePopupExperience] = useState<ExperienceItem | null>(null);
   const [hoveredCert, setHoveredCert] = useState<number | null>(null);
+  const [expandedIssuer, setExpandedIssuer] = useState<string | null>(null);
+  const [hoveredFanCard, setHoveredFanCard] = useState<number | null>(null);
 
   const handleOpenPopup = (item: ExperienceItem) => {
     setActivePopupExperience(item);
@@ -2254,6 +2256,47 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [activePopupExperience]);
+
+  // Fan Deck scroll dismiss — collapse if user scrolls 11px (~0.3cm)
+  useEffect(() => {
+    if (!expandedIssuer) return;
+    const initialScrollY = window.scrollY;
+    const handleScroll = () => {
+      const diffY = Math.abs(window.scrollY - initialScrollY);
+      if (diffY > 11) {
+        setExpandedIssuer(null);
+        setHoveredFanCard(null);
+        playCyberSound('click');
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [expandedIssuer]);
+
+  // Click outside to collapse fan deck
+  useEffect(() => {
+    if (!expandedIssuer) return;
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.fan-deck-expanded')) {
+        setExpandedIssuer(null);
+        setHoveredFanCard(null);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', handleClick), 50);
+    return () => document.removeEventListener('click', handleClick);
+  }, [expandedIssuer]);
+
+  // Group certificates by issuer for the fan deck
+  const certsByIssuer = useMemo(() => {
+    const grouped: Record<string, typeof displayCertificates> = {};
+    for (const cert of displayCertificates) {
+      const issuer = cert.issuer || 'Other';
+      if (!grouped[issuer]) grouped[issuer] = [];
+      grouped[issuer].push(cert);
+    }
+    return grouped;
+  }, [displayCertificates]);
 
   const experienceData: ExperienceItem[] = [
     {
@@ -2789,134 +2832,309 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
         )}
       </AnimatePresence>
 
-      {/* ─── Credentials Sub-Section ─── */}
+      {/* ─── Credentials Sub-Section: Stacked Fan Deck ─── */}
       <div className="relative z-20 max-w-5xl mx-auto px-5 sm:px-8 md:px-10 mt-24 pb-8">
         {/* Divider with label */}
-        <div className="flex items-center gap-4 mb-12">
+        <div className="flex items-center gap-4 mb-16">
           <div className="h-[1px] flex-grow bg-gradient-to-r from-transparent via-white/15 to-white/5" />
-          <span className="text-[10px] font-mono tracking-[0.3em] text-slate-400 uppercase whitespace-nowrap">
+          <span className="text-[10px] font-mono tracking-[0.3em] text-slate-400 uppercase whitespace-nowrap flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-[#00F2FE]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
             Credentials & Certifications
           </span>
           <div className="h-[1px] flex-grow bg-gradient-to-l from-transparent via-white/15 to-white/5" />
         </div>
 
-        {/* Certificates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Certificate Cards */}
-          {displayCertificates.map((cert, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ y: -6 }}
-              onMouseEnter={() => setHoveredCert(index)}
-              onMouseLeave={() => setHoveredCert(null)}
-              className="relative p-6 rounded-2xl border bg-white/[0.02] backdrop-blur-xl group transition-all duration-300 overflow-hidden"
-              style={{
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.4)',
-                borderColor: hoveredCert === index ? cert.glowColor : 'rgba(255,255,255,0.1)'
-              }}
-            >
-              {/* Corner Brackets */}
-              <div 
-                className="absolute top-2 left-2 w-2 h-2 border-t border-l border-white/20 transition-colors duration-300"
-                style={{ borderColor: hoveredCert === index ? cert.glowColor : undefined }}
-              />
-              <div 
-                className="absolute top-2 right-2 w-2 h-2 border-t border-r border-white/20 transition-colors duration-300"
-                style={{ borderColor: hoveredCert === index ? cert.glowColor : undefined }}
-              />
-              <div 
-                className="absolute bottom-2 left-2 w-2 h-2 border-b border-l border-white/20 transition-colors duration-300"
-                style={{ borderColor: hoveredCert === index ? cert.glowColor : undefined }}
-              />
-              <div 
-                className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-white/20 transition-colors duration-300"
-                style={{ borderColor: hoveredCert === index ? cert.glowColor : undefined }}
-              />
+        {/* Fan Deck Stacks — One Per Issuer */}
+        <div className="flex flex-wrap justify-center gap-10 md:gap-16 max-w-4xl mx-auto">
+          {Object.entries(certsByIssuer).map(([issuer, certs], groupIdx) => {
+            const isExpanded = expandedIssuer === issuer;
+            const primaryColor = certs[0]?.glowColor || '#4285F4';
+            const firstLogo = certs[0]?.logo;
 
-              {/* Hover Glow Background */}
-              <div 
-                className="absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{
-                  background: `linear-gradient(90deg, ${cert.glowColor}00 0%, ${cert.glowColor}0b 50%, ${cert.glowColor}00 100%)`
-                }}
-              />
+            return (
+              <motion.div
+                key={issuer}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: groupIdx * 0.15 }}
+                className="flex flex-col items-center"
+              >
+                {/* ─── Collapsed: Stacked Card Pile ─── */}
+                {!isExpanded && (
+                  <div
+                    className="deck-stack-container relative cursor-pointer group deck-float"
+                    onClick={() => {
+                      setExpandedIssuer(issuer);
+                      playCyberSound('popup');
+                    }}
+                    style={{ width: 220, height: 160 }}
+                  >
+                    {/* Shadow layers behind the top card to create depth */}
+                    {certs.length > 1 && (
+                      <div
+                        className="absolute rounded-2xl border border-white/5 bg-white/[0.01]"
+                        style={{
+                          width: 220, height: 140,
+                          top: 12, left: 8,
+                          transform: 'rotate(-3deg)',
+                          boxShadow: `0 2px 20px ${primaryColor}10`,
+                        }}
+                      />
+                    )}
+                    {certs.length > 2 && (
+                      <div
+                        className="absolute rounded-2xl border border-white/5 bg-white/[0.015]"
+                        style={{
+                          width: 220, height: 140,
+                          top: 6, left: -6,
+                          transform: 'rotate(2deg)',
+                          boxShadow: `0 2px 16px ${primaryColor}08`,
+                        }}
+                      />
+                    )}
 
-              <div className="flex items-start gap-5 relative z-10">
-                {/* Platform/Company Logo */}
-                <div 
-                  className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    borderColor: hoveredCert === index ? cert.glowColor + '40' : undefined,
-                    filter: `drop-shadow(0 0 6px ${cert.glowColor}30)`,
-                  }}
-                >
-                  {cert.logo}
-                </div>
-
-                <div className="flex flex-col flex-grow min-w-0 text-left">
-                  <div className="flex items-center justify-between gap-2">
-                    <span 
-                      className="text-[10px] font-mono tracking-widest uppercase font-bold transition-colors duration-300"
-                      style={{ color: cert.glowColor }}
+                    {/* Top card — the main visible one */}
+                    <div
+                      className="absolute top-0 left-0 w-[220px] h-[140px] rounded-2xl border bg-[#111113]/90 backdrop-blur-xl deck-card-shimmer overflow-hidden transition-all duration-300 group-hover:border-opacity-60"
+                      style={{
+                        borderColor: primaryColor + '30',
+                        boxShadow: `0 8px 40px ${primaryColor}15, 0 0 0 1px ${primaryColor}10`,
+                      }}
                     >
-                      {cert.platform}
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {cert.date}
-                    </span>
+                      {/* Corner brackets */}
+                      <div className="absolute top-2 left-2 w-2 h-2 border-t border-l transition-colors duration-300" style={{ borderColor: primaryColor + '50' }} />
+                      <div className="absolute top-2 right-2 w-2 h-2 border-t border-r transition-colors duration-300" style={{ borderColor: primaryColor + '50' }} />
+                      <div className="absolute bottom-2 left-2 w-2 h-2 border-b border-l transition-colors duration-300" style={{ borderColor: primaryColor + '50' }} />
+                      <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r transition-colors duration-300" style={{ borderColor: primaryColor + '50' }} />
+
+                      {/* Glow aura behind */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(ellipse at center, ${primaryColor}12 0%, transparent 70%)`
+                        }}
+                      />
+
+                      {/* Card content */}
+                      <div className="relative z-10 flex flex-col items-center justify-center h-full px-5 py-4 text-center">
+                        {/* Logo with pulsing ring */}
+                        <div
+                          className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center mb-3 deck-logo-pulse transition-transform duration-300 group-hover:scale-110"
+                          style={{
+                            borderColor: primaryColor + '40',
+                            filter: `drop-shadow(0 0 8px ${primaryColor}40)`,
+                          }}
+                        >
+                          {firstLogo}
+                        </div>
+
+                        {/* Issuer name */}
+                        <h4 className="text-base font-black uppercase tracking-wider text-white transition-colors duration-300 group-hover:text-[#00F2FE]">
+                          {issuer}
+                        </h4>
+
+                        {/* Count badge */}
+                        <div
+                          className="mt-2 px-3 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase"
+                          style={{
+                            background: `${primaryColor}18`,
+                            color: primaryColor,
+                            border: `1px solid ${primaryColor}30`,
+                          }}
+                        >
+                          {certs.length} {certs.length === 1 ? 'Certificate' : 'Certificates'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* "View All" button below the stack */}
                   </div>
+                )}
 
-                  <h4 
-                    className="text-lg font-black uppercase tracking-wide mt-1 truncate transition-colors duration-300"
-                    style={{ color: hoveredCert === index ? cert.glowColor : '#FFFFFF' }}
+                {!isExpanded && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      setExpandedIssuer(issuer);
+                      playCyberSound('popup');
+                    }}
+                    className="mt-6 px-5 py-2 rounded-full text-[11px] font-mono font-bold uppercase tracking-[0.2em] border transition-all duration-300 hover:shadow-lg"
+                    style={{
+                      color: primaryColor,
+                      borderColor: primaryColor + '40',
+                      background: `${primaryColor}08`,
+                      boxShadow: `0 0 20px ${primaryColor}00`,
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.boxShadow = `0 0 25px ${primaryColor}30`;
+                      (e.target as HTMLElement).style.borderColor = primaryColor;
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.boxShadow = `0 0 20px ${primaryColor}00`;
+                      (e.target as HTMLElement).style.borderColor = primaryColor + '40';
+                    }}
                   >
-                    {cert.course}
-                  </h4>
-                  
-                  <span className="text-xs text-slate-400 font-medium mt-0.5">
-                    Authorized by {cert.issuer}
-                  </span>
+                    View All →
+                  </motion.button>
+                )}
 
-                  <a 
-                    href={cert.verifyUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1.5 text-xs text-[#00F2FE] hover:text-white mt-4 font-mono uppercase tracking-wider transition-colors duration-200 group/link w-fit"
-                  >
-                    <span>Verify Certificate</span>
-                    <svg className="w-3.5 h-3.5 transform transition-transform duration-200 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+                {/* ─── Expanded: Fanned Cards ─── */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      className="fan-deck-expanded relative"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Cards fanned out */}
+                      <div className="flex flex-col gap-4 w-[min(90vw,420px)]">
+                        {/* Header */}
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex items-center justify-between mb-2"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-lg flex items-center justify-center"
+                              style={{ background: `${primaryColor}15`, border: `1px solid ${primaryColor}30` }}
+                            >
+                              {firstLogo}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black uppercase tracking-wider" style={{ color: primaryColor }}>{issuer}</h4>
+                              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest">{certs.length} Credentials</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedIssuer(null);
+                              setHoveredFanCard(null);
+                              playCyberSound('click');
+                            }}
+                            className="w-7 h-7 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:border-white/30 transition-all duration-200"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </motion.div>
 
-          {/* Placeholder: More in Progress */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative p-6 rounded-2xl border border-dashed border-white/10 bg-white/[0.01] backdrop-blur-xl flex flex-col justify-center items-center text-center py-10 group"
-          >
-            <div className="w-12 h-12 rounded-full border border-dashed border-white/20 flex items-center justify-center mb-4 text-slate-500 group-hover:text-slate-300 group-hover:border-slate-400 transition-colors duration-300">
-              <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">
-              More Credentials in Progress
-            </h4>
-            <p className="text-[11px] font-mono text-slate-500 mt-2 max-w-[240px]">
-              Currently mastering Advanced ML systems & Deep Learning frameworks.
-            </p>
-          </motion.div>
+                        {/* Individual cert cards */}
+                        {certs.map((cert, cardIdx) => (
+                          <motion.div
+                            key={cardIdx}
+                            initial={{ opacity: 0, x: -30, rotateY: -15 }}
+                            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                            exit={{ opacity: 0, x: -30, rotateY: -15 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 260,
+                              damping: 20,
+                              delay: cardIdx * 0.07
+                            }}
+                            whileHover={{ y: -4, scale: 1.02 }}
+                            onMouseEnter={() => setHoveredFanCard(cardIdx)}
+                            onMouseLeave={() => setHoveredFanCard(null)}
+                            className="relative p-5 rounded-xl border bg-[#111113]/80 backdrop-blur-xl fan-card-shine overflow-hidden transition-all duration-300 cursor-default"
+                            style={{
+                              borderColor: hoveredFanCard === cardIdx ? cert.glowColor + '60' : 'rgba(255,255,255,0.07)',
+                              boxShadow: hoveredFanCard === cardIdx
+                                ? `0 8px 30px ${cert.glowColor}25, 0 0 0 1px ${cert.glowColor}15`
+                                : '0 4px 20px rgba(0,0,0,0.3)',
+                            }}
+                          >
+                            {/* Corner brackets */}
+                            <div className="absolute top-1.5 left-1.5 w-1.5 h-1.5 border-t border-l" style={{ borderColor: hoveredFanCard === cardIdx ? cert.glowColor : 'rgba(255,255,255,0.15)' }} />
+                            <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 border-t border-r" style={{ borderColor: hoveredFanCard === cardIdx ? cert.glowColor : 'rgba(255,255,255,0.15)' }} />
+                            <div className="absolute bottom-1.5 left-1.5 w-1.5 h-1.5 border-b border-l" style={{ borderColor: hoveredFanCard === cardIdx ? cert.glowColor : 'rgba(255,255,255,0.15)' }} />
+                            <div className="absolute bottom-1.5 right-1.5 w-1.5 h-1.5 border-b border-r" style={{ borderColor: hoveredFanCard === cardIdx ? cert.glowColor : 'rgba(255,255,255,0.15)' }} />
+
+                            {/* Subtle glow overlay */}
+                            <div
+                              className="absolute inset-0 opacity-0 transition-opacity duration-400 pointer-events-none"
+                              style={{
+                                opacity: hoveredFanCard === cardIdx ? 1 : 0,
+                                background: `linear-gradient(135deg, ${cert.glowColor}06 0%, transparent 60%)`
+                              }}
+                            />
+
+                            <div className="flex items-center gap-4 relative z-10">
+                              {/* Card number badge */}
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-mono font-black flex-shrink-0 transition-all duration-300"
+                                style={{
+                                  background: hoveredFanCard === cardIdx ? `${cert.glowColor}20` : 'rgba(255,255,255,0.03)',
+                                  color: hoveredFanCard === cardIdx ? cert.glowColor : '#6b7280',
+                                  border: `1px solid ${hoveredFanCard === cardIdx ? cert.glowColor + '40' : 'rgba(255,255,255,0.06)'}`,
+                                }}
+                              >
+                                {String(cardIdx + 1).padStart(2, '0')}
+                              </div>
+
+                              {/* Course info */}
+                              <div className="flex flex-col flex-grow min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[9px] font-mono tracking-widest uppercase font-bold" style={{ color: cert.glowColor }}>
+                                    {cert.platform}
+                                  </span>
+                                  <span className="text-[9px] font-mono text-slate-500">{cert.date}</span>
+                                </div>
+                                <h4
+                                  className="text-sm font-bold uppercase tracking-wide mt-0.5 truncate transition-colors duration-200"
+                                  style={{ color: hoveredFanCard === cardIdx ? '#FFFFFF' : '#c8d0d9' }}
+                                >
+                                  {cert.course}
+                                </h4>
+                              </div>
+
+                              {/* Verify link */}
+                              {cert.verifyUrl && (
+                                <a
+                                  href={cert.verifyUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex-shrink-0 w-8 h-8 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center text-[#00F2FE] hover:bg-[#00F2FE]/10 hover:border-[#00F2FE]/40 transition-all duration-200 group/verify"
+                                  title="Verify Certificate"
+                                >
+                                  <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover/verify:translate-x-0.5 group-hover/verify:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                </a>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+
+                        {/* Collapse button at bottom */}
+                        <motion.button
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: certs.length * 0.07 + 0.2 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedIssuer(null);
+                            setHoveredFanCard(null);
+                            playCyberSound('click');
+                          }}
+                          className="mt-2 mx-auto px-4 py-1.5 rounded-full text-[10px] font-mono uppercase tracking-widest text-slate-500 border border-white/5 bg-white/[0.02] hover:text-white hover:border-white/20 transition-all duration-200"
+                        >
+                          ← Collapse
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

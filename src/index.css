@@ -287,4 +287,79 @@ input:focus, textarea:focus {
   perspective: 1200px;
 }
 
+/* ─── Fan Deck Certifications ─── */
+
+@keyframes holoShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes deckPulseRing {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); }
+}
+
+@keyframes deckFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes deckCardShine {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.deck-stack-container {
+  perspective: 1400px;
+  transform-style: preserve-3d;
+}
+
+.deck-card-shimmer {
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.03) 40%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 60%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: holoShimmer 4s ease-in-out infinite;
+}
+
+.deck-logo-pulse {
+  animation: deckPulseRing 2.5s ease-in-out infinite;
+}
+
+.deck-float {
+  animation: deckFloat 4s ease-in-out infinite;
+}
+
+.fan-card-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  animation: deckCardShine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.deck-badge-pop {
+  animation: badgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 
