@@ -492,7 +492,7 @@ function HeroSection({ avatarUrl }: { avatarUrl?: string }) {
       </div>
 
       {/* Hero Portrait */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[250px] sm:w-[320px] md:w-[390px] lg:w-[460px] bottom-0">
+      <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[250px] sm:w-[320px] md:w-[390px] lg:w-[460px] bottom-24 sm:bottom-0">
         <FadeIn delay={0.6} y={30}>
           <Magnet padding={150} strength={3}>
             <div className="relative select-none w-full">
@@ -1775,6 +1775,9 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
   const containerRef = useRef<HTMLDivElement>(null);
   const [activePopupProject, setActivePopupProject] = useState<ProjectData | null>(null);
 
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -1837,6 +1840,26 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
   const handleNext = () => {
     setActiveProjIndex((prev) => (prev < displayProjects.length - 1 ? prev + 1 : 0));
     playCyberSound('click');
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+    if (distance > minSwipeDistance) {
+      handleNext();
+    } else if (distance < -minSwipeDistance) {
+      handlePrev();
+    }
   };
 
   const handleSectionClick = (e: React.MouseEvent) => {
@@ -1903,6 +1926,9 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
         {/* Clickable 3D Rotating Deck Carousel Viewport */}
         <div 
           onClick={handleSectionClick}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
           style={{
             perspective: '1500px',
             transformStyle: 'preserve-3d'
