@@ -574,8 +574,6 @@ export default function App() {
     pdf_url: ''
   });
 
-  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
-
   const [contactForm, setContactForm] = useState<Contact>({
     email: '',
     phone: '',
@@ -593,6 +591,48 @@ export default function App() {
     setTimeout(() => {
       setAlert(null);
     }, 4000);
+  };
+
+  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
+  const [autoFillOnUpload, setAutoFillOnUpload] = useState(true);
+
+  const handleAutoFetchFromUrl = async () => {
+    if (!certificateForm.pdf_url) {
+      showAlert('Please enter a PDF URL first.', 'error');
+      return;
+    }
+    setIsPdfProcessing(true);
+    try {
+      const res = await fetch(`${API_BASE}/parse-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ pdfUrl: certificateForm.pdf_url })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCertificateForm(prev => ({
+          ...prev,
+          course: data.course || prev.course,
+          issuer: data.issuer || prev.issuer,
+          platform: data.platform || prev.platform,
+          date: data.date || prev.date,
+          verify_url: data.verify_url || prev.verify_url,
+          glow_color: data.glow_color || prev.glow_color,
+          logo_svg: data.logo_svg || prev.logo_svg,
+          deck_name: data.deck_name || prev.deck_name
+        }));
+        showAlert('Details successfully auto-fetched from PDF URL!');
+      } else {
+        showAlert(data.error || 'Failed to auto-fetch details from PDF URL.', 'error');
+      }
+    } catch (err) {
+      showAlert('Error auto-fetching details from PDF URL.', 'error');
+    } finally {
+      setIsPdfProcessing(false);
+    }
   };
 
   const handlePdfUploadAndParse = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -616,37 +656,7 @@ export default function App() {
       reader.onloadend = async () => {
         const base64Data = reader.result as string;
         try {
-          // 1. Extract Details
-          const parseRes = await fetch(`${API_BASE}/parse-pdf`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ base64Data })
-          });
-
-          if (!parseRes.ok) {
-            throw new Error('Failed to parse PDF metadata.');
-          }
-
-          const parseData = await parseRes.json();
-          if (parseData.success) {
-            setCertificateForm(prev => ({
-              ...prev,
-              course: parseData.course || prev.course,
-              issuer: parseData.issuer || prev.issuer,
-              platform: parseData.platform || prev.platform,
-              date: parseData.date || prev.date,
-              verify_url: parseData.verify_url || prev.verify_url,
-              glow_color: parseData.glow_color || prev.glow_color,
-              logo_svg: parseData.logo_svg || prev.logo_svg,
-              deck_name: parseData.deck_name || prev.deck_name
-            }));
-            showAlert('PDF parsed successfully! Details loaded.');
-          }
-
-          // 2. Upload PDF
+          // 1. Upload PDF
           const uploadRes = await fetch(`${API_BASE}/upload`, {
             method: 'POST',
             headers: {
@@ -660,14 +670,46 @@ export default function App() {
           });
 
           const uploadData = await uploadRes.json();
-          if (uploadRes.ok && uploadData.url) {
-            setCertificateForm(prev => ({
-              ...prev,
-              pdf_url: uploadData.url
-            }));
-            showAlert('PDF uploaded and attached.');
-          } else {
-            showAlert('PDF parsed but file upload failed.', 'error');
+          if (!uploadRes.ok || !uploadData.url) {
+            throw new Error(uploadData.error || 'Failed to upload PDF.');
+          }
+
+          setCertificateForm(prev => ({
+            ...prev,
+            pdf_url: uploadData.url
+          }));
+          showAlert('PDF uploaded and attached.');
+
+          // 2. Extract Details if requested
+          if (autoFillOnUpload) {
+            const parseRes = await fetch(`${API_BASE}/parse-pdf`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ base64Data })
+            });
+
+            if (!parseRes.ok) {
+              showAlert('PDF attached but failed to parse metadata.', 'error');
+            } else {
+              const parseData = await parseRes.json();
+              if (parseData.success) {
+                setCertificateForm(prev => ({
+                  ...prev,
+                  course: parseData.course || prev.course,
+                  issuer: parseData.issuer || prev.issuer,
+                  platform: parseData.platform || prev.platform,
+                  date: parseData.date || prev.date,
+                  verify_url: parseData.verify_url || prev.verify_url,
+                  glow_color: parseData.glow_color || prev.glow_color,
+                  logo_svg: parseData.logo_svg || prev.logo_svg,
+                  deck_name: parseData.deck_name || prev.deck_name
+                }));
+                showAlert('PDF parsed successfully! Details loaded.');
+              }
+            }
           }
         } catch (err: any) {
           showAlert(err.message || 'Error processing PDF.', 'error');
@@ -1763,13 +1805,24 @@ export default function App() {
                         </div>
                       </div>
 
-                      {cert.verify_url && (
-                        <div style={{ marginTop: '12px' }}>
+                      <div style={{ marginTop: '12px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        {cert.verify_url && (
                           <a href={cert.verify_url} target="_blank" rel="noreferrer" className="mono" style={{ fontSize: '0.7rem', color: 'var(--color-cyan)', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            Verify Certificate Link
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Verify Link
                           </a>
-                        </div>
-                      )}
+                        )}
+                        {cert.pdf_url && (
+                          <a href={cert.pdf_url} target="_blank" rel="noreferrer" className="mono" style={{ fontSize: '0.7rem', color: '#ef4444', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            Attached PDF
+                          </a>
+                        )}
+                      </div>
 
                       <div className="order-controls">
                         <button 
@@ -2505,59 +2558,132 @@ export default function App() {
               <form onSubmit={handleCertificateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 
                 {/* 🚀 PDF Upload & Auto-fill */}
-                <div className="glass-panel" style={{ padding: '16px', border: '1px dashed var(--color-cyan)', borderRadius: '12px', background: 'rgba(0, 242, 254, 0.02)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--color-cyan)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <div className="glass-panel" style={{ padding: '20px', border: '1px solid rgba(0, 242, 254, 0.15)', borderRadius: '12px', background: 'rgba(0, 242, 254, 0.01)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--color-cyan)', display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      <svg className="w-4 h-4 text-[#00f2fe]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      PDF Auto-Fill & Attachment
+                      PDF Attachment & Processing Node
                     </span>
                     {isPdfProcessing && (
-                      <span style={{ fontSize: '0.75rem', color: '#6b7280', fontFamily: 'monospace' }}>Processing PDF...</span>
+                      <span className="blink" style={{ fontSize: '0.75rem', color: 'var(--color-rose)', fontFamily: 'monospace', fontWeight: 'bold' }}>[SYS PROCESSING PDF...]</span>
                     )}
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <input 
-                      type="file" 
-                      accept=".pdf"
-                      id="cert-pdf-upload"
-                      style={{ display: 'none' }}
-                      onChange={handlePdfUploadAndParse}
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => document.getElementById('cert-pdf-upload')?.click()}
-                      disabled={isPdfProcessing}
-                      style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.8rem', padding: '10px' }}
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                      </svg>
-                      {certificateForm.pdf_url ? 'Change PDF Certificate File' : 'Upload PDF (Auto-fill Details)'}
-                    </button>
-                    {certificateForm.pdf_url && (
+                  {/* URL Text Input + Auto-Fetch Button */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>PDF Certificate URL</label>
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                      <input 
+                        type="url" 
+                        className="form-input" 
+                        placeholder="https://example.com/certificate.pdf (or upload below)" 
+                        value={certificateForm.pdf_url} 
+                        onChange={(e) => setCertificateForm({ ...certificateForm, pdf_url: e.target.value })}
+                        style={{ flexGrow: 1, fontFamily: 'monospace', fontSize: '0.8rem' }}
+                      />
                       <button
                         type="button"
                         className="btn btn-secondary"
-                        onClick={() => setCertificateForm({ ...certificateForm, pdf_url: '' })}
-                        style={{ padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }}
-                        title="Remove Attached PDF"
+                        onClick={handleAutoFetchFromUrl}
+                        disabled={isPdfProcessing || !certificateForm.pdf_url}
+                        style={{ 
+                          flexShrink: 0, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '6px', 
+                          fontSize: '0.75rem', 
+                          padding: '0 16px',
+                          borderColor: certificateForm.pdf_url ? 'rgba(0, 242, 254, 0.3)' : 'rgba(255,255,255,0.05)',
+                          background: certificateForm.pdf_url ? 'rgba(0, 242, 254, 0.05)' : 'rgba(255,255,255,0.02)',
+                          color: certificateForm.pdf_url ? 'var(--color-cyan)' : '#4b5563'
+                        }}
+                        title="Parse details from the PDF URL"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l5.904-.813a2 2 0 001.12-.576l5.25-5.25a2.25 2.25 0 00-3.182-3.182l-5.25 5.25a2 2 0 00-.576 1.12z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.228 10.772l1.66 1.66M13.5 3L7.5 10H13.5L10.5 17" />
+                        </svg>
+                        Auto-Fetch
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label className="form-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-secondary)', marginBottom: '2px' }}>Upload PDF Source File</label>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <input 
+                        type="file" 
+                        accept=".pdf"
+                        id="cert-pdf-upload"
+                        style={{ display: 'none' }}
+                        onChange={handlePdfUploadAndParse}
+                      />
+                      
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setAutoFillOnUpload(false);
+                          setTimeout(() => {
+                            document.getElementById('cert-pdf-upload')?.click();
+                          }, 50);
+                        }}
+                        disabled={isPdfProcessing}
+                        style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.8rem', padding: '10px' }}
                       >
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
+                        Upload & Attach PDF
                       </button>
-                    )}
+
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                          setAutoFillOnUpload(true);
+                          setTimeout(() => {
+                            document.getElementById('cert-pdf-upload')?.click();
+                          }, 50);
+                        }}
+                        disabled={isPdfProcessing}
+                        style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.8rem', padding: '10px' }}
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                        Upload & Auto-Fill
+                      </button>
+
+                      {certificateForm.pdf_url && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => setCertificateForm({ ...certificateForm, pdf_url: '' })}
+                          style={{ padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }}
+                          title="Remove Attached PDF"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Status Indicator */}
                   {certificateForm.pdf_url && (
-                    <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.03)', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
                       <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Attached PDF: <a href={certificateForm.pdf_url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-cyan)', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>{certificateForm.pdf_url.split('/').pop()}</a>
+                      <span style={{ fontFamily: 'monospace' }}>ACTIVE PDF LINK:</span> 
+                      <a href={certificateForm.pdf_url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-cyan)', textDecoration: 'underline', wordBreak: 'break-all' }} onClick={(e) => e.stopPropagation()}>
+                        {certificateForm.pdf_url.split('/').pop()?.substring(0, 40) + ((certificateForm.pdf_url.split('/').pop()?.length || 0) > 40 ? '...' : '')}
+                      </a>
                     </div>
                   )}
                 </div>

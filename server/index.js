@@ -176,18 +176,28 @@ app.post('/api/upload', authenticateToken, async (req, res) => {
 
 // Parse certificate PDF to extract details
 app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
-  const { base64Data } = req.body;
-  if (!base64Data) {
-    return res.status(400).json({ error: 'Missing base64Data payload.' });
+  const { base64Data, pdfUrl } = req.body;
+  if (!base64Data && !pdfUrl) {
+    return res.status(400).json({ error: 'Missing base64Data or pdfUrl payload.' });
   }
 
   try {
-    const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-    if (!matches || matches.length !== 3) {
-      return res.status(400).json({ error: 'Invalid base64 encoding format.' });
+    let buffer;
+    if (base64Data) {
+      const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ error: 'Invalid base64 encoding format.' });
+      }
+      buffer = Buffer.from(matches[2], 'base64');
+    } else {
+      console.log(`Downloading PDF to parse from URL: ${pdfUrl}`);
+      const fetchResponse = await fetch(pdfUrl);
+      if (!fetchResponse.ok) {
+        return res.status(400).json({ error: `Failed to fetch PDF from URL: ${fetchResponse.statusText}` });
+      }
+      const arrayBuffer = await fetchResponse.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
     }
-
-    const buffer = Buffer.from(matches[2], 'base64');
     
     // Parse PDF text
     const parser = new PDFParse({ data: new Uint8Array(buffer) });
