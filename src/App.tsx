@@ -471,7 +471,7 @@ function IntroOverlay() {
 // Hero Section Component
 function HeroSection({ avatarUrl }: { avatarUrl?: string }) {
   return (
-    <section className="relative flex h-screen min-h-[620px] flex-col overflow-hidden bg-transparent px-6 md:px-10">
+    <section className="relative flex h-[100dvh] sm:min-h-[620px] flex-col overflow-hidden bg-transparent px-6 md:px-10">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(91,116,140,0.18),transparent_34%)]" />
 
       
@@ -650,7 +650,7 @@ function AboutSection() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen flex flex-col items-center justify-center bg-transparent px-5 sm:px-8 md:px-10 py-20 text-[#D7E2EA] overflow-hidden"
+      className="relative min-h-[100dvh] flex flex-col items-center justify-center bg-transparent px-5 sm:px-8 md:px-10 py-10 sm:py-20 text-[#D7E2EA] overflow-hidden"
     >
       {/* 3D Decorative Assets positioned absolutely with reactive mouse parallax */}
       {/* Top-left Moon */}
@@ -1293,7 +1293,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={() => handlePopupClose()}
-      className="relative bg-[#0C0C0C] min-h-screen w-full flex flex-col justify-between items-center py-12 px-6 overflow-hidden preserve-3d cursor-default select-none"
+      className="relative bg-[#0C0C0C] min-h-[100dvh] w-full flex flex-col justify-between items-center py-8 sm:py-12 px-6 overflow-hidden preserve-3d cursor-default select-none"
       style={{ perspective: '1200px' }}
     >
       {/* Top and Bottom Fades to blend the grid into adjacent sections */}
@@ -1883,7 +1883,7 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`relative z-20 bg-[#0C0C0C] px-5 pb-24 pt-24 sm:px-8 md:px-10 overflow-hidden ${!isMobile && hoverZone !== 'none' ? 'cursor-none' : ''}`}
+      className={`relative z-20 bg-[#0C0C0C] px-5 pb-12 pt-12 sm:pb-24 sm:pt-24 sm:px-8 md:px-10 overflow-hidden ${!isMobile && hoverZone !== 'none' ? 'cursor-none' : ''}`}
     >
       {/* Top and Bottom Fades to blend the section background with adjacent sections */}
       <div className="pointer-events-none absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-[#0C0C0C] to-transparent z-10" />
@@ -2342,7 +2342,7 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
     : CERTIFICATES;
 
   return (
-    <section id="experience" className="relative z-20 bg-[#0C0C0C] py-24 sm:py-36 px-5 sm:px-8 md:px-10 overflow-hidden">
+    <section id="experience" className="relative z-20 bg-[#0C0C0C] py-12 sm:py-24 md:py-36 px-5 sm:px-8 md:px-10 overflow-hidden">
       {/* Dynamic Keyframe Animations for Circuit Pulses */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes circuitFlow {
@@ -2915,7 +2915,7 @@ function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
   };
 
   return (
-    <section id="contact" className="relative z-20 bg-transparent py-24 sm:py-32 px-5 sm:px-8 md:px-10 overflow-hidden">
+    <section id="contact" className="relative z-20 bg-transparent py-12 sm:py-24 md:py-32 px-5 sm:px-8 md:px-10 overflow-hidden">
       {/* Top Fade to blend the section background with adjacent sections */}
       <div className="pointer-events-none absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-[#0C0C0C] to-transparent z-10" />
 
