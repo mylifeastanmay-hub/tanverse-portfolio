@@ -337,17 +337,45 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
     };
 
     const extractVerifyUrl = (t) => {
-      const urlRegex = /https?:\/\/[^\s]+/g;
-      const matches = t.match(urlRegex) || [];
+      // 1. Look for Coursera verify URLs (with or without http/https)
+      const courseraVerifyRegex = /(?:https?:\/\/)?(?:www\.)?coursera\.org\/verify\/[A-Z0-9]+/i;
+      const courseraMatch = t.match(courseraVerifyRegex);
+      if (courseraMatch) {
+        let url = courseraMatch[0];
+        if (!url.startsWith('http')) {
+          url = 'https://' + url;
+        }
+        return url;
+      }
+
+      // 2. Generic verify URL pattern (with or without http/https)
+      const verifyPattern = /(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\/[^\s]*/g;
+      const matches = t.match(verifyPattern) || [];
       for (const url of matches) {
         const cleanUrl = url.replace(/[.,;:)\]]+$/, '');
-        if (cleanUrl.includes('verify') || cleanUrl.includes('coursera.org/verify') || cleanUrl.includes('credential')) {
+        if (cleanUrl.toLowerCase().includes('verify') || cleanUrl.toLowerCase().includes('credential')) {
+          let formattedUrl = cleanUrl;
+          if (!formattedUrl.startsWith('http') && !formattedUrl.startsWith('https')) {
+            formattedUrl = 'https://' + formattedUrl;
+          }
+          // Make sure it doesn't match the upload URL from this server
+          if (formattedUrl.includes('/uploads/')) {
+            continue;
+          }
+          return formattedUrl;
+        }
+      }
+
+      // 3. Fallback to standard URL matching, ignoring uploads
+      const urlRegex = /https?:\/\/[^\s]+/g;
+      const allUrls = t.match(urlRegex) || [];
+      for (const url of allUrls) {
+        const cleanUrl = url.replace(/[.,;:)\]]+$/, '');
+        if (!cleanUrl.includes('/uploads/')) {
           return cleanUrl;
         }
       }
-      if (matches.length > 0) {
-        return matches[0].replace(/[.,;:)\]]+$/, '');
-      }
+
       return '';
     };
 
@@ -414,6 +442,161 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('PDF parsing error:', err);
     res.status(500).json({ error: 'Failed to parse PDF.' });
+  }
+});
+
+// Test route for PDF parsing debug
+app.get('/api/test-parse', async (req, res) => {
+  const { pdfUrl } = req.query;
+  if (!pdfUrl) {
+    return res.status(400).json({ error: 'Missing pdfUrl parameter.' });
+  }
+
+  try {
+    console.log(`Downloading test PDF from URL: ${pdfUrl}`);
+    const fetchResponse = await fetch(pdfUrl);
+    if (!fetchResponse.ok) {
+      return res.status(400).json({ error: `Failed to fetch PDF: ${fetchResponse.statusText}` });
+    }
+    const arrayBuffer = await fetchResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    const parser = new PDFParse({ data: new Uint8Array(buffer) });
+    const textResult = await parser.getText();
+    const text = textResult.text;
+
+    // Helper functions for parsing
+    const extractCourseName = (t) => {
+      const cleanText = t.replace(/\s+/g, ' ');
+      const pattern1 = /successfully completed\s+([\s\S]+?)\s+(?:an?\s+online|online|a\s+course|authorized by|offered through)/i;
+      let match = cleanText.match(pattern1);
+      if (match && match[1]) {
+        const course = match[1].trim();
+        if (course.length > 3 && course.length < 120) return course;
+      }
+      const pattern2 = /successfully completed the online course\s+([\s\S]+?)(?:\s+offered\s+through|\s+authorized\s+by|\s+a\s+course|\s+under\s+the)/i;
+      match = cleanText.match(pattern2);
+      if (match && match[1]) {
+        const course = match[1].trim();
+        if (course.length > 3 && course.length < 120) return course;
+      }
+      const pattern3 = /has successfully completed\s+([\s\S]+?)(?:\s+offered\s+by|\s+on\s+date|\s+under\s+the|\s+a\s+non-credit|\s+a\s+program|\s+specialization|\s+professional)/i;
+      match = cleanText.match(pattern3);
+      if (match && match[1]) {
+        const course = match[1].trim();
+        if (course.length > 3 && course.length < 120) return course;
+      }
+      const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
+      for (let i = 0; i < lines.length; i++) {
+        const lineLower = lines[i].toLowerCase();
+        if (lineLower.includes('successfully completed') && i + 1 < lines.length) {
+          const nextLine = lines[i + 1].trim();
+          if (nextLine.length > 3 && nextLine.length < 120 && 
+              !nextLine.toLowerCase().includes('online') && 
+              !nextLine.toLowerCase().includes('authorized') &&
+              !nextLine.toLowerCase().includes('offered')) {
+            return nextLine;
+          }
+        }
+      }
+      return 'AI Certification Course';
+    };
+
+    const extractIssuer = (t) => {
+      const lower = t.toLowerCase();
+      if (lower.includes('google')) return 'Google';
+      if (lower.includes('meta')) return 'Meta';
+      if (lower.includes('ibm')) return 'IBM';
+      if (lower.includes('microsoft')) return 'Microsoft';
+      if (lower.includes('stanford')) return 'Stanford';
+      if (lower.includes('amazon') || lower.includes('aws')) return 'Amazon Web Services';
+      if (lower.includes('deeplearning.ai') || lower.includes('deeplearning')) return 'DeepLearning.AI';
+      if (lower.includes('nvidia')) return 'NVIDIA';
+      if (lower.includes('hugging face') || lower.includes('huggingface')) return 'Hugging Face';
+      if (lower.includes('openai')) return 'OpenAI';
+      return 'Google';
+    };
+
+    const extractPlatform = (t) => {
+      const lower = t.toLowerCase();
+      if (lower.includes('coursera')) return 'Coursera';
+      if (lower.includes('edx')) return 'edX';
+      if (lower.includes('udacity')) return 'Udacity';
+      if (lower.includes('udemy')) return 'Udemy';
+      return 'Coursera';
+    };
+
+    const extractDuration = (t) => {
+      const cleanText = t.replace(/\s+/g, ' ');
+      const hoursRegex = /\b(\d+)\s*(?:hours|hrs)\b/i;
+      let match = cleanText.match(hoursRegex);
+      if (match && match[1]) return `${match[1]} hours`;
+      const weeksRegex = /\b(\d+)\s*(?:weeks|wks)\b/i;
+      match = cleanText.match(weeksRegex);
+      if (match && match[1]) return `${match[1]} weeks`;
+      return '';
+    };
+
+    const extractDate = (t) => {
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
+                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const duration = extractDuration(t);
+      const suffix = duration ? ` • ${duration}` : '';
+      const dateRegex = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+(\d{1,2},?\s+)?(\d{4})\b/i;
+      let match = t.match(dateRegex);
+      if (match) {
+        const monthStr = match[1];
+        const yearStr = match[3];
+        const shortMonth = monthStr.substring(0, 3);
+        const capitalizedMonth = shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1).toLowerCase();
+        return `${capitalizedMonth} ${yearStr}${suffix}`;
+      }
+      return `Parsed Date${suffix}`;
+    };
+
+    const extractVerifyUrl = (t) => {
+      const courseraVerifyRegex = /(?:https?:\/\/)?(?:www\.)?coursera\.org\/verify\/[A-Z0-9]+/i;
+      const courseraMatch = t.match(courseraVerifyRegex);
+      if (courseraMatch) {
+        let url = courseraMatch[0];
+        if (!url.startsWith('http')) {
+          url = 'https://' + url;
+        }
+        return url;
+      }
+
+      const verifyPattern = /(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\/[^\s]*/g;
+      const matches = t.match(verifyPattern) || [];
+      for (const url of matches) {
+        const cleanUrl = url.replace(/[.,;:)\]]+$/, '');
+        if (cleanUrl.toLowerCase().includes('verify') || cleanUrl.toLowerCase().includes('credential')) {
+          let formattedUrl = cleanUrl;
+          if (!formattedUrl.startsWith('http') && !formattedUrl.startsWith('https')) {
+            formattedUrl = 'https://' + formattedUrl;
+          }
+          if (formattedUrl.includes('/uploads/')) {
+            continue;
+          }
+          return formattedUrl;
+        }
+      }
+      return '';
+    };
+
+    res.json({
+      success: true,
+      rawTextLength: text.length,
+      rawTextSample: text.substring(0, 2000),
+      extracted: {
+        course: extractCourseName(text),
+        issuer: extractIssuer(text),
+        platform: extractPlatform(text),
+        date: extractDate(text),
+        verify_url: extractVerifyUrl(text)
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 });
 
