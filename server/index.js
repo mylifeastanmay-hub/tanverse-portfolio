@@ -1,3 +1,14 @@
+// Polyfills for PDFJS legacy text rendering in Serverless Environments (Vercel)
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {};
+}
+if (typeof globalThis.ImageData === 'undefined') {
+  globalThis.ImageData = class ImageData {};
+}
+if (typeof globalThis.Path2D === 'undefined') {
+  globalThis.Path2D = class Path2D {};
+}
+
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -6,7 +17,6 @@ import fs from 'fs';
 import path from 'path';
 import { initDatabase, query, run } from './db.js';
 import { put } from '@vercel/blob';
-import { PDFParse } from 'pdf-parse';
 
 dotenv.config();
 
@@ -442,6 +452,7 @@ app.post('/api/parse-pdf', authenticateToken, async (req, res) => {
     }
     
     // Parse PDF text
+    const { PDFParse } = await import('pdf-parse');
     const parser = new PDFParse({ data: new Uint8Array(buffer) });
     const textResult = await parser.getText();
     const text = textResult.text;
@@ -487,6 +498,7 @@ app.get('/api/test-parse', async (req, res) => {
     const arrayBuffer = await fetchResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
+    const { PDFParse } = await import('pdf-parse');
     const parser = new PDFParse({ data: new Uint8Array(buffer) });
     const textResult = await parser.getText();
     const text = textResult.text;
