@@ -1790,6 +1790,21 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    if (!activePopupProject) return;
+    const initialScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const diffY = Math.abs(currentScrollY - initialScrollY);
+      if (diffY > 20) {
+        setActivePopupProject(null);
+        playCyberSound('click');
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activePopupProject]);
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -2224,6 +2239,21 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
       document.removeEventListener('click', handleDocumentClick);
     };
   }, []);
+
+  useEffect(() => {
+    if (!activePopupExperience) return;
+    const initialScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const diffY = Math.abs(currentScrollY - initialScrollY);
+      if (diffY > 20) {
+        setActivePopupExperience(null);
+        playCyberSound('click');
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activePopupExperience]);
 
   const experienceData: ExperienceItem[] = [
     {
