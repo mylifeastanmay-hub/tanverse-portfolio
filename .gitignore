@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Production Builds
+dist/
+dist-admin/
+*.tsbuildinfo
+
+# Databases & Uploads
+*.db
+server/data/
+server/uploads/
+uploads/
+data/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# IDE / System files
+.DS_Store
+.vscode/
+.idea/
+tmp/

@@ -1,0 +1,16 @@
+:root {
+  --terrain-deep: #1B3A2A;
+  --terrain-mid: #3F6B3C;
+  --terrain-highlight: #8FAE4F;
+  --sky-day: #A8D8F0;
+  --sky-haze: #E8F4F8;
+  --river-glow: #BFE8FF;
+  --river-bloom: #FFFFFF;
+  --purple-deep: #2D1054;
+  --purple-mid: #6B2FA8;
+  --purple-bright: #C9A6FF;
+  --footer-bg: #0D1F17;
+  --text-primary: #FAFAF5;
+  --nav-glass: rgba(255, 255, 255, 0.08);
+  --cta-pill-light: #D4F58E;
+}

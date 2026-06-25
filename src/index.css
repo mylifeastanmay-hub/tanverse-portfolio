@@ -1,0 +1,290 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body, #root, .main-wrapper {
+  background-color: #0C0C0C !important;
+  color: #D7E2EA;
+  font-family: 'Kanit', sans-serif;
+  min-height: 100vh;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button, a {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* CSS class .hero-heading: gradient text */
+.hero-heading {
+  background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  filter: drop-shadow(0px 10px 24px rgba(0, 0, 0, 0.42));
+}
+
+/* Reusable Contact Button Styles */
+.contact-button {
+  background: linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%);
+  box-shadow: 0px 4px 4px rgba(181, 1, 167, 0.25), 4px 4px 12px #7721B1 inset;
+  outline: 2px solid white;
+  outline-offset: -3px;
+  transition: transform 0.2s ease;
+}
+
+.contact-button:hover {
+  transform: scale(1.05);
+}
+
+.contact-button:active {
+  transform: scale(0.98);
+}
+
+/* Custom WebGL / Marquee scrollbar styling if needed */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0C0C0C;
+}
+::-webkit-scrollbar-thumb {
+  background: #252A34;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3B4252;
+}
+
+/* Prevent layout shift during Framer Motion animations */
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Magnetic Transition Timing */
+.magnet-transition-active {
+  transition: transform 0.3s ease-out;
+}
+
+.magnet-transition-inactive {
+  transition: transform 0.6s ease-in-out;
+}
+
+/* Text Shadowing for Heading elements */
+h1, h2, h3 {
+  text-shadow: 0px 4px 18px rgba(0, 0, 0, 0.5);
+}
+
+/* Animated Portrait Hair drift simulation, matches visual polish in previous projects */
+.alive-avatar-hair {
+  position: absolute;
+  z-index: 22;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(184, 211, 238, 0.85), transparent);
+  opacity: 0.45;
+  transform-origin: left center;
+  filter: blur(0.2px);
+  animation: hair-drift 4.8s ease-in-out infinite;
+}
+
+.alive-avatar-hair-one {
+  left: 30%;
+  top: 18%;
+  width: 28%;
+  transform: rotate(-13deg);
+}
+
+.alive-avatar-hair-two {
+  left: 43%;
+  top: 14.2%;
+  width: 32%;
+  transform: rotate(7deg);
+  animation-delay: 0.6s;
+}
+
+.alive-avatar-hair-three {
+  left: 60%;
+  top: 23%;
+  width: 18%;
+  transform: rotate(-19deg);
+  animation-delay: 1.1s;
+}
+
+@keyframes hair-drift {
+  0%, 100% { opacity: 0.28; transform: translate(0, 0) scale(1, 1); }
+  45% { opacity: 0.7; transform: translate(3px, -2px) scale(1.05, 1); }
+  70% { opacity: 0.42; transform: translate(-1px, 1px) scale(0.98, 1); }
+}
+
+/* ==========================================
+   3D LETTER ASSEMBLY ANIMATIONS FOR TANVERSE
+   ========================================== */
+.tanverse-letter {
+  color: transparent;
+  background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+  animation-name: tanverse-assemble !important;
+  animation-duration: var(--letter-duration, 3.6s) !important;
+  animation-delay: var(--letter-delay) !important;
+  animation-timing-function: cubic-bezier(.16, 1, .3, 1) !important;
+  animation-fill-mode: forwards !important;
+  text-shadow:
+    0 1px 0 rgba(255,255,255,0.22),
+    0 2px 0 rgba(100, 105, 115, 0.45),
+    0 3px 0 rgba(60, 65, 75, 0.35),
+    0 10px 22px rgba(0,0,0,0.52),
+    0 22px 54px rgba(0,0,0,0.48);
+}
+
+.intro-logo {
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 16px 34px rgba(0,0,0,0.42));
+}
+
+.intro-logo .tanverse-letter {
+  animation-name: tanverse-intro-assemble !important;
+}
+
+@keyframes tanverse-assemble {
+  0% {
+    opacity: 0;
+    filter: blur(24px);
+    transform: translate3d(var(--start-x), var(--start-y), var(--start-z, -900px)) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) rotateZ(var(--rotate-z)) scale(0.08);
+  }
+  14% { opacity: 1; }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 90px) rotateX(-7deg) rotateY(7deg) rotateZ(-1.5deg) scale(1.1);
+  }
+  78% {
+    transform: translate3d(0, 0, -20px) rotateX(3deg) rotateY(-3deg) rotateZ(0.7deg) scale(0.975);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  }
+}
+
+@keyframes tanverse-intro-assemble {
+  0% {
+    opacity: 0;
+    filter: blur(26px);
+    transform: translate3d(var(--start-x), var(--start-y), var(--start-z, -1300px)) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) rotateZ(var(--rotate-z)) scale(0.05);
+  }
+  18% {
+    opacity: 1;
+    filter: blur(12px);
+  }
+  58% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 145px) rotateX(-9deg) rotateY(8deg) rotateZ(-1.2deg) scale(1.14);
+  }
+  73% {
+    transform: translate3d(0, 0, -18px) rotateX(3deg) rotateY(-3deg) rotateZ(0.45deg) scale(0.985);
+  }
+  88%, 100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
+  }
+}
+
+/* ==========================================
+   THOUSAND DOLLAR PORTFOLIO GLOWS & FLOATS
+   ========================================== */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(8deg); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50% { transform: translateY(-30px) rotate(-12deg) scale(1.06); }
+}
+
+.float-slow-animation {
+  animation: float-slow 9s ease-in-out infinite;
+}
+
+.float-medium-animation {
+  animation: float-medium 14s ease-in-out infinite;
+}
+
+/* Glow input highlights */
+input:focus, textarea:focus {
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.14) !important;
+}
+
+.contact-button {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* ==========================================
+   3D HOLOGRAM STYLES
+   ========================================== */
+.hologram-grid {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+}
+
+@keyframes hologram-scan {
+  0% { top: -10%; opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { top: 110%; opacity: 0; }
+}
+
+.hologram-scanline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 254, 0.6), transparent);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.6), 0 0 24px rgba(0, 242, 254, 0.3);
+  animation: hologram-scan 4.5s linear infinite;
+  pointer-events: none;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.perspective-hud {
+  perspective: 1200px;
+}
+
+
