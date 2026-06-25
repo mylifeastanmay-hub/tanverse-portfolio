@@ -1,21 +1,23 @@
 import sql from 'mssql';
 import sqlite3 from 'sqlite3';
+import pg from 'pg';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const DB_TYPE = process.env.DB_TYPE || 'sqlite';
+const DB_TYPE = process.env.DB_TYPE || (process.env.POSTGRES_URL || process.env.DATABASE_URL ? 'postgres' : 'sqlite');
 const sqliteDbPath = process.env.SQLITE_PATH || './data/portfolio.db';
 
 let mssqlPool = null;
 let sqliteDb = null;
+let pgPool = null;
 let activeDbType = 'sqlite';
 
 // Auto-create data directory for SQLite if it doesn't exist
 const sqliteDir = path.dirname(sqliteDbPath);
-if (!fs.existsSync(sqliteDir)) {
+if (DB_TYPE === 'sqlite' && !fs.existsSync(sqliteDir)) {
   fs.mkdirSync(sqliteDir, { recursive: true });
 }
 
@@ -85,6 +87,26 @@ const defaultCertificates = [
 ];
 
 export async function initDatabase() {
+  if (DB_TYPE === 'postgres') {
+    try {
+      const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+      console.log('Connecting to PostgreSQL database...');
+      pgPool = new pg.Pool({
+        connectionString,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      });
+      activeDbType = 'postgres';
+      console.log('Connected to PostgreSQL successfully.');
+      await setupPostgresTables();
+      return;
+    } catch (err) {
+      console.warn('PostgreSQL connection failed. Falling back to SQLite.');
+      console.error(err.message);
+    }
+  }
+
   if (DB_TYPE === 'mssql') {
     const config = {
       user: process.env.DB_USER,
@@ -126,7 +148,14 @@ export async function initDatabase() {
 
 // SQL Helper execution helper
 export async function query(sqlStr, params = []) {
-  if (activeDbType === 'mssql') {
+  if (activeDbType === 'postgres') {
+    let convertedSql = sqlStr;
+    params.forEach((_, index) => {
+      convertedSql = convertedSql.replace('?', `$${index + 1}`);
+    });
+    const result = await pgPool.query(convertedSql, params);
+    return result.rows || [];
+  } else if (activeDbType === 'mssql') {
     const request = mssqlPool.request();
     // Convert array params into named parameters @p0, @p1, etc.
     let convertedSql = sqlStr;
@@ -151,7 +180,10 @@ export async function query(sqlStr, params = []) {
 
 // Helper to run non-select statements
 export async function run(sqlStr, params = []) {
-  if (activeDbType === 'mssql') {
+  if (activeDbType === 'postgres') {
+    const res = await query(sqlStr, params);
+    return { id: res[0]?.id || null, changes: res.length };
+  } else if (activeDbType === 'mssql') {
     return query(sqlStr, params);
   } else {
     return new Promise((resolve, reject) => {
@@ -518,4 +550,145 @@ async function setupSqliteTables() {
       });
     });
   });
+}
+
+async function setupPostgresTables() {
+  // Create tables if they don't exist
+  await query(`
+    CREATE TABLE IF NOT EXISTS contact_info (
+      id INT PRIMARY KEY,
+      email VARCHAR(255),
+      phone VARCHAR(50),
+      location VARCHAR(255),
+      github_url VARCHAR(255),
+      linkedin_url VARCHAR(255),
+      avatar_url VARCHAR(500)
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS skills (
+      id SERIAL PRIMARY KEY,
+      num VARCHAR(50),
+      title VARCHAR(100),
+      category VARCHAR(100),
+      desc_text TEXT,
+      glow_color VARCHAR(100),
+      tools VARCHAR(255),
+      display_order INT,
+      logo_svg TEXT
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS projects (
+      id SERIAL PRIMARY KEY,
+      num VARCHAR(50),
+      name VARCHAR(100),
+      category VARCHAR(100),
+      url VARCHAR(255),
+      col1Img1 VARCHAR(255),
+      col1Img2 VARCHAR(255),
+      col2Img VARCHAR(255),
+      display_order INT
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS experiences (
+      id SERIAL PRIMARY KEY,
+      role VARCHAR(100),
+      organization VARCHAR(150),
+      period VARCHAR(100),
+      description TEXT,
+      glow_color VARCHAR(100),
+      icon_svg TEXT,
+      display_order INT,
+      certificate_url VARCHAR(500)
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS certificates (
+      id SERIAL PRIMARY KEY,
+      course VARCHAR(150),
+      issuer VARCHAR(100),
+      platform VARCHAR(100),
+      date VARCHAR(50),
+      verify_url VARCHAR(500),
+      glow_color VARCHAR(100),
+      logo_svg TEXT,
+      display_order INT
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS visits (
+      id SERIAL PRIMARY KEY,
+      timestamp VARCHAR(100),
+      ip VARCHAR(100),
+      country VARCHAR(100),
+      city VARCHAR(100),
+      user_agent VARCHAR(500)
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255),
+      email VARCHAR(255),
+      message TEXT,
+      timestamp VARCHAR(100)
+    )
+  `);
+
+  // Seed default data if empty
+  const contactCheck = await query('SELECT COUNT(*) as count FROM contact_info');
+  if (parseInt(contactCheck[0].count, 10) === 0) {
+    console.log('Seeding PostgreSQL contact_info...');
+    await run('INSERT INTO contact_info (id, email, phone, location, github_url, linkedin_url) VALUES (1, ?, ?, ?, ?, ?)', [
+      defaultContact.email, defaultContact.phone, defaultContact.location, defaultContact.github_url, defaultContact.linkedin_url
+    ]);
+  }
+
+  const skillsCheck = await query('SELECT COUNT(*) as count FROM skills');
+  if (parseInt(skillsCheck[0].count, 10) === 0) {
+    console.log('Seeding PostgreSQL skills...');
+    for (const s of defaultSkills) {
+      await run('INSERT INTO skills (num, title, category, desc_text, glow_color, tools, display_order) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+        s.num, s.title, s.category, s.desc, s.glow_color, s.tools, s.display_order
+      ]);
+    }
+  }
+
+  const projectsCheck = await query('SELECT COUNT(*) as count FROM projects');
+  if (parseInt(projectsCheck[0].count, 10) === 0) {
+    console.log('Seeding PostgreSQL projects...');
+    for (const p of defaultProjects) {
+      await run('INSERT INTO projects (num, name, category, url, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+        p.num, p.name, p.category, p.url, p.col1Img1, p.col1Img2, p.col2Img, p.display_order
+      ]);
+    }
+  }
+
+  const expCheck = await query('SELECT COUNT(*) as count FROM experiences');
+  if (parseInt(expCheck[0].count, 10) === 0) {
+    console.log('Seeding PostgreSQL experiences...');
+    for (const e of defaultExperiences) {
+      await run('INSERT INTO experiences (role, organization, period, description, glow_color, icon_svg, display_order) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+        e.role, e.organization, e.period, e.description, e.glow_color, e.icon_svg, e.display_order
+      ]);
+    }
+  }
+
+  const certCheck = await query('SELECT COUNT(*) as count FROM certificates');
+  if (parseInt(certCheck[0].count, 10) === 0) {
+    console.log('Seeding PostgreSQL certificates...');
+    for (const c of defaultCertificates) {
+      await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+        c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order
+      ]);
+    }
+  }
 }

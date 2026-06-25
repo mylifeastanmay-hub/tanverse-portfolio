@@ -26,3 +26,5 @@ data/
 .vscode/
 .idea/
 tmp/
+
+.vercel
