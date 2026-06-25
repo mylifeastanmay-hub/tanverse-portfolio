@@ -14,7 +14,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'cyberpunk_secret_key_9999';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
 // Auto-create uploads directory
-const uploadsDir = path.join(process.cwd(), 'uploads');
+const uploadsDir = process.env.VERCEL
+  ? '/tmp/uploads'
+  : path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -148,7 +150,9 @@ app.post('/api/upload', authenticateToken, async (req, res) => {
 
     await fs.promises.writeFile(filepath, buffer);
 
-    const publicUrl = `http://localhost:${PORT}/uploads/${safeFilename}`;
+    const host = req.get('host');
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const publicUrl = `${protocol}://${host}/uploads/${safeFilename}`;
     res.json({ success: true, url: publicUrl });
   } catch (err) {
     console.error('Image upload write error:', err);
@@ -410,11 +414,20 @@ app.post('/api/refresh-token', authenticateToken, (req, res) => {
 });
 
 // Initialize database and start server
-initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Backend server is running on http://localhost:${PORT}`);
+if (!process.env.VERCEL) {
+  initDatabase().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Backend server is running on http://localhost:${PORT}`);
+    });
+  }).catch(err => {
+    console.error('Database initialization failed:', err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('Database initialization failed:', err);
-  process.exit(1);
-});
+} else {
+  // On Vercel, initialize database asynchronously
+  initDatabase().catch(err => {
+    console.error('Database initialization failed on Vercel:', err);
+  });
+}
+
+export default app;

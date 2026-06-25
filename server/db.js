@@ -8,7 +8,28 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const DB_TYPE = process.env.DB_TYPE || (process.env.POSTGRES_URL || process.env.DATABASE_URL ? 'postgres' : 'sqlite');
-const sqliteDbPath = process.env.SQLITE_PATH || './data/portfolio.db';
+let sqliteDbPath = process.env.SQLITE_PATH || './data/portfolio.db';
+
+if (process.env.VERCEL && DB_TYPE === 'sqlite') {
+  const targetPath = '/tmp/portfolio.db';
+  try {
+    const sourcePath = path.resolve(process.cwd(), 'data', 'portfolio.db');
+    const sourcePathAlt = path.resolve(process.cwd(), 'server', 'data', 'portfolio.db');
+    const finalSource = fs.existsSync(sourcePath) ? sourcePath : (fs.existsSync(sourcePathAlt) ? sourcePathAlt : null);
+    
+    if (finalSource) {
+      const targetDir = path.dirname(targetPath);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      fs.copyFileSync(finalSource, targetPath);
+      console.log(`Copied database from ${finalSource} to ${targetPath}`);
+    }
+  } catch (err) {
+    console.error('Failed to copy database to /tmp:', err.message);
+  }
+  sqliteDbPath = targetPath;
+}
 
 let mssqlPool = null;
 let sqliteDb = null;
@@ -17,7 +38,7 @@ let activeDbType = 'sqlite';
 
 // Auto-create data directory for SQLite if it doesn't exist
 const sqliteDir = path.dirname(sqliteDbPath);
-if (DB_TYPE === 'sqlite' && !fs.existsSync(sqliteDir)) {
+if (DB_TYPE === 'sqlite' && !fs.existsSync(sqliteDir) && !process.env.VERCEL) {
   fs.mkdirSync(sqliteDir, { recursive: true });
 }
 
