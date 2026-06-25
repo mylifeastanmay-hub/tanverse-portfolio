@@ -127,7 +127,7 @@ function ImageUploader({ label, id, value, onChange, token }: ImageUploaderProps
       reader.onloadend = async () => {
         const base64Data = reader.result as string;
         try {
-          const response = await fetch('http://localhost:5000/api/upload', {
+          const response = await fetch(`${API_BASE}/upload`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -383,7 +383,7 @@ function LogoUploader({ id, onUploadComplete, token, imgClass = "w-14 h-14 objec
         }
 
         try {
-          const response = await fetch('http://localhost:5000/api/upload', {
+          const response = await fetch(`${API_BASE}/upload`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
