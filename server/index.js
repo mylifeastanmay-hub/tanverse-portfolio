@@ -36,6 +36,15 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(cors());
 // Set JSON body size limit to 10MB to accommodate base64 images
 app.use(express.json({ limit: '10mb' }));
+
+// Disable API Caching
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 app.use('/uploads', express.static(uploadsDir));
 
 // Auth Middleware
