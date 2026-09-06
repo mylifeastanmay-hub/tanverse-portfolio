@@ -46,57 +46,84 @@ if (DB_TYPE === 'sqlite' && !fs.existsSync(sqliteDir) && !process.env.VERCEL) {
 const defaultContact = {
   email: 'tanmayverse776@gmail.com',
   phone: '+91 XXXXXXXXXX',
-  location: 'Maharashtra, India',
-  github_url: 'https://github.com/tanmay-dhoot',
-  linkedin_url: 'https://www.linkedin.com/in/tanmay-dhoot-402949257'
+  location: "SVKM's NMIMS MPSTME, Shirpur / Maharashtra, India",
+  github_url: 'https://github.com/mylifeastanmay-hub',
+  linkedin_url: 'https://linkedin.com/in/tanmaydhoot'
 };
 
 const defaultSkills = [
-  { num: '01', title: 'Python', category: 'Backend/AI', desc: 'Creating artificial intelligence models, deep neural networks, and automated backend scripts.', glow_color: 'rgba(55, 118, 171, 0.45)', tools: 'TensorFlow, Jupyter, Pandas, NumPy', display_order: 1 },
-  { num: '02', title: 'C++', category: 'Languages', desc: 'Structuring algorithmic computations, solving competitive challenges, and running high-speed compute loops.', glow_color: 'rgba(0, 89, 156, 0.45)', tools: 'GDB, GCC, CMake, DSA Foundations', display_order: 2 },
-  { num: '03', title: 'C', category: 'Systems', desc: 'Managing low-level memory layout, pointer variables, compile links, and basic hardware calls.', glow_color: 'rgba(57, 73, 171, 0.45)', tools: 'Pointer Ops, Memory Allocation, Assembly Base', display_order: 3 },
-  { num: '04', title: 'DSA', category: 'Core CS', desc: 'Optimizing code execution runtime, building trees/graphs, and minimizing space requirements.', glow_color: 'rgba(0, 242, 254, 0.45)', tools: 'Big-O Notation, Graph Traversal, Search Trees', display_order: 4 },
-  { num: '05', title: 'DBMS', category: 'Infrastructure', desc: 'Designing relational database layouts, executing SQL queries, indexing entries, and linking API data stores.', glow_color: 'rgba(182, 0, 168, 0.45)', tools: 'PostgreSQL, SQL Queries, DB Normalization', display_order: 5 }
+  { num: '01', title: 'Python', category: 'AI / Distributed', desc: 'Engineering edge AI runtimes, ExecuTorch models, PyTorch neural vision pipelines, and asynchronous microservices.', glow_color: 'rgba(55, 118, 171, 0.45)', tools: 'PyTorch, ExecuTorch, FastAPI, NumPy, Pandas, OpenCV, Ray', display_order: 1 },
+  { num: '02', title: 'C++', category: 'Low-Latency Systems', desc: 'Developing ultra-fast compute engines, SIMD vectorization, zero-copy packet processing, and algorithmic trees.', glow_color: 'rgba(0, 89, 156, 0.45)', tools: 'C++20, Boost.Asio, SIMD (AVX2), Zero-Copy Networking, CMake, GDB', display_order: 2 },
+  { num: '03', title: 'C', category: 'Core Systems & Edge', desc: 'Hardware-level memory management, pointer arithmetic, manual heap allocation, and POSIX system call optimizations.', glow_color: 'rgba(57, 73, 171, 0.45)', tools: 'Pointer Arithmetic, Linux ABI, System Calls, Embedded Drivers', display_order: 3 },
+  { num: '04', title: 'DSA', category: 'Algorithms & Discrete', desc: 'Architecting distributed hash tables (Kademlia DHT), Bloom filters, graph traversal, and high-throughput indexes.', glow_color: 'rgba(0, 242, 254, 0.45)', tools: 'Kademlia DHT, Bloom Filters, Consistent Hashing, Graph Theory, DP', display_order: 4 },
+  { num: '05', title: 'DBMS', category: 'Data Architecture', desc: 'Designing resilient distributed storage, high-volume transactional schemas, Redis sentinel clusters, and SQL pools.', glow_color: 'rgba(182, 0, 168, 0.45)', tools: 'PostgreSQL, Redis Sentinel, ClickHouse, Connection Pooling, WAL', display_order: 5 },
+  { num: '06', title: 'React JS & Vite', category: 'Frontend & WebGL', desc: 'Building responsive 3D cybernetic web applications, custom WebGL canvas shaders, Three.js scenes, and audio synthesizers.', glow_color: 'rgba(97, 218, 251, 0.45)', tools: 'React 18, Vite, Three.js, React Three Fiber, Web Audio API', display_order: 6 },
+  { num: '07', title: 'TypeScript', category: 'Strict Typing', desc: 'Enforcing bulletproof type safety across distributed API payloads, abstract syntax trees, and full-stack modules.', glow_color: 'rgba(49, 120, 198, 0.45)', tools: 'Generics, Abstract Syntax Trees, Strict Nulls, Zod Schemas', display_order: 7 },
+  { num: '08', title: 'Tailwind CSS', category: 'Modern UI/UX', desc: 'Crafting futuristic cyberpunk glassmorphism interfaces, fluid reactive layouts, and smooth 60fps micro-interactions.', glow_color: 'rgba(56, 189, 248, 0.45)', tools: 'Tailwind CSS, Framer Motion, Glassmorphism, 3D Matrix Transforms', display_order: 8 }
 ];
 
 const defaultProjects = [
-  { num: '01', name: 'Foundly Platform', category: 'Personal Product', url: 'https://foundly-theta.vercel.app/', col1Img1: 'foundlyHero', col1Img2: 'foundlyStudent', col2Img: 'foundlyHero', display_order: 1 },
-  { num: '02', name: 'Interactive 3D Portfolio', category: 'Personal Showcase', url: 'https://github.com/tanmay-dhoot/3d-portfolio', col1Img1: '', col1Img2: '', col2Img: '', display_order: 2 }
+  { num: '01', name: 'Sentinel Swarm PRO', category: 'Edge Multi-Agent Autonomous Swarm', url: 'https://github.com/mylifeastanmay-hub/sentinel-swarm', col1Img1: 'sentinelHero', col1Img2: 'sentinelTelemetry', col2Img: 'sentinelHero', display_order: 1 },
+  { num: '02', name: 'AegisGateway', category: 'Zero-Trust API Gateway & Rate-Limiter', url: 'https://github.com/mylifeastanmay-hub/aegis-gateway', col1Img1: 'aegisHero', col1Img2: 'aegisArchitecture', col2Img: 'aegisHero', display_order: 2 },
+  { num: '03', name: 'Anantam Agri Dashboard', category: 'Full-Stack Precision Agriculture Dashboard', url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard', col1Img1: 'anantamHero', col1Img2: 'anantamTelemetry', col2Img: 'anantamHero', display_order: 3 },
+  { num: '04', name: 'AI ATS Resume Analyzer', category: 'AI Resume Intelligence & Parser Engine', url: 'https://github.com/mylifeastanmay-hub/ai-resume-builder', col1Img1: 'resumeHero', col1Img2: 'resumeScoreGauge', col2Img: 'resumeHero', display_order: 4 },
+  { num: '05', name: 'MeshWeaver P2P Mesh', category: 'Decentralized Fault-Tolerant Compute Network', url: 'https://github.com/mylifeastanmay-hub/meshweaver', col1Img1: 'meshweaverHero', col1Img2: 'meshweaverTopology', col2Img: 'meshweaverHero', display_order: 5 },
+  { num: '06', name: 'FUTURE_PE_01 Prompt Engine', category: 'Self-Calibrating LLM Prompt Engineering Workbench', url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01', col1Img1: 'peHero', col1Img2: 'peBenchmark', col2Img: 'peHero', display_order: 6 },
+  { num: '07', name: 'Grand Azure Enterprise', category: 'Enterprise Luxury Hospitality Booking Engine', url: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel-suite', col1Img1: 'azureHero', col1Img2: 'azureInventory', col2Img: 'azureHero', display_order: 7 },
+  { num: '08', name: 'Tanverse 3D Universe', category: 'WebGL Cybernetic Interactive 3D Portfolio Universe', url: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio', col1Img1: 'sentinelHero', col1Img2: 'meshweaverTopology', col2Img: 'sentinelHero', display_order: 8 }
 ];
 
 const defaultExperiences = [
   {
-    role: 'Associate core',
-    organization: 'AMBIORA TechFest',
-    period: 'Mar 2026',
-    description: "Core member of the marketing team for Ambiora'26, responsible for event promotion, participant outreach, social media engagement, and brand visibility. Collaborated with multiple teams to enhance the fest's reach and impact.",
+    role: 'Prompt Engineering & AI Intern',
+    organization: 'Future Interns',
+    period: 'Aug 2026 - Sep 2026',
+    description: 'Engineered production-grade prompt templates, few-shot conditioning pipelines, and automated LLM benchmarking suites. Validated hallucination mitigation with RAG integration (CIN: FIT/AUG26/PE3831).',
     glow_color: '#00F2FE',
-    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="#00F2FE" stroke-width="2.5" /><circle cx="50" cy="50" r="42" stroke="rgba(0, 242, 254, 0.1)" stroke-width="1.5" /><line x1="38" y1="12" x2="65" y2="58" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><line x1="22" y1="78" x2="49" y2="32" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><line x1="82" y1="62" x2="35" y2="62" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><circle cx="38" cy="12" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><circle cx="22" cy="78" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><circle cx="82" cy="62" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><path d="M 49 42 L 39 60 L 59 60 Z" stroke="#00F2FE" stroke-width="2.5" stroke-linejoin="round" fill="none" /></svg>`,
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="15" width="70" height="70" rx="16" stroke="#00F2FE" stroke-width="2.5" fill="rgba(0, 242, 254, 0.05)"/><path d="M30 45 L50 30 L70 45 L50 60 Z" stroke="#00F2FE" stroke-width="2.5" fill="none"/><line x1="50" y1="60" x2="50" y2="76" stroke="#00F2FE" stroke-width="2.5"/><circle cx="50" cy="50" r="4" fill="#00F2FE"/></svg>`,
     display_order: 1
   },
   {
-    role: 'Marketing core',
-    organization: 'Protsahan',
-    period: 'Feb 2026',
-    description: "Core member of the marketing team for Protsahan'26, responsible for event promotion, audience outreach, social media engagement, and enhancing the fest's visibility. Collaborated with multiple teams to ensure successful execution and greater participation.",
-    glow_color: '#B600A8',
-    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="protsahanGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FF6D00" /><stop offset="50%" stop-color="#FF4081" /><stop offset="100%" stop-color="#B600A8" /></linearGradient></defs><path d="M 18 22 C 38 19, 72 19, 82 28 C 92 37, 90 53, 72 56 C 58 58, 44 48, 40 53 C 36 58, 36 73, 50 88 L 48 93 C 35 83, 28 68, 28 50 C 28 36, 34 30, 22 30 Z" fill="url(#protsahanGrad)" stroke="#FFFFFF" stroke-width="2" /><path d="M 38 27 C 52 27, 68 31, 75 39" stroke="#FFFFFF" stroke-width="2.5" opacity="0.75" stroke-linecap="round" /><path d="M 40 42 C 52 44, 62 49, 67 52" stroke="#FFFFFF" stroke-width="1.8" opacity="0.6" stroke-linecap="round" /><circle cx="41" cy="70" r="2.5" fill="#FFFFFF" opacity="0.8" /><line x1="43.5" y1="70" x2="43.5" y2="59" stroke="#FFFFFF" stroke-width="1.5" opacity="0.8" /></svg>`,
+    role: 'Lead Module Builder & Contributor',
+    organization: 'ZeTheta Algorithms / EduForge',
+    period: 'Jan 2026 - Present',
+    description: 'Authored and verified high-performance data structure implementations, graph optimization benchmarks, and interactive algorithmic sandboxes for computer science students.',
+    glow_color: '#9945FF',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="38" stroke="#9945FF" stroke-width="2.5" stroke-dasharray="6 4" fill="none"/><polygon points="50,22 75,68 25,68" stroke="#9945FF" stroke-width="2.5" fill="rgba(153, 69, 255, 0.1)"/><circle cx="50" cy="52" r="5" fill="#9945FF"/></svg>`,
     display_order: 2
   },
   {
-    role: 'Marketing Specialist',
+    role: 'Associate Core',
+    organization: 'AMBIORA TechFest',
+    period: 'Mar 2026',
+    description: "Core member of the marketing and tech outreach team for Ambiora'26, responsible for event promotion, participant outreach, technical workshop coordination, and brand visibility. Collaborated with multiple technical teams to scale registration.",
+    glow_color: '#00F2FE',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="#00F2FE" stroke-width="2.5" /><circle cx="50" cy="50" r="42" stroke="rgba(0, 242, 254, 0.1)" stroke-width="1.5" /><line x1="38" y1="12" x2="65" y2="58" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><line x1="22" y1="78" x2="49" y2="32" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><line x1="82" y1="62" x2="35" y2="62" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><circle cx="38" cy="12" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><circle cx="22" cy="78" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><circle cx="82" cy="62" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><path d="M 49 42 L 39 60 L 59 60 Z" stroke="#00F2FE" stroke-width="2.5" stroke-linejoin="round" fill="none" /></svg>`,
+    display_order: 3
+  },
+  {
+    role: 'Marketing Core',
+    organization: 'Protsahan',
+    period: 'Feb 2026',
+    description: "Core member of the outreach and sponsor management team for Protsahan'26, driving event promotion, audience outreach, social media engagement, and expanding the fest's pan-India footfall.",
+    glow_color: '#B600A8',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="protsahanGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FF6D00" /><stop offset="50%" stop-color="#FF4081" /><stop offset="100%" stop-color="#B600A8" /></linearGradient></defs><path d="M 18 22 C 38 19, 72 19, 82 28 C 92 37, 90 53, 72 56 C 58 58, 44 48, 40 53 C 36 58, 36 73, 50 88 L 48 93 C 35 83, 28 68, 28 50 C 28 36, 34 30, 22 30 Z" fill="url(#protsahanGrad)" stroke="#FFFFFF" stroke-width="2" /><path d="M 38 27 C 52 27, 68 31, 75 39" stroke="#FFFFFF" stroke-width="2.5" opacity="0.75" stroke-linecap="round" /><path d="M 40 42 C 52 44, 62 49, 67 52" stroke="#FFFFFF" stroke-width="1.8" opacity="0.6" stroke-linecap="round" /><circle cx="41" cy="70" r="2.5" fill="#FFFFFF" opacity="0.8" /><line x1="43.5" y1="70" x2="43.5" y2="59" stroke="#FFFFFF" stroke-width="1.5" opacity="0.8" /></svg>`,
+    display_order: 4
+  },
+  {
+    role: 'Marketing Specialist & Tech Lead',
     organization: 'App Development Club, NMIMS Shirpur',
     period: '2025 - Present',
-    description: "Part of the Marketing Team at the App Development Club, working on event promotions, audience engagement, and outreach activities to expand the club's reach and impact.",
-    glow_color: '#D7E2EA',
-    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="adcRingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2" /><stop offset="50%" stop-color="#00E676" /><stop offset="100%" stop-color="#00FF88" /></linearGradient></defs><path d="M 12 28 A 12 12 0 0 1 34 22 L 32 30 Z" fill="#78C257" /><line x1="20" y1="21" x2="16" y2="13" stroke="#78C257" stroke-width="2" stroke-linecap="round" /><line x1="28" y1="21" x2="32" y2="13" stroke="#78C257" stroke-width="2" stroke-linecap="round" /><circle cx="21" cy="24" r="1" fill="#000000" /><circle cx="29" cy="24" r="1" fill="#000000" /><path d="M 68 18 C 72 15, 78 18, 80 22 C 77 24, 76 28, 79 31 C 76 35, 72 35, 70 33 C 68 35, 64 33, 64 30 C 64 25, 68 21, 68 18 Z" fill="#555555" /><path d="M 74 15 C 74 12, 77 10, 79 10 C 79 12, 77 15, 74 15 Z" fill="#555555" /><path d="M 62 68 L 78 52 L 78 68 Z" fill="#3F51B5" /><path d="M 62 68 L 78 68 L 78 84 Z" fill="#00BCD4" /><circle cx="50" cy="50" r="34" stroke="url(#adcRingGrad)" stroke-width="5" /><circle cx="50" cy="50" r="31" fill="#FFFFFF" /><text x="31" y="59" fill="#00C853" font-size="24" font-weight="900" font-family="'Kanit', sans-serif">A</text><text x="57" y="59" fill="#2979FF" font-size="24" font-weight="900" font-family="'Kanit', sans-serif">D</text><path d="M 48 38 L 54 38 L 51 60 Z" fill="#757575" /><path d="M 47 36 L 55 36 L 51 62 Z" stroke="#00C853" stroke-width="1.2" fill="none" /></svg>`,
-    display_order: 3
+    description: "Spearheading developer outreach, technical hackathon logistics, and collaborative full-stack projects for NMIMS student community, accelerating campus-wide tech engagement.",
+    glow_color: '#00E676',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="adcRingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2" /><stop offset="50%" stop-color="#00E676" /><stop offset="100%" stop-color="#00FF88" /></linearGradient></defs><circle cx="50" cy="50" r="38" stroke="url(#adcRingGrad)" stroke-width="4" fill="rgba(0, 230, 118, 0.05)"/><path d="M38 44 L50 32 L62 44 M50 34 L50 66" stroke="#00E676" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    display_order: 5
   }
 ];
 
 const defaultCertificates = [
   {
-    course: 'AI Fundamentals',
+    course: 'Google AI Fundamentals',
     issuer: 'Google',
     platform: 'Coursera',
     date: 'Jun 2026',
@@ -105,6 +132,50 @@ const defaultCertificates = [
     logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/><path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/><path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/></svg>`,
     display_order: 1,
     deck_name: 'Google'
+  },
+  {
+    course: 'Google AI Professional Track',
+    issuer: 'Google',
+    platform: 'Google Cloud Skills Boost',
+    date: 'Jul 2026',
+    verify_url: 'https://coursera.org/verify/NFAGLH20ZUAB',
+    glow_color: '#00F2FE',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="20" stroke="#00F2FE" stroke-width="2" fill="rgba(0, 242, 254, 0.1)"/><polygon points="24,12 34,30 14,30" fill="#00F2FE"/></svg>`,
+    display_order: 2,
+    deck_name: 'Google Cloud'
+  },
+  {
+    course: 'Amazon ML Summer School 2026',
+    issuer: 'Amazon',
+    platform: 'Amazon Science / ML Programs',
+    date: 'Jul 2026',
+    verify_url: 'https://amazon.science',
+    glow_color: '#FF9900',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><path fill="#FF9900" d="M24 6C14.1 6 6 14.1 6 24s8.1 18 18 18 18-8.1 18-18S33.9 6 24 6zm10 24c-5 4-15 4-20 0 0 0 4 2 10 2s10-2 10-2z"/></svg>`,
+    display_order: 3,
+    deck_name: 'Amazon'
+  },
+  {
+    course: 'Prompt Engineering & Generative AI Internship',
+    issuer: 'Future Interns',
+    platform: 'Future Interns (CIN: FIT/AUG26/PE3831)',
+    date: 'Aug 2026',
+    verify_url: 'https://futureinterns.com',
+    glow_color: '#00F2FE',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="32" height="32" rx="8" fill="rgba(0, 242, 254, 0.15)" stroke="#00F2FE" stroke-width="2"/><text x="14" y="29" fill="#00F2FE" font-size="14" font-weight="900" font-family="sans-serif">FI</text></svg>`,
+    display_order: 4,
+    deck_name: 'Future Interns'
+  },
+  {
+    course: 'Algorithmic Systems Contributor Award',
+    issuer: 'ZeTheta / EduForge',
+    platform: 'EduForge Open Systems',
+    date: '2026',
+    verify_url: 'https://github.com/mylifeastanmay-hub',
+    glow_color: '#9945FF',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><polygon points="24,8 40,38 8,38" fill="rgba(153, 69, 255, 0.2)" stroke="#9945FF" stroke-width="2"/><text x="18" y="32" fill="#9945FF" font-size="16" font-weight="bold">θ</text></svg>`,
+    display_order: 5,
+    deck_name: 'ZeTheta'
   }
 ];
 
