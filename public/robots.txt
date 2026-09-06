@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tanverse-portfolio-client.vercel.app/sitemap.xml
