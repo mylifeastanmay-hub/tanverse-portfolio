@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="100%" height="100%">
+  <defs>
+    <linearGradient id="aegis-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A0B10"/>
+      <stop offset="50%" stop-color="#12162A"/>
+      <stop offset="100%" stop-color="#08090E"/>
+    </linearGradient>
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="380" fill="url(#aegis-bg)" rx="16"/>
+  <rect width="600" height="380" fill="none" stroke="#3B82F6" stroke-width="1.5" stroke-opacity="0.25" rx="16"/>
+
+  <rect x="25" y="24" width="8" height="8" fill="#3B82F6"/>
+  <text x="42" y="32" fill="#3B82F6" font-family="'Kanit', monospace" font-size="11" font-weight="700" letter-spacing="2">AEGISGATEWAY // HIGH-THROUGHPUT AI REVERSE PROXY</text>
+  <rect x="475" y="22" width="100" height="18" rx="9" fill="#3B82F6" fill-opacity="0.12" stroke="#3B82F6" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="525" y="34" fill="#3B82F6" font-family="'Kanit', sans-serif" font-size="9" font-weight="600" text-anchor="middle" letter-spacing="1">FASTAPI + REDIS</text>
+
+  <g transform="translate(180, 190)">
+    <path d="M 0 -85 L 65 -45 L 65 30 C 65 80 0 110 0 110 C 0 110 -65 80 -65 30 L -65 -45 Z" fill="#0C101D" stroke="url(#shield-grad)" stroke-width="3"/>
+    <circle cx="0" cy="5" r="24" fill="#3B82F6" fill-opacity="0.15" stroke="#00F2FE" stroke-width="2"/>
+    <path d="M -8 0 L -8 -10 C -8 -16 8 -16 8 -10 L 8 0 Z" fill="none" stroke="#00F2FE" stroke-width="2.5"/>
+    <rect x="-12" y="0" width="24" height="18" rx="4" fill="#00F2FE"/>
+    <circle cx="0" cy="10" r="95" fill="none" stroke="#3B82F6" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="6 6"/>
+  </g>
+
+  <g transform="translate(370, 75)">
+    <rect width="205" height="265" rx="12" fill="#070913" fill-opacity="0.85" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.1"/>
+    
+    <text x="16" y="30" fill="#FFFFFF" font-family="'Kanit', sans-serif" font-size="12" font-weight="700" letter-spacing="1">PROXY TELEMETRY</text>
+    
+    <text x="16" y="60" fill="#8892B0" font-family="monospace" font-size="9">P99 LATENCY OVERHEAD</text>
+    <text x="16" y="80" fill="#00F2FE" font-family="'Kanit', sans-serif" font-size="18" font-weight="800">3.82 ms</text>
+    <line x1="16" y1="90" x2="190" y2="90" stroke="#00F2FE" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="118" fill="#8892B0" font-family="monospace" font-size="9">RATE LIMIT ALGORITHM</text>
+    <text x="16" y="138" fill="#3B82F6" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">Token Bucket (Redis)</text>
+    <line x1="16" y1="148" x2="175" y2="148" stroke="#3B82F6" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="176" fill="#8892B0" font-family="monospace" font-size="9">INJECTION DEFENSE</text>
+    <text x="16" y="196" fill="#10B981" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">Sanitized &amp; Guarded</text>
+    <line x1="16" y1="206" x2="185" y2="206" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+
+    <rect x="16" y="225" width="175" height="24" rx="6" fill="#3B82F6" fill-opacity="0.12" stroke="#3B82F6" stroke-width="1" stroke-opacity="0.3"/>
+    <circle cx="28" cy="237" r="3" fill="#10B981"/>
+    <text x="38" y="241" fill="#FFFFFF" font-family="monospace" font-size="8" font-weight="700" letter-spacing="1">DOCKER CONTAINERIZED</text>
+  </g>
+</svg>

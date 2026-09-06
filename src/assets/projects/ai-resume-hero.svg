@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="100%" height="100%">
+  <defs>
+    <linearGradient id="ats-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14091A"/>
+      <stop offset="50%" stop-color="#24102E"/>
+      <stop offset="100%" stop-color="#0E0513"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="380" fill="url(#ats-bg)" rx="16"/>
+  <rect width="600" height="380" fill="none" stroke="#B600A8" stroke-width="1.5" stroke-opacity="0.3" rx="16"/>
+
+  <rect x="25" y="24" width="8" height="8" fill="#B600A8"/>
+  <text x="42" y="32" fill="#B600A8" font-family="'Kanit', monospace" font-size="11" font-weight="700" letter-spacing="2">AI ATS RESUME ANALYZER // NLP PARSER &amp; SCORER</text>
+  <rect x="475" y="22" width="100" height="18" rx="9" fill="#B600A8" fill-opacity="0.15" stroke="#B600A8" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="525" y="34" fill="#B600A8" font-family="'Kanit', sans-serif" font-size="9" font-weight="600" text-anchor="middle" letter-spacing="1">STREAMLIT + NLP</text>
+
+  <g transform="translate(180, 190)">
+    <circle r="105" fill="none" stroke="#B600A8" stroke-width="1" stroke-opacity="0.2"/>
+    <circle r="75" fill="none" stroke="#00F2FE" stroke-width="1" stroke-opacity="0.25"/>
+    <circle r="45" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.15"/>
+    
+    <polygon points="0,-85 60,-25 45,55 -50,50 -70,-30" fill="#B600A8" fill-opacity="0.25" stroke="#B600A8" stroke-width="2"/>
+
+    <circle r="26" fill="#14091A" stroke="#00F2FE" stroke-width="2"/>
+    <text x="0" y="5" fill="#FFFFFF" font-family="'Kanit', sans-serif" font-size="14" font-weight="800" text-anchor="middle">94%</text>
+  </g>
+
+  <g transform="translate(370, 75)">
+    <rect width="205" height="265" rx="12" fill="#0D0512" fill-opacity="0.85" stroke="#B600A8" stroke-width="1" stroke-opacity="0.2"/>
+    
+    <text x="16" y="30" fill="#FFFFFF" font-family="'Kanit', sans-serif" font-size="12" font-weight="700" letter-spacing="1">ATS FITMENT ANALYSIS</text>
+    
+    <text x="16" y="60" fill="#8892B0" font-family="monospace" font-size="9">OVERALL ATS MATCH</text>
+    <text x="16" y="80" fill="#00F2FE" font-family="'Kanit', sans-serif" font-size="18" font-weight="800">94.2% (Top Tier)</text>
+    <line x1="16" y1="90" x2="190" y2="90" stroke="#00F2FE" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="118" fill="#8892B0" font-family="monospace" font-size="9">NLP KEYWORDS IDENTIFIED</text>
+    <text x="16" y="138" fill="#B600A8" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">28 / 30 Core Skills</text>
+    <line x1="16" y1="148" x2="180" y2="148" stroke="#B600A8" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="176" fill="#8892B0" font-family="monospace" font-size="9">RECRUITER FIT CONFIDENCE</text>
+    <text x="16" y="196" fill="#10B981" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">High Suitability</text>
+    <line x1="16" y1="206" x2="175" y2="206" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+
+    <rect x="16" y="225" width="175" height="24" rx="6" fill="#B600A8" fill-opacity="0.12" stroke="#B600A8" stroke-width="1" stroke-opacity="0.3"/>
+    <circle cx="28" cy="237" r="3" fill="#00F2FE"/>
+    <text x="38" y="241" fill="#FFFFFF" font-family="monospace" font-size="8" font-weight="700" letter-spacing="1">PDF / DOCX EXTRACTION</text>
+  </g>
+</svg>

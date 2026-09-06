@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="100%" height="100%">
+  <defs>
+    <linearGradient id="mesh-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050C16"/>
+      <stop offset="50%" stop-color="#0C1B2E"/>
+      <stop offset="100%" stop-color="#03080F"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="380" fill="url(#mesh-bg)" rx="16"/>
+  <rect width="600" height="380" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.3" rx="16"/>
+
+  <rect x="25" y="24" width="8" height="8" fill="#00F2FE"/>
+  <text x="42" y="32" fill="#00F2FE" font-family="'Kanit', monospace" font-size="11" font-weight="700" letter-spacing="2">MESHWEAVER // DECENTRALIZED KADEMLIA DHT P2P</text>
+  <rect x="475" y="22" width="100" height="18" rx="9" fill="#00F2FE" fill-opacity="0.15" stroke="#00F2FE" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="525" y="34" fill="#00F2FE" font-family="'Kanit', sans-serif" font-size="9" font-weight="600" text-anchor="middle" letter-spacing="1">ASYNCIO + PYTHON</text>
+
+  <g transform="translate(180, 190)">
+    <circle r="100" fill="none" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.25"/>
+    <circle r="60" fill="none" stroke="#3B82F6" stroke-width="1" stroke-opacity="0.2" stroke-dasharray="4 4"/>
+    
+    <g fill="#0C1B2E" stroke="#00F2FE" stroke-width="2">
+      <circle cx="0" cy="-100" r="8"/>
+      <circle cx="95" cy="-30" r="8"/>
+      <circle cx="58" cy="80" r="8"/>
+      <circle cx="-58" cy="80" r="8"/>
+      <circle cx="-95" cy="-30" r="8"/>
+    </g>
+
+    <line x1="0" y1="-100" x2="58" y2="80" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4"/>
+    <line x1="0" y1="-100" x2="-58" y2="80" stroke="#00F2FE" stroke-width="1.5" stroke-opacity="0.4"/>
+    <line x1="-95" y1="-30" x2="95" y2="-30" stroke="#3B82F6" stroke-width="1.5" stroke-opacity="0.4"/>
+
+    <circle r="16" fill="#00F2FE" fill-opacity="0.2" stroke="#00F2FE" stroke-width="2"/>
+    <text x="0" y="4" fill="#00F2FE" font-family="monospace" font-size="10" font-weight="800" text-anchor="middle">DHT</text>
+  </g>
+
+  <g transform="translate(370, 75)">
+    <rect width="205" height="265" rx="12" fill="#050F1C" fill-opacity="0.85" stroke="#00F2FE" stroke-width="1" stroke-opacity="0.2"/>
+    
+    <text x="16" y="30" fill="#FFFFFF" font-family="'Kanit', sans-serif" font-size="12" font-weight="700" letter-spacing="1">DISTRIBUTED METRICS</text>
+    
+    <text x="16" y="60" fill="#8892B0" font-family="monospace" font-size="9">ROUTING LOOKUP</text>
+    <text x="16" y="80" fill="#00F2FE" font-family="'Kanit', sans-serif" font-size="18" font-weight="800">O(log N) XOR Metric</text>
+    <line x1="16" y1="90" x2="190" y2="90" stroke="#00F2FE" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="118" fill="#8892B0" font-family="monospace" font-size="9">TOPOLOGY RESILIENCE</text>
+    <text x="16" y="138" fill="#10B981" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">Zero SPOF Failure</text>
+    <line x1="16" y1="148" x2="180" y2="148" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="176" fill="#8892B0" font-family="monospace" font-size="9">CONSENSUS VERIFICATION</text>
+    <text x="16" y="196" fill="#FFB800" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">SHA-256 Hashes</text>
+    <line x1="16" y1="206" x2="165" y2="206" stroke="#FFB800" stroke-width="3" stroke-linecap="round"/>
+
+    <rect x="16" y="225" width="175" height="24" rx="6" fill="#00F2FE" fill-opacity="0.12" stroke="#00F2FE" stroke-width="1" stroke-opacity="0.3"/>
+    <circle cx="28" cy="237" r="3" fill="#00F2FE"/>
+    <text x="38" y="241" fill="#FFFFFF" font-family="monospace" font-size="8" font-weight="700" letter-spacing="1">100% PURE PYTHON</text>
+  </g>
+</svg>

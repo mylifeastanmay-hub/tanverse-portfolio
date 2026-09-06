@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" width="100%" height="100%">
+  <defs>
+    <linearGradient id="azure-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#081018"/>
+      <stop offset="50%" stop-color="#0F2032"/>
+      <stop offset="100%" stop-color="#050A10"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="380" fill="url(#azure-bg)" rx="16"/>
+  <rect width="600" height="380" fill="none" stroke="#4FACFE" stroke-width="1.5" stroke-opacity="0.3" rx="16"/>
+
+  <rect x="25" y="24" width="8" height="8" fill="#4FACFE"/>
+  <text x="42" y="32" fill="#4FACFE" font-family="'Kanit', monospace" font-size="11" font-weight="700" letter-spacing="2">GRAND AZURE // ENTERPRISE BOOKING &amp; 3NF SCHEMA</text>
+  <rect x="475" y="22" width="100" height="18" rx="9" fill="#4FACFE" fill-opacity="0.15" stroke="#4FACFE" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="525" y="34" fill="#4FACFE" font-family="'Kanit', sans-serif" font-size="9" font-weight="600" text-anchor="middle" letter-spacing="1">FLASK + ORM</text>
+
+  <g transform="translate(180, 190)">
+    <rect x="-120" y="-80" width="100" height="60" rx="6" fill="#0F2032" stroke="#4FACFE" stroke-width="1.5"/>
+    <text x="-70" y="-62" fill="#4FACFE" font-family="monospace" font-size="8" font-weight="700" text-anchor="middle">USERS</text>
+    <text x="-110" y="-45" fill="#8892B0" font-family="monospace" font-size="7">PK user_id</text>
+    <text x="-110" y="-32" fill="#8892B0" font-family="monospace" font-size="7">email, role</text>
+
+    <rect x="20" y="-80" width="100" height="60" rx="6" fill="#0F2032" stroke="#00F2FE" stroke-width="1.5"/>
+    <text x="70" y="-62" fill="#00F2FE" font-family="monospace" font-size="8" font-weight="700" text-anchor="middle">BOOKINGS</text>
+    <text x="30" y="-45" fill="#8892B0" font-family="monospace" font-size="7">PK booking_id</text>
+    <text x="30" y="-32" fill="#8892B0" font-family="monospace" font-size="7">FK user_id, room</text>
+
+    <rect x="-50" y="20" width="100" height="60" rx="6" fill="#0F2032" stroke="#10B981" stroke-width="1.5"/>
+    <text x="0" y="38" fill="#10B981" font-family="monospace" font-size="8" font-weight="700" text-anchor="middle">INVOICES</text>
+    <text x="-40" y="55" fill="#8892B0" font-family="monospace" font-size="7">PK invoice_id</text>
+    <text x="-40" y="68" fill="#8892B0" font-family="monospace" font-size="7">total_billed, tax</text>
+
+    <line x1="-20" y1="-50" x2="20" y2="-50" stroke="#4FACFE" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <line x1="70" y1="-20" x2="20" y2="20" stroke="#00F2FE" stroke-width="1.5" stroke-dasharray="3 3"/>
+  </g>
+
+  <g transform="translate(370, 75)">
+    <rect width="205" height="265" rx="12" fill="#07131F" fill-opacity="0.85" stroke="#4FACFE" stroke-width="1" stroke-opacity="0.2"/>
+    
+    <text x="16" y="30" fill="#FFFFFF" font-family="'Kanit', sans-serif" font-size="12" font-weight="700" letter-spacing="1">ENTERPRISE SYSTEM</text>
+    
+    <text x="16" y="60" fill="#8892B0" font-family="monospace" font-size="9">SCHEMA REDUNDANCY</text>
+    <text x="16" y="80" fill="#00F2FE" font-family="'Kanit', sans-serif" font-size="18" font-weight="800">3NF Normalized (0%)</text>
+    <line x1="16" y1="90" x2="190" y2="90" stroke="#00F2FE" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="118" fill="#8892B0" font-family="monospace" font-size="9">ASYNC SCHEDULER</text>
+    <text x="16" y="138" fill="#4FACFE" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">APScheduler Daemon</text>
+    <line x1="16" y1="148" x2="180" y2="148" stroke="#4FACFE" stroke-width="3" stroke-linecap="round"/>
+
+    <text x="16" y="176" fill="#8892B0" font-family="monospace" font-size="9">INVOICE PIPELINE</text>
+    <text x="16" y="196" fill="#10B981" font-family="'Kanit', sans-serif" font-size="16" font-weight="800">ReportLab Dynamic PDF</text>
+    <line x1="16" y1="206" x2="185" y2="206" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+
+    <rect x="16" y="225" width="175" height="24" rx="6" fill="#4FACFE" fill-opacity="0.12" stroke="#4FACFE" stroke-width="1" stroke-opacity="0.3"/>
+    <circle cx="28" cy="237" r="3" fill="#10B981"/>
+    <text x="38" y="241" fill="#FFFFFF" font-family="monospace" font-size="8" font-weight="700" letter-spacing="1">FLASK 3.0 + SQLALCHEMY</text>
+  </g>
+</svg>

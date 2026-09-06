@@ -9,6 +9,29 @@ import portfolioHeroMockup from './assets/portfolio-hero-mockup.png';
 import portfolioSkillsMockup from './assets/portfolio-skills-mockup.png';
 import portfolioExperienceMockup from './assets/portfolio-experience-mockup.png';
 
+// Flagship Project Telemetry Assets
+import sentinelSwarmHero from './assets/projects/sentinel-swarm-hero.svg';
+import sentinelSwarmSub1 from './assets/projects/sentinel-swarm-sub1.svg';
+import sentinelSwarmSub2 from './assets/projects/sentinel-swarm-sub2.svg';
+import aegisGatewayHero from './assets/projects/aegis-gateway-hero.svg';
+import aegisGatewaySub1 from './assets/projects/aegis-gateway-sub1.svg';
+import aegisGatewaySub2 from './assets/projects/aegis-gateway-sub2.svg';
+import anantamAgriHero from './assets/projects/anantam-agri-hero.svg';
+import anantamAgriSub1 from './assets/projects/anantam-agri-sub1.svg';
+import anantamAgriSub2 from './assets/projects/anantam-agri-sub2.svg';
+import aiResumeHero from './assets/projects/ai-resume-hero.svg';
+import aiResumeSub1 from './assets/projects/ai-resume-sub1.svg';
+import aiResumeSub2 from './assets/projects/ai-resume-sub2.svg';
+import meshweaverHero from './assets/projects/meshweaver-hero.svg';
+import meshweaverSub1 from './assets/projects/meshweaver-sub1.svg';
+import meshweaverSub2 from './assets/projects/meshweaver-sub2.svg';
+import futurePeHero from './assets/projects/future-pe-hero.svg';
+import futurePeSub1 from './assets/projects/future-pe-sub1.svg';
+import futurePeSub2 from './assets/projects/future-pe-sub2.svg';
+import grandAzureHero from './assets/projects/grand-azure-hero.svg';
+import grandAzureSub1 from './assets/projects/grand-azure-sub1.svg';
+import grandAzureSub2 from './assets/projects/grand-azure-sub2.svg';
+
 // 3D Glassmorphic Charm Imports
 import charmDodecahedron from './assets/charms/charm-dodecahedron.png';
 import charmInfinity from './assets/charms/charm-infinity.png';
@@ -209,7 +232,7 @@ export function ContactButton() {
 export function ResumeButton() {
   return (
     <a
-      href="https://drive.google.com/file/d/1i0MHk-3KpGRxJGlmMRWJnNOLuMV9mxK3/view?usp=sharing"
+      href="https://github.com/mylifeastanmay-hub/resume/raw/main/resume.pdf"
       target="_blank"
       rel="noreferrer"
       onMouseEnter={() => playCyberSound('hover')}
@@ -513,8 +536,8 @@ function HeroSection({ avatarUrl }: { avatarUrl?: string }) {
       {/* Bottom Bar */}
       <div className="mt-auto flex justify-between items-end pb-7 sm:pb-8 md:pb-10 relative z-20">
         <FadeIn delay={0.35} y={20}>
-          <p className="max-w-[160px] sm:max-w-[220px] md:max-w-[260px] text-slate-200 font-light uppercase tracking-wide leading-snug text-xs sm:text-sm md:text-base lg:text-lg">
-            an ai/ml enthusiast combining creativity and technology to build what&apos;s next
+          <p className="max-w-[180px] sm:max-w-[240px] md:max-w-[300px] text-slate-200 font-light uppercase tracking-wide leading-snug text-xs sm:text-sm md:text-base lg:text-lg">
+            AIML Engineer &amp; Systems Architect · Edge AI, Distributed Protocols &amp; 3D WebGL
           </p>
         </FadeIn>
 
@@ -613,9 +636,9 @@ function SectionTransition() {
 
         {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-8">
-          <StatItem end={2}  suffix="+" label="Projects Built"  delay={0}   />
-          <StatItem end={3}  suffix=""  label="Events Contributed" delay={120} />
-          <StatItem end={10} suffix="+" label="Skills Mastered" delay={240} />
+          <StatItem end={8}  suffix="+" label="Flagship Projects"  delay={0}   />
+          <StatItem end={5}  suffix=""  label="Tech Roles & Internships" delay={120} />
+          <StatItem end={25} suffix="+" label="Technologies Mastered" delay={240} />
         </div>
 
         {/* Bottom hairline */}
@@ -740,8 +763,8 @@ function AboutSection() {
 
         {/* Scroll Reveal Text Block */}
         <AnimatedText
-          text="I'm Tanmay Dhoot, an AI/ML student driven by curiosity, creativity, and the desire to turn ideas into meaningful technology. I keep learning, building, and becoming better every day. Let's build something incredible together!"
-          className="text-[#D7E2EA] font-medium leading-relaxed max-w-[560px] text-center text-[clamp(1rem,2vw,1.35rem)] mb-16 sm:mb-20 md:mb-24"
+          text="I'm Tanmay Atul Dhoot, an AIML Engineer at SVKM's NMIMS Shirpur (2024–2028). I specialize in on-device Edge AI, high-throughput distributed protocols, and interactive WebGL computing. From sub-3ms ExecuTorch neural anomaly sentinels to Kademlia DHT compute meshes, I engineer scalable, resilient systems from concept to production."
+          className="text-[#D7E2EA] font-medium leading-relaxed max-w-[620px] text-center text-[clamp(1rem,2vw,1.35rem)] mb-16 sm:mb-20 md:mb-24"
         />
 
         {/* Contact Button */}
@@ -765,7 +788,28 @@ const resolveProjectImage = (imgStr: string) => {
     foundlyStudent,
     portfolioHeroMockup,
     portfolioSkillsMockup,
-    portfolioExperienceMockup
+    portfolioExperienceMockup,
+    sentinelSwarmHero,
+    sentinelSwarmSub1,
+    sentinelSwarmSub2,
+    aegisGatewayHero,
+    aegisGatewaySub1,
+    aegisGatewaySub2,
+    anantamAgriHero,
+    anantamAgriSub1,
+    anantamAgriSub2,
+    aiResumeHero,
+    aiResumeSub1,
+    aiResumeSub2,
+    meshweaverHero,
+    meshweaverSub1,
+    meshweaverSub2,
+    futurePeHero,
+    futurePeSub1,
+    futurePeSub2,
+    grandAzureHero,
+    grandAzureSub1,
+    grandAzureSub2,
   };
   return imageMap[imgStr] || imgStr;
 };
@@ -956,9 +1000,9 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
     {
       num: '01',
       title: 'Python',
-      desc: 'Creating artificial intelligence models, deep neural networks, and automated backend scripts.',
-      tools: ['TensorFlow', 'Jupyter', 'Pandas', 'NumPy'],
-      projects: ['AI/ML Analytics', 'Model Dev'],
+      desc: 'Building on-device ExecuTorch models, high-speed FastAPI AI proxies, and automated data pipelines.',
+      tools: ['PyTorch / ExecuTorch', 'FastAPI', 'Pandas / NumPy', 'Scikit-Learn'],
+      projects: ['Sentinel Swarm PRO', 'AegisGateway'],
       left: '12%',
       top: '22%',
       xVal: '-42.8',
@@ -966,10 +1010,10 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       zVal: '10.0',
       glowColor: 'rgba(55, 118, 171, 0.45)',
       toolsStats: [
-        { name: 'TensorFlow', level: 95 },
-        { name: 'Jupyter Notebooks', level: 90 },
+        { name: 'ExecuTorch / PyTorch', level: 95 },
+        { name: 'FastAPI Microservices', level: 93 },
         { name: 'Pandas / NumPy', level: 92 },
-        { name: 'Scikit-Learn', level: 88 }
+        { name: 'Scikit-Learn ML', level: 88 }
       ],
       logo: (
         <svg className="w-12 h-12 sm:w-16 sm:h-16" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -982,8 +1026,8 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       num: '02',
       title: 'C++',
       desc: 'Structuring algorithmic computations, solving competitive challenges, and running high-speed compute loops.',
-      tools: ['GDB', 'GCC', 'CMake', 'DSA Foundations'],
-      projects: ['Competitive Programming'],
+      tools: ['GDB / Clang', 'GCC', 'CMake', 'STL Containers'],
+      projects: ['High-Performance Compute', 'DSA Algorithms'],
       left: '28%',
       top: '16%',
       xVal: '-25.2',
@@ -1009,7 +1053,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       title: 'C',
       desc: 'Managing low-level memory layout, pointer variables, compile links, and basic hardware calls.',
       tools: ['Pointer Ops', 'Memory Allocation', 'Assembly Base'],
-      projects: ['Architectural Systems'],
+      projects: ['Systems Architecture', 'Buffer Management'],
       left: '20%',
       top: '50%',
       xVal: '-38.0',
@@ -1033,8 +1077,8 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       num: '04',
       title: 'DSA',
       desc: 'Optimizing code execution runtime, building trees/graphs, and minimizing space requirements.',
-      tools: ['Big-O Notation', 'Graph Traversal', 'Search Trees'],
-      projects: ['Foundly Search Indexer'],
+      tools: ['Big-O Notation', 'Graph Traversal', 'Kademlia Routing'],
+      projects: ['MeshWeaver P2P', 'Search Topologies'],
       left: '42%',
       top: '28%',
       xVal: '45.4',
@@ -1069,8 +1113,8 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       num: '05',
       title: 'DBMS',
       desc: 'Designing relational database layouts, executing SQL queries, indexing entries, and linking API data stores.',
-      tools: ['PostgreSQL', 'SQL Queries', 'DB Normalization'],
-      projects: ['Foundly Database'],
+      tools: ['PostgreSQL', 'SQLAlchemy ORM', '3NF Normalization'],
+      projects: ['Grand Azure Hotel', 'Anantam Agri'],
       left: '60%',
       top: '16%',
       xVal: '62.1',
@@ -1103,7 +1147,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       title: 'React JS',
       desc: 'Crafting beautiful frontends, setting up component modules, and executing smooth 3D interactions.',
       tools: ['Vite', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
-      projects: ['Tanverse Portfolio', 'Foundly Hub'],
+      projects: ['Tanverse Universe', 'Anantam Dashboard'],
       left: '52%',
       top: '50%',
       xVal: '12.0',
@@ -1132,7 +1176,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       title: 'Vite',
       desc: 'Enabling lightning-fast module bundling, hot-reloading development, and highly optimized build outputs.',
       tools: ['Vite Config', 'ESBuild', 'Rollup', 'Dev Server'],
-      projects: ['Tanverse Portfolio', 'Foundly Hub'],
+      projects: ['Tanverse 3D', 'Anantam Agri App'],
       left: '74%',
       top: '26%',
       xVal: '58.2',
@@ -1167,7 +1211,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       title: 'TypeScript',
       desc: 'Adding strict type safety, advanced interfaces, compile-time checks, and robust autocomplete to React frameworks.',
       tools: ['TSConfig', 'Type Guards', 'Generics', 'Linter Integration'],
-      projects: ['Foundly Platform', 'Tanverse Engine'],
+      projects: ['Tanverse Engine', 'Anantam Platform'],
       left: '34%',
       top: '48%',
       xVal: '-22.5',
@@ -1192,7 +1236,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       title: 'Tailwind CSS',
       desc: 'Styling user interfaces rapidly with utility-first utility classes, fluid spacing, and custom grid architectures.',
       tools: ['PostCSS', 'Theme Config', 'Arbitrary Values', 'CSS Variables'],
-      projects: ['Tanverse Portfolio', 'Foundly Platform'],
+      projects: ['Tanverse Interface', 'Agri Telemetry UI'],
       left: '68%',
       top: '48%',
       xVal: '44.8',
@@ -1216,7 +1260,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       title: 'Framer Motion',
       desc: 'Animating React nodes with physics-based transitions, spring mechanics, exit states, and 3D spatial drift.',
       tools: ['AnimatePresence', 'Spring Physics', 'Scroll Progress', '3D Transforms'],
-      projects: ['Tanverse 3D Creator', 'Portfolio Effects'],
+      projects: ['Tanverse 3D Carousel', 'Portfolio Experience'],
       left: '86%',
       top: '38%',
       xVal: '75.4',
@@ -1553,6 +1597,10 @@ interface ProjectData {
   name: string;
   category: string;
   url: string;
+  githubUrl?: string;
+  description?: string;
+  tech?: string[];
+  metrics?: string[];
   images: {
     col1Img1: string;
     col1Img2: string;
@@ -1563,24 +1611,122 @@ interface ProjectData {
 const PROJECTS: ProjectData[] = [
   {
     num: '01',
-    name: 'Foundly Platform',
-    category: 'Personal Product',
-    url: 'https://foundly-theta.vercel.app/',
+    name: 'Sentinel Swarm PRO',
+    category: 'Edge AI / On-Device Security',
+    url: 'https://github.com/mylifeastanmay-hub/sentinel-swarm',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/sentinel-swarm',
+    description: 'Zero-cloud on-device ExecuTorch INT8 anomaly detection sentinel with sub-3ms inference latency, multi-agent decentralized coordination, and zero cloud data egress.',
+    tech: ['ExecuTorch', 'PyTorch INT8', 'Edge AI', 'Python', 'Decentralized Swarm'],
+    metrics: ['<3ms Latency', '100% On-Device', 'INT8 Quantized', 'Zero Cloud Egress'],
     images: {
-      col1Img1: foundlyHero,
-      col1Img2: foundlyStudent,
-      col2Img: foundlyHero,
+      col1Img1: sentinelSwarmSub1,
+      col1Img2: sentinelSwarmSub2,
+      col2Img: sentinelSwarmHero,
     },
   },
   {
     num: '02',
-    name: 'Interactive 3D Portfolio',
-    category: 'Personal Showcase',
-    url: 'https://github.com/tanmay-dhoot/3d-portfolio',
+    name: 'AegisGateway',
+    category: 'Enterprise AI Security Proxy',
+    url: 'https://github.com/mylifeastanmay-hub/aegis-gateway',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/aegis-gateway',
+    description: 'High-throughput reverse proxy protecting LLMs and AI endpoints with token-bucket rate limiting, prompt injection defenses, and sub-4ms P99 latency.',
+    tech: ['FastAPI', 'Redis', 'Docker', 'Python', 'Reverse Proxy', 'Security'],
+    metrics: ['P99 <4ms', 'Token Bucket', 'Injection Defense', 'Docker Container'],
     images: {
-      col1Img1: '',
-      col1Img2: '',
-      col2Img: '',
+      col1Img1: aegisGatewaySub1,
+      col1Img2: aegisGatewaySub2,
+      col2Img: aegisGatewayHero,
+    },
+  },
+  {
+    num: '03',
+    name: 'Anantam Agri Dashboard',
+    category: 'Autonomous UAV & Agritech',
+    url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+    description: 'Fullstack agricultural operations suite with real-time autonomous drone flight path monitoring, live NDVI crop stress spatial mapping, and predictive disease incidence analytics.',
+    tech: ['React 18', 'Vite', 'Tailwind CSS', 'Recharts', 'UAV Telemetry', 'IoT'],
+    metrics: ['Real-time Flight Telemetry', 'Spatial NDVI', 'Sub-second Charts', 'Interactive UI'],
+    images: {
+      col1Img1: anantamAgriSub1,
+      col1Img2: anantamAgriSub2,
+      col2Img: anantamAgriHero,
+    },
+  },
+  {
+    num: '04',
+    name: 'AI ATS Resume Analyzer',
+    category: 'NLP & Career Intelligence',
+    url: 'https://github.com/mylifeastanmay-hub/ai-resume-builder',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/ai-resume-builder',
+    description: 'AI-powered resume parser and job-fitment engine providing candidate ATS match scoring, missing keyword detection, and customized recommendation generation.',
+    tech: ['Streamlit', 'Python', 'NLP', 'PDFPlumber', 'Scikit-Learn'],
+    metrics: ['94.2% ATS Scorer', 'Multi-format Parsing', 'Semantic Fitment', 'Instant PDF Reports'],
+    images: {
+      col1Img1: aiResumeSub1,
+      col1Img2: aiResumeSub2,
+      col2Img: aiResumeHero,
+    },
+  },
+  {
+    num: '05',
+    name: 'MeshWeaver P2P Mesh',
+    category: 'Distributed Systems & DHT',
+    url: 'https://github.com/mylifeastanmay-hub/meshweaver',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/meshweaver',
+    description: 'Decentralized peer-to-peer compute network and task broker built on Kademlia DHT routing with fault-tolerant worker distribution and cryptographic task verification.',
+    tech: ['Python', 'Asyncio', 'Kademlia DHT', 'P2P Networking', 'Distributed Systems'],
+    metrics: ['O(log N) Routing', 'Fault-Tolerant', 'Pure Python', 'Zero Single Point of Failure'],
+    images: {
+      col1Img1: meshweaverSub1,
+      col1Img2: meshweaverSub2,
+      col2Img: meshweaverHero,
+    },
+  },
+  {
+    num: '06',
+    name: 'FUTURE_PE_01 Prompt Engine',
+    category: 'GenAI & Cognitive Systems',
+    url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
+    description: 'Production prompt engineering architecture with multi-persona cognitive frameworks, automated few-shot calibration, and strict Pydantic JSON validation schemas.',
+    tech: ['Prompt Engineering', 'GenAI', 'Few-Shot Calibration', 'JSON Schemas', 'LLM Agents'],
+    metrics: ['100% Validated JSON', 'Multi-Persona', 'Cognitive Trees', 'Automated Evaluation'],
+    images: {
+      col1Img1: futurePeSub1,
+      col1Img2: futurePeSub2,
+      col2Img: futurePeHero,
+    },
+  },
+  {
+    num: '07',
+    name: 'Grand Azure Enterprise',
+    category: 'Fullstack Flask & ORM',
+    url: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel',
+    description: 'Comprehensive hospitality enterprise suite with 3NF relational database architecture, SQLAlchemy query optimization, automated background task orchestration, and dynamic PDF invoice generation.',
+    tech: ['Flask 3.0', 'SQLAlchemy', 'MySQL', 'APScheduler', 'ReportLab'],
+    metrics: ['3NF Relational Schema', 'Zero Redundancy', 'Async Jobs', 'Dynamic Invoicing'],
+    images: {
+      col1Img1: grandAzureSub1,
+      col1Img2: grandAzureSub2,
+      col2Img: grandAzureHero,
+    },
+  },
+  {
+    num: '08',
+    name: 'Tanverse 3D Universe',
+    category: 'Creative WebGL & 3D Systems',
+    url: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio',
+    description: 'Immersive personal developer universe engineered with Three.js, React Three Fiber, Framer Motion spring physics, and a custom Web Audio synthesizer.',
+    tech: ['React 18', 'Three.js', 'React Three Fiber', 'Tailwind CSS', 'Web Audio API'],
+    metrics: ['60 FPS WebGL', 'Synthesizer Audio', 'Glassmorphism 3D', 'Vite Optimized'],
+    images: {
+      col1Img1: portfolioSkillsMockup,
+      col1Img2: portfolioExperienceMockup,
+      col2Img: portfolioHeroMockup,
     },
   },
 ];
@@ -1688,6 +1834,11 @@ function CardWrapper({ project, index, activeIndex, onChangeIndex, hoverRotation
               <h3 className="text-sm sm:text-base md:text-lg font-bold uppercase leading-tight text-[#D7E2EA]">
                 {project.name}
               </h3>
+              {project.metrics && project.metrics[0] && (
+                <span className="text-[8px] md:text-[9px] font-mono text-[#00F2FE] tracking-wider mt-0.5 opacity-90">
+                  ⚡ {project.metrics[0]}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -2135,37 +2286,91 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
                   </div>
                 )}
 
-                {activePopupProject.url && (
-                  <a 
-                    href={activePopupProject.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl border font-semibold uppercase tracking-wider text-[10px] py-3.5 transition-all duration-300"
-                    style={{
-                      borderColor: 'rgba(0, 242, 254, 0.4)',
-                      background: 'rgba(0, 242, 254, 0.08)',
-                      color: '#fff',
-                      boxShadow: `0 0 15px rgba(0, 242, 254, 0.05)`
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(0, 242, 254, 0.15)';
-                      e.currentTarget.style.borderColor = 'rgba(0, 242, 254, 0.8)';
-                      e.currentTarget.style.boxShadow = `0 0 25px rgba(0, 242, 254, 0.25)`;
-                      playCyberSound('hover');
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(0, 242, 254, 0.08)';
-                      e.currentTarget.style.borderColor = 'rgba(0, 242, 254, 0.4)';
-                      e.currentTarget.style.boxShadow = `0 0 15px rgba(0, 242, 254, 0.05)`;
-                    }}
-                    onClick={() => playCyberSound('click')}
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    <span>Visit Live Project</span>
-                  </a>
+                {/* Project Description */}
+                {activePopupProject.description && (
+                  <p className="text-xs text-slate-300 font-light leading-relaxed mt-1 text-left">
+                    {activePopupProject.description}
+                  </p>
                 )}
+
+                {/* Key Metrics Chips */}
+                {activePopupProject.metrics && activePopupProject.metrics.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {activePopupProject.metrics.map((metric, mIdx) => (
+                      <span
+                        key={mIdx}
+                        className="px-2.5 py-1 rounded-md text-[9px] font-mono font-bold tracking-wider uppercase border border-[#00F2FE]/30 bg-[#00F2FE]/10 text-[#00F2FE]"
+                      >
+                        ⚡ {metric}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tech Stack Badges */}
+                {activePopupProject.tech && activePopupProject.tech.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {activePopupProject.tech.map((t, tIdx) => (
+                      <span
+                        key={tIdx}
+                        className="px-2 py-0.5 rounded text-[8px] font-mono tracking-wider uppercase bg-white/5 border border-white/10 text-slate-400"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Buttons: Live App / Demo + GitHub Repo */}
+                <div className="flex gap-3 mt-3">
+                  {activePopupProject.url && (
+                    <a 
+                      href={activePopupProject.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border font-semibold uppercase tracking-wider text-[10px] py-3.5 transition-all duration-300"
+                      style={{
+                        borderColor: 'rgba(0, 242, 254, 0.4)',
+                        background: 'rgba(0, 242, 254, 0.08)',
+                        color: '#fff',
+                        boxShadow: `0 0 15px rgba(0, 242, 254, 0.05)`
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(0, 242, 254, 0.15)';
+                        e.currentTarget.style.borderColor = 'rgba(0, 242, 254, 0.8)';
+                        e.currentTarget.style.boxShadow = `0 0 25px rgba(0, 242, 254, 0.25)`;
+                        playCyberSound('hover');
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(0, 242, 254, 0.08)';
+                        e.currentTarget.style.borderColor = 'rgba(0, 242, 254, 0.4)';
+                        e.currentTarget.style.boxShadow = `0 0 15px rgba(0, 242, 254, 0.05)`;
+                      }}
+                      onClick={() => playCyberSound('click')}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      <span>Explore Project</span>
+                    </a>
+                  )}
+
+                  {activePopupProject.githubUrl && (
+                    <a 
+                      href={activePopupProject.githubUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/30 text-slate-200 text-[10px] font-semibold uppercase tracking-wider transition-all duration-300"
+                      onMouseEnter={() => playCyberSound('hover')}
+                      onClick={() => playCyberSound('click')}
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                      </svg>
+                      <span>Code</span>
+                    </a>
+                  )}
+                </div>
               </div>
             </motion.div>
           </>
@@ -2208,12 +2413,78 @@ const CERTIFICATES: CertificateData[] = [
     date: 'Jun 2026',
     verifyUrl: 'https://coursera.org/verify/NFAGLH20ZUAB',
     glowColor: '#4285F4',
+    deckName: 'Google',
     logo: (
       <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
         <path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/>
         <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/>
         <path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/>
         <path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/>
+      </svg>
+    ),
+  },
+  {
+    course: 'Google AI Professional Certificate',
+    issuer: 'Google',
+    platform: 'Coursera (In Progress)',
+    date: '2026',
+    verifyUrl: 'https://coursera.org/verify/NFAGLH20ZUAB',
+    glowColor: '#4285F4',
+    deckName: 'Google',
+    logo: (
+      <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#EA4335" d="M24 9.5c3.1 0 5.9 1.1 8.1 2.9l6-6C34.5 3.2 29.5 1 24 1 14.8 1 7 6.7 3.7 14.7l7 5.4C12.4 14 17.7 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.4 5.7C43.2 37 46.5 31.2 46.5 24.5z"/>
+        <path fill="#FBBC05" d="M10.7 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5l-7-5.4A23.2 23.2 0 0 0 .8 24c0 3.8.9 7.4 2.5 10.6l7.4-6.1z"/>
+        <path fill="#34A853" d="M24 47c5.5 0 10.1-1.8 13.5-4.9l-7.4-5.7c-1.8 1.2-4 1.9-6.1 1.9-6.3 0-11.6-4.5-13.3-10.5l-7.4 6.1C7.1 41.4 14.9 47 24 47z"/>
+      </svg>
+    ),
+  },
+  {
+    course: 'Amazon ML Summer School 2026',
+    issuer: 'Amazon Science',
+    platform: 'Amazon Graduate Programs',
+    date: 'Jul 2026',
+    verifyUrl: 'https://amazon.science',
+    glowColor: '#FF9900',
+    deckName: 'Amazon Science',
+    logo: (
+      <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="22" fill="#232F3E"/>
+        <path fill="#FF9900" d="M28.3 31.7c-5.2 3.8-12.8 5.8-19.3 5.8-9.1 0-17.3-3.4-23.5-9.1-.5-.5-.1-1.1.5-.8 6.7 3.9 14.8 6.2 23 6.2 5.8 0 12.1-1.4 18-4.5.9-.5 1.7.5 1.3 1.4z"/>
+        <text x="24" y="22" fill="#FF9900" fontSize="11" fontWeight="900" textAnchor="middle" fontFamily="sans-serif">ML</text>
+      </svg>
+    ),
+  },
+  {
+    course: 'Prompt Engineering & Cognitive Systems',
+    issuer: 'Future Interns',
+    platform: 'Future Interns (CIN: FIT/AUG26/PE3831)',
+    date: 'Aug 2026',
+    verifyUrl: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
+    glowColor: '#8A2BE2',
+    deckName: 'Future Interns',
+    logo: (
+      <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="10" fill="#180B26" stroke="#8A2BE2" strokeWidth="2"/>
+        <path d="M14 16 L34 16 L24 34 Z" fill="none" stroke="#8A2BE2" strokeWidth="2.5"/>
+        <circle cx="24" cy="22" r="3" fill="#00F2FE"/>
+      </svg>
+    ),
+  },
+  {
+    course: 'Lead Module Builder & Quant Tools',
+    issuer: 'ZeTheta / EduForge',
+    platform: 'EduForge Engineering',
+    date: 'Jul - Aug 2026',
+    verifyUrl: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+    glowColor: '#10B981',
+    deckName: 'ZeTheta / EduForge',
+    logo: (
+      <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="10" fill="#0A1810" stroke="#10B981" strokeWidth="2"/>
+        <path d="M12 34 L20 22 L28 28 L36 14" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round"/>
+        <circle cx="36" cy="14" r="3" fill="#00F2FE"/>
       </svg>
     ),
   },
@@ -2292,36 +2563,99 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
 
   const experienceData: ExperienceItem[] = [
     {
-      role: 'Associate core',
-      organization: 'AMBIORA TechFest',
-      period: 'Mar 2026',
-      description: "Core member of the marketing team for Ambiora'26, responsible for event promotion, participant outreach, social media engagement, and brand visibility. Collaborated with multiple teams to enhance the fest's reach and impact.",
-      glowColor: '#00F2FE',
+      role: 'Prompt Engineering & AI Intern',
+      organization: 'Future Interns',
+      period: 'Aug 2026 - Sep 2026',
+      description: "Selected for specialized AI engineering internship track (CIN: FIT/AUG26/PE3831). Architected enterprise-grade multi-persona cognitive frameworks, automated few-shot calibration pipelines, and customer support AI engines with strict Pydantic JSON validation schemas.",
+      glowColor: '#8A2BE2',
+      certificate_url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
       icon: (
         <svg className="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Outer circle border */}
-          <circle cx="50" cy="50" r="45" stroke="#00F2FE" strokeWidth="2.5" />
-          
-          {/* Inner shadow/ring for a premium look */}
-          <circle cx="50" cy="50" r="42" stroke="rgba(0, 242, 254, 0.1)" strokeWidth="1.5" />
-
-          {/* Outer Pinwheel Lines */}
-          <line x1="38" y1="12" x2="65" y2="58" stroke="#00F2FE" strokeWidth="3" strokeLinecap="round" />
-          <line x1="22" y1="78" x2="49" y2="32" stroke="#00F2FE" strokeWidth="3" strokeLinecap="round" />
-          <line x1="82" y1="62" x2="35" y2="62" stroke="#00F2FE" strokeWidth="3" strokeLinecap="round" />
-
-          {/* Solder joints */}
-          <circle cx="38" cy="12" r="3.5" fill="#0C0C0C" stroke="#00F2FE" strokeWidth="2.5" />
-          <circle cx="22" cy="78" r="3.5" fill="#0C0C0C" stroke="#00F2FE" strokeWidth="2.5" />
-          <circle cx="82" cy="62" r="3.5" fill="#0C0C0C" stroke="#00F2FE" strokeWidth="2.5" />
-
-          {/* Inner nested triangle */}
-          <path d="M 49 42 L 39 60 L 59 60 Z" stroke="#00F2FE" strokeWidth="2.5" strokeLinejoin="round" fill="none" />
+          <circle cx="50" cy="50" r="45" stroke="#8A2BE2" strokeWidth="2.5" />
+          <circle cx="50" cy="50" r="41" stroke="rgba(138, 43, 226, 0.15)" strokeWidth="1.5" />
+          <rect x="30" y="30" width="40" height="40" rx="8" fill="#180B26" stroke="#8A2BE2" strokeWidth="2.5" />
+          <circle cx="50" cy="50" r="8" fill="#00F2FE" />
+          <line x1="50" y1="18" x2="50" y2="30" stroke="#8A2BE2" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="50" y1="70" x2="50" y2="82" stroke="#8A2BE2" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="18" y1="50" x2="30" y2="50" stroke="#8A2BE2" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1="70" y1="50" x2="82" y2="50" stroke="#8A2BE2" strokeWidth="2.5" strokeLinecap="round" />
         </svg>
       )
     },
     {
-      role: 'Marketing core',
+      role: 'Lead Module Builder',
+      organization: 'ZeTheta Algorithms / EduForge',
+      period: 'Jul 2026 - Aug 2026',
+      description: "Engineered quantitative algorithmic compute modules, Black-Scholes options pricing estimators, and interactive Monte Carlo portfolio risk analytics tools with responsive client-side visualizations.",
+      glowColor: '#10B981',
+      certificate_url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+      icon: (
+        <svg className="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="#10B981" strokeWidth="2.5" />
+          <circle cx="50" cy="50" r="41" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="1.5" />
+          <path d="M 28 68 L 44 44 L 58 52 L 74 30" fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="74" cy="30" r="4.5" fill="#00F2FE" />
+          <circle cx="44" cy="44" r="3.5" fill="#10B981" />
+          <circle cx="58" cy="52" r="3.5" fill="#10B981" />
+          <line x1="26" y1="74" x2="76" y2="74" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      )
+    },
+    {
+      role: 'Marketing Specialist',
+      organization: 'App Development Club, NMIMS Shirpur',
+      period: '2025 - Present',
+      description: "Direct technical outreach and digital presence for premier campus developer organization. Orchestrated developer workshops, hackathon outreach campaigns, and student engagement drives.",
+      glowColor: '#00F2FE',
+      icon: (
+        <svg className="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="adcRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#4A90E2" />
+              <stop offset="50%" stopColor="#00E676" />
+              <stop offset="100%" stopColor="#00FF88" />
+            </linearGradient>
+          </defs>
+          <path d="M 12 28 A 12 12 0 0 1 34 22 L 32 30 Z" fill="#78C257" />
+          <line x1="20" y1="21" x2="16" y2="13" stroke="#78C257" strokeWidth="2" strokeLinecap="round" />
+          <line x1="28" y1="21" x2="32" y2="13" stroke="#78C257" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="21" cy="24" r="1" fill="#000000" />
+          <circle cx="29" cy="24" r="1" fill="#000000" />
+          <path d="M 68 18 C 72 15, 78 18, 80 22 C 77 24, 76 28, 79 31 C 76 35, 72 35, 70 33 C 68 35, 64 33, 64 30 C 64 25, 68 21, 68 18 Z" fill="#555555" />
+          <path d="M 74 15 C 74 12, 77 10, 79 10 C 79 12, 77 15, 74 15 Z" fill="#555555" />
+          <path d="M 62 68 L 78 52 L 78 68 Z" fill="#3F51B5" />
+          <path d="M 62 68 L 78 68 L 78 84 Z" fill="#00BCD4" />
+          <circle cx="50" cy="50" r="34" stroke="url(#adcRingGrad)" strokeWidth="5" />
+          <circle cx="50" cy="50" r="31" fill="#FFFFFF" />
+          <text x="31" y="59" fill="#00C853" fontSize="24" fontWeight="900" fontFamily="'Kanit', sans-serif">A</text>
+          <text x="57" y="59" fill="#2979FF" fontSize="24" fontWeight="900" fontFamily="'Kanit', sans-serif">D</text>
+          <path d="M 48 38 L 54 38 L 51 60 Z" fill="#757575" />
+          <path d="M 47 36 L 55 36 L 51 62 Z" stroke="#00C853" strokeWidth="1.2" fill="none" />
+        </svg>
+      )
+    },
+    {
+      role: 'Associate Core - Marketing',
+      organization: 'AMBIORA TechFest',
+      period: 'Mar 2026',
+      description: "Core member of the marketing leadership team for Ambiora'26, responsible for national event promotion, tech participant outreach, brand sponsorship visibility, and multi-team collaboration.",
+      glowColor: '#FFB800',
+      icon: (
+        <svg className="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="#FFB800" strokeWidth="2.5" />
+          <circle cx="50" cy="50" r="42" stroke="rgba(255, 184, 0, 0.1)" strokeWidth="1.5" />
+          <line x1="38" y1="12" x2="65" y2="58" stroke="#FFB800" strokeWidth="3" strokeLinecap="round" />
+          <line x1="22" y1="78" x2="49" y2="32" stroke="#FFB800" strokeWidth="3" strokeLinecap="round" />
+          <line x1="82" y1="62" x2="35" y2="62" stroke="#FFB800" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="38" cy="12" r="3.5" fill="#0C0C0C" stroke="#FFB800" strokeWidth="2.5" />
+          <circle cx="22" cy="78" r="3.5" fill="#0C0C0C" stroke="#FFB800" strokeWidth="2.5" />
+          <circle cx="82" cy="62" r="3.5" fill="#0C0C0C" stroke="#FFB800" strokeWidth="2.5" />
+          <path d="M 49 42 L 39 60 L 59 60 Z" stroke="#FFB800" strokeWidth="2.5" strokeLinejoin="round" fill="none" />
+        </svg>
+      )
+    },
+    {
+      role: 'Marketing Core',
       organization: 'Protsahan',
       period: 'Feb 2026',
       description: "Core member of the marketing team for Protsahan'26, responsible for event promotion, audience outreach, social media engagement, and enhancing the fest's visibility. Collaborated with multiple teams to ensure successful execution and greater participation.",
@@ -2335,8 +2669,6 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
               <stop offset="100%" stopColor="#B600A8" />
             </linearGradient>
           </defs>
-
-          {/* The stylized letter P shape from actual Protsahan logo */}
           <path 
             d="M 18 22 
                C 38 19, 72 19, 82 28 
@@ -2351,57 +2683,10 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
             stroke="#FFFFFF" 
             strokeWidth="2"
           />
-
-          {/* Creative doodle details inside the P */}
           <path d="M 38 27 C 52 27, 68 31, 75 39" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.75" strokeLinecap="round" />
           <path d="M 40 42 C 52 44, 62 49, 67 52" stroke="#FFFFFF" strokeWidth="1.8" opacity="0.6" strokeLinecap="round" />
           <circle cx="41" cy="70" r="2.5" fill="#FFFFFF" opacity="0.8" />
           <line x1="43.5" y1="70" x2="43.5" y2="59" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.8" />
-        </svg>
-      )
-    },
-    {
-      role: 'Marketing Specialist',
-      organization: 'App Development Club, NMIMS Shirpur',
-      period: '2025 - Present',
-      description: "Part of the Marketing Team at the App Development Club, working on event promotions, audience engagement, and outreach activities to expand the club's reach and impact.",
-      glowColor: '#D7E2EA',
-      icon: (
-        <svg className="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="adcRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#4A90E2" />
-              <stop offset="50%" stopColor="#00E676" />
-              <stop offset="100%" stopColor="#00FF88" />
-            </linearGradient>
-          </defs>
-
-          {/* Android head peeking (top-left) */}
-          <path d="M 12 28 A 12 12 0 0 1 34 22 L 32 30 Z" fill="#78C257" />
-          <line x1="20" y1="21" x2="16" y2="13" stroke="#78C257" strokeWidth="2" strokeLinecap="round" />
-          <line x1="28" y1="21" x2="32" y2="13" stroke="#78C257" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="21" cy="24" r="1" fill="#000000" />
-          <circle cx="29" cy="24" r="1" fill="#000000" />
-
-          {/* Apple logo peeking (top-right) */}
-          <path d="M 68 18 C 72 15, 78 18, 80 22 C 77 24, 76 28, 79 31 C 76 35, 72 35, 70 33 C 68 35, 64 33, 64 30 C 64 25, 68 21, 68 18 Z" fill="#555555" />
-          <path d="M 74 15 C 74 12, 77 10, 79 10 C 79 12, 77 15, 74 15 Z" fill="#555555" />
-
-          {/* Kotlin logo peeking (bottom-right) */}
-          <path d="M 62 68 L 78 52 L 78 68 Z" fill="#3F51B5" />
-          <path d="M 62 68 L 78 68 L 78 84 Z" fill="#00BCD4" />
-
-          {/* Circular gradient ring */}
-          <circle cx="50" cy="50" r="34" stroke="url(#adcRingGrad)" strokeWidth="5" />
-          <circle cx="50" cy="50" r="31" fill="#FFFFFF" />
-
-          {/* Central AD Text */}
-          <text x="31" y="59" fill="#00C853" fontSize="24" fontWeight="900" fontFamily="'Kanit', sans-serif">A</text>
-          <text x="57" y="59" fill="#2979FF" fontSize="24" fontWeight="900" fontFamily="'Kanit', sans-serif">D</text>
-
-          {/* Trapezoid separator in the middle */}
-          <path d="M 48 38 L 54 38 L 51 60 Z" fill="#757575" />
-          <path d="M 47 36 L 55 36 L 51 62 Z" stroke="#00C853" strokeWidth="1.2" fill="none" />
         </svg>
       )
     }
@@ -3203,10 +3488,10 @@ function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
 
   const displayContact = apiContact || {
     email: 'tanmayverse776@gmail.com',
-    phone: '+91 XXXXXXXXXX',
-    location: 'Maharashtra, India',
-    github_url: 'https://github.com/tanmay-dhoot',
-    linkedin_url: 'https://www.linkedin.com/in/tanmay-dhoot-402949257'
+    phone: '+91 99999 99999',
+    location: 'Shirpur / Maharashtra, India',
+    github_url: 'https://github.com/mylifeastanmay-hub',
+    linkedin_url: 'https://linkedin.com/in/tanmaydhoot'
   };
 
   return (

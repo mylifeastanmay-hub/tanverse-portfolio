@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" width="100%" height="100%">
+  <rect width="320" height="220" fill="#14091A" rx="12" stroke="#B600A8" stroke-opacity="0.25"/>
+  <text x="18" y="28" fill="#B600A8" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1.5">// PARSER PIPELINE FLOW</text>
+  
+  <g transform="translate(20, 55)">
+    <rect width="70" height="40" rx="6" fill="#24102E" stroke="#00F2FE" stroke-opacity="0.4"/>
+    <text x="35" y="24" fill="#00F2FE" font-family="monospace" font-size="8" text-anchor="middle">PDF INGEST</text>
+
+    <text x="82" y="24" fill="#FFFFFF" font-family="monospace" font-size="10">→</text>
+
+    <rect x="100" width="75" height="40" rx="6" fill="#24102E" stroke="#B600A8" stroke-opacity="0.4"/>
+    <text x="137" y="24" fill="#B600A8" font-family="monospace" font-size="8" text-anchor="middle">TOKENIZER</text>
+
+    <text x="185" y="24" fill="#FFFFFF" font-family="monospace" font-size="10">→</text>
+
+    <rect x="200" width="75" height="40" rx="6" fill="#24102E" stroke="#10B981" stroke-opacity="0.4"/>
+    <text x="237" y="24" fill="#10B981" font-family="monospace" font-size="8" text-anchor="middle">ATS SCORE</text>
+  </g>
+
+  <rect x="20" y="145" width="280" height="45" rx="8" fill="#24102E" stroke="#FFFFFF" stroke-opacity="0.1"/>
+  <text x="35" y="165" fill="#8892B0" font-family="monospace" font-size="8">SEMANTIC SIMILARITY ALGORITHM</text>
+  <text x="35" y="180" fill="#00F2FE" font-family="'Kanit', sans-serif" font-size="12" font-weight="700">Cosine Distance &amp; TF-IDF Vectors</text>
+</svg>

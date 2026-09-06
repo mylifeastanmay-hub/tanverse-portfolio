@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" width="100%" height="100%">
+  <rect width="320" height="220" fill="#14091A" rx="12" stroke="#00F2FE" stroke-opacity="0.25"/>
+  <text x="18" y="28" fill="#00F2FE" font-family="monospace" font-size="10" font-weight="700" letter-spacing="1.5">// KEYWORD DENSITY MATRIX</text>
+  
+  <g transform="translate(25, 55)">
+    <rect width="125" height="45" rx="6" fill="#24102E" stroke="#10B981" stroke-opacity="0.4"/>
+    <text x="12" y="20" fill="#10B981" font-family="monospace" font-size="8">MATCHED: PyTorch</text>
+    <text x="12" y="35" fill="#FFFFFF" font-family="monospace" font-size="9" font-weight="700">98% Keyword Match</text>
+
+    <rect x="145" width="125" height="45" rx="6" fill="#24102E" stroke="#10B981" stroke-opacity="0.4"/>
+    <text x="157" y="20" fill="#10B981" font-family="monospace" font-size="8">MATCHED: Docker</text>
+    <text x="157" y="35" fill="#FFFFFF" font-family="monospace" font-size="9" font-weight="700">100% Keyword Match</text>
+
+    <rect y="55" width="270" height="45" rx="6" fill="#24102E" stroke="#B600A8" stroke-opacity="0.4"/>
+    <text x="12" y="74" fill="#B600A8" font-family="monospace" font-size="8">ACTIONABLE RECOMMENDATION</text>
+    <text x="12" y="90" fill="#FFFFFF" font-family="monospace" font-size="9" font-weight="600">Quantifiable metric statements boost +12%</text>
+  </g>
+
+  <text x="160" y="195" fill="#8892B0" font-family="monospace" font-size="9" text-anchor="middle">STREAMLIT INTERACTIVE ENGINE</text>
+</svg>
