@@ -2762,246 +2762,182 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
           </h2>
         </FadeIn>
 
-        {/* Desktop Layout - Career Tech Stack Architecture Diagram */}
-        <div className="hidden md:block relative w-full h-[450px] max-w-5xl mx-auto z-10">
+        {/* Modern Cyber-Timeline Layout */}
+        <div className="relative w-full max-w-5xl mx-auto z-10">
           
-          {/* Cybernetic Circuit Board SVG Canvas */}
-          <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
-            <svg className="w-full h-full" viewBox="0 0 1000 450" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <defs>
-                <filter id="glow-line-cyan" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <filter id="glow-line-magenta" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-                <filter id="glow-line-silver" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="5" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-
-              {(() => {
-                const presetCoords = [
-                  { left: '22%', top: '100px', path: 'M 220 100 L 220 220 L 450 220' },
-                  { left: '50%', top: '60px', path: 'M 500 60 L 500 170' },
-                  { left: '78%', top: '100px', path: 'M 780 100 L 780 220 L 550 220' },
-                  { left: '22%', top: '320px', path: 'M 220 320 L 220 220 L 450 220' },
-                  { left: '50%', top: '360px', path: 'M 500 360 L 500 270' },
-                  { left: '78%', top: '320px', path: 'M 780 320 L 780 220 L 550 220' }
-                ];
-
-                return (
-                  <>
-                    {/* Background Connection Tracks */}
-                    {displayExperiences.map((exp, index) => {
-                      const coords = presetCoords[index] || presetCoords[index % presetCoords.length];
-                      return (
-                        <path 
-                          key={`bg-${index}`}
-                          d={coords.path} 
-                          stroke="rgba(255, 255, 255, 0.08)" 
-                          strokeWidth="2.5" 
-                          strokeLinecap="round" 
-                        />
-                      );
-                    })}
-
-                    {/* Glowing Active Circuit Pathways */}
-                    {displayExperiences.map((exp, index) => {
-                      const coords = presetCoords[index] || presetCoords[index % presetCoords.length];
-                      let filterId = 'glow-line-silver';
-                      if (exp.glowColor === '#00F2FE' || exp.glowColor?.toLowerCase() === 'cyan') {
-                        filterId = 'glow-line-cyan';
-                      } else if (exp.glowColor === '#B600A8' || exp.glowColor?.toLowerCase() === 'magenta') {
-                        filterId = 'glow-line-magenta';
-                      }
-                      return (
-                        <path 
-                          key={`active-${index}`}
-                          d={coords.path} 
-                          stroke={exp.glowColor || '#D7E2EA'} 
-                          strokeWidth="3.5" 
-                          filter={`url(#${filterId})`}
-                          className="circuit-pulse transition-opacity duration-300"
-                          style={{ opacity: hoveredCard === index ? 1 : 0 }} 
-                          strokeLinecap="round"
-                        />
-                      );
-                    })}
-
-                    {/* Pulsing Data Packets */}
-                    {displayExperiences.map((exp, index) => {
-                      const coords = presetCoords[index] || presetCoords[index % presetCoords.length];
-                      return (
-                        <circle 
-                          key={`pulse-${index}`}
-                          r="4.5" 
-                          fill={exp.glowColor || '#D7E2EA'} 
-                          opacity="0.85" 
-                          style={{ filter: `drop-shadow(0 0 5px ${exp.glowColor || '#D7E2EA'})` }}
-                        >
-                          <animateMotion 
-                            path={coords.path} 
-                            dur={`${2.2 + (index % 3) * 0.4}s`} 
-                            repeatCount="indefinite" 
-                          />
-                        </circle>
-                      );
-                    })}
-                  </>
-                );
-              })()}
-            </svg>
+          {/* Central Neural Data Bus Spine (Desktop: Centered, Mobile: Left-Aligned) */}
+          <div className="absolute left-[24px] md:left-1/2 top-4 bottom-8 -translate-x-1/2 w-[3px] pointer-events-none">
+            {/* Base fiber line */}
+            <div className="w-full h-full bg-gradient-to-b from-[#00F2FE]/30 via-[#9945FF]/30 to-[#00E676]/30 rounded-full" />
+            {/* Animated Laser Pulse overlay */}
+            <div className="absolute inset-0 w-full bg-gradient-to-b from-transparent via-[#00F2FE] to-transparent opacity-80 blur-[1px] animate-pulse" />
           </div>
 
-          {/* Central CPU Core Node */}
-          <div 
-            className="absolute left-[50%] top-[220px] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 z-20 pointer-events-none"
-          >
-            {/* Silicon CPU package */}
-            <div className="w-20 h-20 bg-[#0C0C0C] border border-[#00F2FE]/30 rounded-2xl flex items-center justify-center shadow-[0_0_25px_rgba(0,242,254,0.15)] relative">
-              {/* CPU Pins */}
-              <div className="absolute top-[-4px] left-1/2 -translate-x-1/2 flex gap-1.5">
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-              </div>
-              <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 flex gap-1.5">
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-                <div className="w-1.5 h-1 bg-[#00F2FE]/50" />
-              </div>
-              <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 flex flex-col gap-1.5">
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-              </div>
-              <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 flex flex-col gap-1.5">
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-                <div className="w-1 h-1.5 bg-[#00F2FE]/50" />
-              </div>
+          {/* Timeline Items List */}
+          <div className="flex flex-col gap-10 md:gap-14 relative">
+            {displayExperiences.map((exp, index) => {
+              const isEven = index % 2 === 0;
+              const glowColor = exp.glowColor || '#00F2FE';
 
-              {/* Silicon die core */}
-              <div className="w-10 h-10 border border-[#00F2FE]/40 rounded-lg bg-[#00F2FE]/5 flex items-center justify-center">
-                <div className="w-3.5 h-3.5 rounded-full bg-[#00F2FE] animate-ping opacity-60 absolute" />
-                <div className="w-3.5 h-3.5 rounded-full bg-[#00F2FE] shadow-[0_0_10px_#00F2FE]" />
-              </div>
-            </div>
-            
-            <span className="text-[8px] font-mono tracking-[0.25em] text-[#00F2FE]/70 uppercase mt-1">
-              TANVERSE CORE CPU
-            </span>
-          </div>
-
-          {/* Dynamic Experience Nodes */}
-          {(() => {
-            const presetCoords = [
-              { left: '22%', top: '100px' },
-              { left: '50%', top: '60px' },
-              { left: '78%', top: '100px' },
-              { left: '22%', top: '320px' },
-              { left: '50%', top: '360px' },
-              { left: '78%', top: '320px' }
-            ];
-
-            return displayExperiences.map((exp, index) => {
-              const coords = presetCoords[index] || presetCoords[index % presetCoords.length];
               return (
-                <motion.div 
+                <div
                   key={index}
-                  onMouseEnter={() => {
-                    setHoveredCard(index);
-                    playCyberSound('hover');
-                  }}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenPopup(exp);
-                    playCyberSound('popup');
-                  }}
-                  whileTap={{ scale: 0.88 }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 cursor-pointer z-10 experience-node group"
-                  style={{ left: coords.left, top: coords.top }}
+                  className={`relative flex flex-col md:flex-row items-start md:items-center ${
+                    isEven ? 'md:flex-row-reverse' : ''
+                  } group`}
                 >
-                  <div 
-                    className="w-16 h-16 flex items-center justify-center transition-all duration-300"
-                    style={{
-                      transform: hoveredCard === index ? 'scale(1.15)' : 'scale(1)',
-                      filter: hoveredCard === index ? `drop-shadow(0 0 10px ${exp.glowColor})` : 'none'
-                    }}
-                  >
-                    {exp.icon}
+                  {/* Content Card Side (Takes 50% on desktop minus gutter) */}
+                  <div className="w-full md:w-[calc(50%-42px)] pl-14 md:pl-0">
+                    <motion.div
+                      whileHover={{ y: -4, scale: 1.01 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                      onMouseEnter={() => {
+                        setHoveredCard(index);
+                        playCyberSound('hover');
+                      }}
+                      onMouseLeave={() => setHoveredCard(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenPopup(exp);
+                        playCyberSound('popup');
+                      }}
+                      className="experience-node cursor-pointer relative rounded-2xl p-5 sm:p-6 backdrop-blur-xl bg-[#0E0E0E]/90 border transition-all duration-300 select-text group/card"
+                      style={{
+                        borderColor: hoveredCard === index ? glowColor : 'rgba(255, 255, 255, 0.09)',
+                        boxShadow: hoveredCard === index 
+                          ? `0 0 25px ${glowColor}28, 0 10px 30px rgba(0,0,0,0.7)` 
+                          : '0 8px 30px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      {/* Top Header: Badge, Status, Date */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="inline-block w-2 h-2 rounded-full"
+                            style={{ 
+                              backgroundColor: glowColor,
+                              boxShadow: `0 0 8px ${glowColor}`
+                            }}
+                          />
+                          <span 
+                            className="text-[10px] sm:text-[11px] font-mono font-bold tracking-[0.2em] uppercase px-2.5 py-0.5 rounded-full border"
+                            style={{ 
+                              color: glowColor, 
+                              borderColor: `${glowColor}40`,
+                              backgroundColor: `${glowColor}10` 
+                            }}
+                          >
+                            {exp.period}
+                          </span>
+                        </div>
+
+                        {/* Optional Certificate / Verified Indicator */}
+                        {exp.certificate_url && (
+                          <span className="text-[10px] font-mono tracking-widest text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            VERIFIED
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Role & Organization */}
+                      <div className="flex items-start gap-3.5 mb-3">
+                        {/* Icon Node */}
+                        <div 
+                          className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border p-2 transition-transform duration-300 group-hover/card:scale-105"
+                          style={{ 
+                            backgroundColor: 'rgba(18, 18, 18, 0.9)',
+                            borderColor: `${glowColor}35`,
+                            boxShadow: `0 0 12px ${glowColor}18`
+                          }}
+                        >
+                          {exp.icon}
+                        </div>
+
+                        <div className="flex flex-col min-w-0">
+                          <h3 
+                            className="font-black text-base sm:text-lg uppercase tracking-wider text-white transition-colors duration-300 leading-snug"
+                            style={{ color: hoveredCard === index ? glowColor : '#FFFFFF' }}
+                          >
+                            {exp.role}
+                          </h3>
+                          <span className="text-xs sm:text-sm font-mono text-[#D7E2EA]/60 uppercase tracking-widest mt-0.5 truncate">
+                            {exp.organization}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Description / Accomplishments */}
+                      <p className="text-xs sm:text-sm text-[#D7E2EA]/75 font-sans leading-relaxed mb-4 line-clamp-3 group-hover/card:line-clamp-none transition-all">
+                        {exp.description}
+                      </p>
+
+                      {/* Bottom Footer / Action Link */}
+                      <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
+                        <span 
+                          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] tracking-wider transition-colors font-semibold"
+                          style={{ color: glowColor }}
+                        >
+                          VIEW TELEMETRY & CREDENTIALS
+                          <svg className="w-3.5 h-3.5 transition-transform group-hover/card:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                          </svg>
+                        </span>
+                        
+                        <span className="text-[10px] tracking-widest text-[#D7E2EA]/40">
+                          EXP_NODE_{index + 1 < 10 ? `0${index + 1}` : index + 1}
+                        </span>
+                      </div>
+                    </motion.div>
                   </div>
-                  <h3 
-                    className="font-black text-xs uppercase tracking-widest text-center mt-2 whitespace-nowrap transition-colors duration-300"
-                    style={{ color: hoveredCard === index ? exp.glowColor : '#FFFFFF' }}
+
+                  {/* Central Node Marker on the Line */}
+                  <div className="absolute left-[24px] md:left-1/2 top-6 md:top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex items-center justify-center">
+                    {/* Pulsing ring */}
+                    <div 
+                      className="w-7 h-7 rounded-full animate-ping opacity-35 absolute"
+                      style={{ backgroundColor: glowColor }}
+                    />
+                    {/* Outer border ring */}
+                    <div 
+                      className="w-7 h-7 rounded-full border-2 bg-[#0C0C0C] flex items-center justify-center relative shadow-lg"
+                      style={{ 
+                        borderColor: glowColor,
+                        boxShadow: `0 0 12px ${glowColor}70`
+                      }}
+                    >
+                      {/* Inner dot */}
+                      <div 
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: glowColor }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Opposite Side (Desktop Timestamp / Milestone Label) */}
+                  <div 
+                    className={`hidden md:flex w-[calc(50%-42px)] ${
+                      isEven ? 'justify-end pr-8 text-right' : 'justify-start pl-8 text-left'
+                    }`}
                   >
-                    {exp.role}
-                  </h3>
-                  <span 
-                    className="text-[9px] font-mono text-[#D7E2EA]/40 uppercase tracking-[0.1em] text-center mt-0.5 max-w-[180px] truncate group-hover:text-[#D7E2EA]/70 transition-colors duration-300"
-                    title={exp.organization}
-                  >
-                    {exp.organization}
-                  </span>
-                </motion.div>
+                    <div className="flex flex-col">
+                      <span className="text-2xl font-black font-mono tracking-wider text-white/85 group-hover:text-white transition-colors">
+                        {exp.period.split('-')[0].trim()}
+                      </span>
+                      <span 
+                        className="text-xs font-mono tracking-[0.2em] uppercase mt-0.5"
+                        style={{ color: glowColor }}
+                      >
+                        {exp.organization}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
               );
-            });
-          })()}
-
-        </div>
-
-        {/* Mobile Layout - Vertical Timeline */}
-        <div className="block md:hidden relative w-full max-w-md mx-auto py-8 z-10">
-          {/* Mobile Vertical Timeline Line */}
-          <div className="absolute left-[28px] top-0 bottom-0 w-[2px] bg-white/10 pointer-events-none" />
-          
-          <div className="flex flex-col gap-10">
-            {displayExperiences.map((item, index) => (
-              <div 
-                key={index}
-                onMouseEnter={() => playCyberSound('hover')}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenPopup(item);
-                  playCyberSound('popup');
-                }}
-                className="flex items-center gap-6 cursor-pointer experience-node py-2 relative z-10 group"
-              >
-                {/* Mobile Icon Wrapper (No Circle Border, No Circle Background) */}
-                <div className="w-14 h-14 flex items-center justify-center transition-all duration-300 relative z-10">
-                  {item.icon}
-                </div>
-
-                {/* Timeline role text */}
-                <div className="flex flex-col">
-                  <h3 className="font-black text-sm uppercase tracking-widest text-white group-hover:text-cyan-400 transition-colors">
-                    {item.role}
-                  </h3>
-                  <span className="text-[10px] font-mono text-[#D7E2EA]/50 uppercase tracking-[0.15em] mt-0.5">
-                    {item.organization}
-                  </span>
-                </div>
-              </div>
-            ))}
+            })}
           </div>
+
         </div>
 
       </div>
