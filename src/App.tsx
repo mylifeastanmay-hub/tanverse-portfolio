@@ -2560,6 +2560,22 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
     return () => document.removeEventListener('click', handleClick);
   }, [expandedIssuer]);
 
+  // Global Keyboard Accessibility Shortcuts (Escape to dismiss modals)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (activePopupExperience || expandedIssuer) {
+          setActivePopupExperience(null);
+          setExpandedIssuer(null);
+          setHoveredFanCard(null);
+          playCyberSound('click');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePopupExperience, expandedIssuer]);
+
 
   const experienceData: ExperienceItem[] = [
     {
