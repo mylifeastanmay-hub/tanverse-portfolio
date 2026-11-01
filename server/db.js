@@ -63,14 +63,146 @@ const defaultSkills = [
 ];
 
 const defaultProjects = [
-  { num: '01', name: 'Sentinel Swarm PRO', category: 'Edge Multi-Agent Autonomous Swarm', url: 'https://github.com/mylifeastanmay-hub/sentinel-swarm', col1Img1: 'sentinelHero', col1Img2: 'sentinelTelemetry', col2Img: 'sentinelHero', display_order: 1 },
-  { num: '02', name: 'AegisGateway', category: 'Zero-Trust API Gateway & Rate-Limiter', url: 'https://github.com/mylifeastanmay-hub/aegis-gateway', col1Img1: 'aegisHero', col1Img2: 'aegisArchitecture', col2Img: 'aegisHero', display_order: 2 },
-  { num: '03', name: 'Anantam Agri Dashboard', category: 'Full-Stack Precision Agriculture Dashboard', url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard', col1Img1: 'anantamHero', col1Img2: 'anantamTelemetry', col2Img: 'anantamHero', display_order: 3 },
-  { num: '04', name: 'AI ATS Resume Analyzer', category: 'AI Resume Intelligence & Parser Engine', url: 'https://github.com/mylifeastanmay-hub/ai-resume-builder', col1Img1: 'resumeHero', col1Img2: 'resumeScoreGauge', col2Img: 'resumeHero', display_order: 4 },
-  { num: '05', name: 'MeshWeaver P2P Mesh', category: 'Decentralized Fault-Tolerant Compute Network', url: 'https://github.com/mylifeastanmay-hub/meshweaver', col1Img1: 'meshweaverHero', col1Img2: 'meshweaverTopology', col2Img: 'meshweaverHero', display_order: 5 },
-  { num: '06', name: 'FUTURE_PE_01 Prompt Engine', category: 'Self-Calibrating LLM Prompt Engineering Workbench', url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01', col1Img1: 'peHero', col1Img2: 'peBenchmark', col2Img: 'peHero', display_order: 6 },
-  { num: '07', name: 'Grand Azure Enterprise', category: 'Enterprise Luxury Hospitality Booking Engine', url: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel-suite', col1Img1: 'azureHero', col1Img2: 'azureInventory', col2Img: 'azureHero', display_order: 7 },
-  { num: '08', name: 'Tanverse 3D Universe', category: 'WebGL Cybernetic Interactive 3D Portfolio Universe', url: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio', col1Img1: 'sentinelHero', col1Img2: 'meshweaverTopology', col2Img: 'sentinelHero', display_order: 8 }
+  {
+    num: '01',
+    name: 'Sentinel Swarm PRO',
+    category: 'Edge AI / On-Device Security',
+    url: 'https://github.com/mylifeastanmay-hub/sentinel-swarm',
+    github_url: 'https://github.com/mylifeastanmay-hub/sentinel-swarm',
+    description: 'Zero-cloud on-device ExecuTorch INT8 anomaly detection sentinel with sub-3ms inference latency, multi-agent decentralized coordination, and zero cloud data egress.',
+    tech: 'ExecuTorch, PyTorch INT8, Edge AI, Python, Decentralized Swarm',
+    metrics: '<3ms Latency, 100% On-Device, INT8 Quantized, Zero Cloud Egress',
+    col1Img1: 'sentinelSwarmSub1',
+    col1Img2: 'sentinelSwarmSub2',
+    col2Img: 'sentinelSwarmHero',
+    display_order: 1
+  },
+  {
+    num: '02',
+    name: 'AI Precision Irrigation',
+    category: 'AI & IoT / Sustainable Agritech',
+    url: 'https://github.com/mylifeastanmay-hub/ai-precision-irrigation',
+    github_url: 'https://github.com/mylifeastanmay-hub/ai-precision-irrigation',
+    description: 'End-to-end sustainable smart irrigation platform combining a Hybrid Stacked ML soil moisture forecasting engine (LSTM + XGBoost + Random Forest) with Ant Colony Optimization (ACO) multi-zone scheduling, ESP32 MQTT telemetry, and multilingual farmer voice advisories.',
+    tech: 'FastAPI, PyTorch LSTM, XGBoost, Ant Colony Opt, ESP32 / MQTT, React 18',
+    metrics: '94.6% ML Accuracy, -32.1% Water Saved, -32.4% Pump Energy, R² = 0.961',
+    col1Img1: 'aiIrrigationSub1',
+    col1Img2: 'aiIrrigationSub2',
+    col2Img: 'aiIrrigationHero',
+    display_order: 2
+  },
+  {
+    num: '03',
+    name: 'VTON Antigravity',
+    category: 'Computer Vision / Chrome Extension',
+    url: 'https://github.com/mylifeastanmay-hub/vton-antigravity',
+    github_url: 'https://github.com/mylifeastanmay-hub/vton-antigravity',
+    description: 'Cross-site AI Virtual Try-On platform uniting a Manifest V3 Chrome Extension (universal DOM garment scraper & guided webcam studio) with an async FastAPI local CV warping & IDM-VTON cloud diffusion backend, split-view comparison slider, and wardrobe archive.',
+    tech: 'FastAPI, OpenCV / PIL, IDM-VTON Diffusion, Chrome MV3, React 18, TypeScript',
+    metrics: 'Universal DOM Scraper, Dual Local/Cloud VTON, Split-View Slider, MV3 Side-Drawer',
+    col1Img1: 'vtonSub1',
+    col1Img2: 'vtonSub2',
+    col2Img: 'vtonHero',
+    display_order: 3
+  },
+  {
+    num: '04',
+    name: 'AegisGateway',
+    category: 'Enterprise AI Security Proxy',
+    url: 'https://github.com/mylifeastanmay-hub/aegis-gateway',
+    github_url: 'https://github.com/mylifeastanmay-hub/aegis-gateway',
+    description: 'High-throughput reverse proxy protecting LLMs and AI endpoints with token-bucket rate limiting, prompt injection defenses, and sub-4ms P99 latency.',
+    tech: 'FastAPI, Redis, Docker, Python, Reverse Proxy, Security',
+    metrics: 'P99 <4ms, Token Bucket, Injection Defense, Docker Container',
+    col1Img1: 'aegisGatewaySub1',
+    col1Img2: 'aegisGatewaySub2',
+    col2Img: 'aegisGatewayHero',
+    display_order: 4
+  },
+  {
+    num: '05',
+    name: 'Anantam Agri Dashboard',
+    category: 'Autonomous UAV & Agritech',
+    url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+    github_url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+    description: 'Fullstack agricultural operations suite with real-time autonomous drone flight path monitoring, live NDVI crop stress spatial mapping, and predictive disease incidence analytics.',
+    tech: 'React 18, Vite, Tailwind CSS, Recharts, UAV Telemetry, IoT',
+    metrics: 'Real-time Flight Telemetry, Spatial NDVI, Sub-second Charts, Interactive UI',
+    col1Img1: 'anantamAgriSub1',
+    col1Img2: 'anantamAgriSub2',
+    col2Img: 'anantamAgriHero',
+    display_order: 5
+  },
+  {
+    num: '06',
+    name: 'AI ATS Resume Analyzer',
+    category: 'NLP & Career Intelligence',
+    url: 'https://github.com/mylifeastanmay-hub/ai-resume-builder',
+    github_url: 'https://github.com/mylifeastanmay-hub/ai-resume-builder',
+    description: 'AI-powered resume parser and job-fitment engine providing candidate ATS match scoring, missing keyword detection, and customized recommendation generation.',
+    tech: 'Streamlit, Python, NLP, PDFPlumber, Scikit-Learn',
+    metrics: '94.2% ATS Scorer, Multi-format Parsing, Semantic Fitment, Instant PDF Reports',
+    col1Img1: 'aiResumeSub1',
+    col1Img2: 'aiResumeSub2',
+    col2Img: 'aiResumeHero',
+    display_order: 6
+  },
+  {
+    num: '07',
+    name: 'MeshWeaver P2P Mesh',
+    category: 'Distributed Systems & DHT',
+    url: 'https://github.com/mylifeastanmay-hub/meshweaver',
+    github_url: 'https://github.com/mylifeastanmay-hub/meshweaver',
+    description: 'Decentralized peer-to-peer compute network and task broker built on Kademlia DHT routing with fault-tolerant worker distribution and cryptographic task verification.',
+    tech: 'Python, Asyncio, Kademlia DHT, P2P Networking, Distributed Systems',
+    metrics: 'O(log N) Routing, Fault-Tolerant, Pure Python, Zero Single Point of Failure',
+    col1Img1: 'meshweaverSub1',
+    col1Img2: 'meshweaverSub2',
+    col2Img: 'meshweaverHero',
+    display_order: 7
+  },
+  {
+    num: '08',
+    name: 'FUTURE_PE_01 Prompt Engine',
+    category: 'GenAI & Cognitive Systems',
+    url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
+    github_url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
+    description: 'Production prompt engineering architecture with multi-persona cognitive frameworks, automated few-shot calibration, and strict Pydantic JSON validation schemas.',
+    tech: 'Prompt Engineering, GenAI, Few-Shot Calibration, JSON Schemas, LLM Agents',
+    metrics: '100% Validated JSON, Multi-Persona, Cognitive Trees, Automated Evaluation',
+    col1Img1: 'futurePeSub1',
+    col1Img2: 'futurePeSub2',
+    col2Img: 'futurePeHero',
+    display_order: 8
+  },
+  {
+    num: '09',
+    name: 'Grand Azure Enterprise',
+    category: 'Fullstack Flask & ORM',
+    url: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel',
+    github_url: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel',
+    description: 'Comprehensive hospitality enterprise suite with 3NF relational database architecture, SQLAlchemy query optimization, automated background task orchestration, and dynamic PDF invoice generation.',
+    tech: 'Flask 3.0, SQLAlchemy, MySQL, APScheduler, ReportLab',
+    metrics: '3NF Relational Schema, Zero Redundancy, Async Jobs, Dynamic Invoicing',
+    col1Img1: 'grandAzureSub1',
+    col1Img2: 'grandAzureSub2',
+    col2Img: 'grandAzureHero',
+    display_order: 9
+  },
+  {
+    num: '10',
+    name: 'Tanverse 3D Universe',
+    category: 'Creative WebGL & 3D Systems',
+    url: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio',
+    github_url: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio',
+    description: 'Immersive personal developer universe engineered with Three.js, React Three Fiber, Framer Motion spring physics, and a custom Web Audio synthesizer.',
+    tech: 'React 18, Three.js, React Three Fiber, Tailwind CSS, Web Audio API',
+    metrics: '60 FPS WebGL, Synthesizer Audio, Glassmorphism 3D, Vite Optimized',
+    col1Img1: 'portfolioSkillsMockup',
+    col1Img2: 'portfolioExperienceMockup',
+    col2Img: 'portfolioHeroMockup',
+    display_order: 10
+  }
 ];
 
 const defaultExperiences = [
@@ -86,20 +218,29 @@ const defaultExperiences = [
   {
     role: 'Lead Module Builder & Contributor',
     organization: 'ZeTheta Algorithms / EduForge',
-    period: 'Jan 2026 - Present',
-    description: 'Authored and verified high-performance data structure implementations, graph optimization benchmarks, and interactive algorithmic sandboxes for computer science students.',
-    glow_color: '#9945FF',
-    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="38" stroke="#9945FF" stroke-width="2.5" stroke-dasharray="6 4" fill="none"/><polygon points="50,22 75,68 25,68" stroke="#9945FF" stroke-width="2.5" fill="rgba(153, 69, 255, 0.1)"/><circle cx="50" cy="52" r="5" fill="#9945FF"/></svg>`,
+    period: 'Jul 2026 - Aug 2026',
+    description: 'Engineered quantitative algorithmic compute modules, Black-Scholes options pricing estimators, and interactive Monte Carlo portfolio risk analytics tools with responsive client-side visualizations.',
+    glow_color: '#10B981',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="38" stroke="#10B981" stroke-width="2.5" stroke-dasharray="6 4" fill="none"/><polygon points="50,22 75,68 25,68" stroke="#10B981" stroke-width="2.5" fill="rgba(16, 185, 129, 0.1)"/><circle cx="50" cy="52" r="5" fill="#10B981"/></svg>`,
     display_order: 2
   },
   {
-    role: 'Associate Core',
+    role: 'Marketing Specialist',
+    organization: 'App Development Club, NMIMS Shirpur',
+    period: '2025 - Present',
+    description: 'Spearheading developer outreach, technical hackathon logistics, and collaborative full-stack projects for NMIMS student community, accelerating campus-wide tech engagement.',
+    glow_color: '#00E676',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="adcRingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2" /><stop offset="50%" stop-color="#00E676" /><stop offset="100%" stop-color="#00FF88" /></linearGradient></defs><circle cx="50" cy="50" r="38" stroke="url(#adcRingGrad)" stroke-width="4" fill="rgba(0, 230, 118, 0.05)"/><path d="M38 44 L50 32 L62 44 M50 34 L50 66" stroke="#00E676" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    display_order: 3
+  },
+  {
+    role: 'Associate Core - Marketing',
     organization: 'AMBIORA TechFest',
     period: 'Mar 2026',
-    description: "Core member of the marketing and tech outreach team for Ambiora'26, responsible for event promotion, participant outreach, technical workshop coordination, and brand visibility. Collaborated with multiple technical teams to scale registration.",
-    glow_color: '#00F2FE',
-    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="#00F2FE" stroke-width="2.5" /><circle cx="50" cy="50" r="42" stroke="rgba(0, 242, 254, 0.1)" stroke-width="1.5" /><line x1="38" y1="12" x2="65" y2="58" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><line x1="22" y1="78" x2="49" y2="32" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><line x1="82" y1="62" x2="35" y2="62" stroke="#00F2FE" stroke-width="3" stroke-linecap="round" /><circle cx="38" cy="12" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><circle cx="22" cy="78" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><circle cx="82" cy="62" r="3.5" fill="#0C0C0C" stroke="#00F2FE" stroke-width="2.5" /><path d="M 49 42 L 39 60 L 59 60 Z" stroke="#00F2FE" stroke-width="2.5" stroke-linejoin="round" fill="none" /></svg>`,
-    display_order: 3
+    description: "Core member of the marketing leadership team for Ambiora'26, responsible for national event promotion, tech participant outreach, brand sponsorship visibility, and multi-team collaboration.",
+    glow_color: '#FFB800',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="#FFB800" stroke-width="2.5" /><circle cx="50" cy="50" r="42" stroke="rgba(255, 184, 0, 0.1)" stroke-width="1.5" /><line x1="38" y1="12" x2="65" y2="58" stroke="#FFB800" stroke-width="3" stroke-linecap="round" /><line x1="22" y1="78" x2="49" y2="32" stroke="#FFB800" stroke-width="3" stroke-linecap="round" /><line x1="82" y1="62" x2="35" y2="62" stroke="#FFB800" stroke-width="3" stroke-linecap="round" /><circle cx="38" cy="12" r="3.5" fill="#0C0C0C" stroke="#FFB800" stroke-width="2.5" /><circle cx="22" cy="78" r="3.5" fill="#0C0C0C" stroke="#FFB800" stroke-width="2.5" /><circle cx="82" cy="62" r="3.5" fill="#0C0C0C" stroke="#FFB800" stroke-width="2.5" /><path d="M 49 42 L 39 60 L 59 60 Z" stroke="#FFB800" stroke-width="2.5" stroke-linejoin="round" fill="none" /></svg>`,
+    display_order: 4
   },
   {
     role: 'Marketing Core',
@@ -108,16 +249,16 @@ const defaultExperiences = [
     description: "Core member of the outreach and sponsor management team for Protsahan'26, driving event promotion, audience outreach, social media engagement, and expanding the fest's pan-India footfall.",
     glow_color: '#B600A8',
     icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="protsahanGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FF6D00" /><stop offset="50%" stop-color="#FF4081" /><stop offset="100%" stop-color="#B600A8" /></linearGradient></defs><path d="M 18 22 C 38 19, 72 19, 82 28 C 92 37, 90 53, 72 56 C 58 58, 44 48, 40 53 C 36 58, 36 73, 50 88 L 48 93 C 35 83, 28 68, 28 50 C 28 36, 34 30, 22 30 Z" fill="url(#protsahanGrad)" stroke="#FFFFFF" stroke-width="2" /><path d="M 38 27 C 52 27, 68 31, 75 39" stroke="#FFFFFF" stroke-width="2.5" opacity="0.75" stroke-linecap="round" /><path d="M 40 42 C 52 44, 62 49, 67 52" stroke="#FFFFFF" stroke-width="1.8" opacity="0.6" stroke-linecap="round" /><circle cx="41" cy="70" r="2.5" fill="#FFFFFF" opacity="0.8" /><line x1="43.5" y1="70" x2="43.5" y2="59" stroke="#FFFFFF" stroke-width="1.5" opacity="0.8" /></svg>`,
-    display_order: 4
+    display_order: 5
   },
   {
-    role: 'Marketing Specialist & Tech Lead',
-    organization: 'App Development Club, NMIMS Shirpur',
-    period: '2025 - Present',
-    description: "Spearheading developer outreach, technical hackathon logistics, and collaborative full-stack projects for NMIMS student community, accelerating campus-wide tech engagement.",
-    glow_color: '#00E676',
-    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="adcRingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2" /><stop offset="50%" stop-color="#00E676" /><stop offset="100%" stop-color="#00FF88" /></linearGradient></defs><circle cx="50" cy="50" r="38" stroke="url(#adcRingGrad)" stroke-width="4" fill="rgba(0, 230, 118, 0.05)"/><path d="M38 44 L50 32 L62 44 M50 34 L50 66" stroke="#00E676" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    display_order: 5
+    role: 'Event Management Head',
+    organization: 'Prarambh 2025, NMIMS Shirpur',
+    period: 'Sep 2025',
+    description: "Led end-to-end event operations, venue logistics, stage scheduling, and cross-functional volunteer coordination for Prarambh'25 at SVKM's NMIMS Mukesh Patel Technology Park, delivering seamless execution across flagship student events.",
+    glow_color: '#EC4899',
+    icon_svg: `<svg class="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" stroke="#EC4899" stroke-width="2.5" /><circle cx="50" cy="50" r="41" stroke="rgba(236, 72, 153, 0.15)" stroke-width="1.5" /><polygon points="50,22 58,40 78,42 63,55 67,75 50,64 33,75 37,55 22,42 42,40" fill="#1F0916" stroke="#EC4899" stroke-width="2.5" stroke-linejoin="round" /><circle cx="50" cy="50" r="5" fill="#00F2FE" /></svg>`,
+    display_order: 6
   }
 ];
 
@@ -142,40 +283,62 @@ const defaultCertificates = [
     glow_color: '#00F2FE',
     logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="20" stroke="#00F2FE" stroke-width="2" fill="rgba(0, 242, 254, 0.1)"/><polygon points="24,12 34,30 14,30" fill="#00F2FE"/></svg>`,
     display_order: 2,
-    deck_name: 'Google Cloud'
+    deck_name: 'Google'
   },
   {
     course: 'Amazon ML Summer School 2026',
-    issuer: 'Amazon',
+    issuer: 'Amazon Science',
     platform: 'Amazon Science / ML Programs',
     date: 'Jul 2026',
     verify_url: 'https://amazon.science',
     glow_color: '#FF9900',
     logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><path fill="#FF9900" d="M24 6C14.1 6 6 14.1 6 24s8.1 18 18 18 18-8.1 18-18S33.9 6 24 6zm10 24c-5 4-15 4-20 0 0 0 4 2 10 2s10-2 10-2z"/></svg>`,
     display_order: 3,
-    deck_name: 'Amazon'
+    deck_name: 'Amazon Science'
   },
   {
-    course: 'Prompt Engineering & Generative AI Internship',
+    course: 'Prompt Engineering & Cognitive Systems',
     issuer: 'Future Interns',
     platform: 'Future Interns (CIN: FIT/AUG26/PE3831)',
     date: 'Aug 2026',
-    verify_url: 'https://futureinterns.com',
-    glow_color: '#00F2FE',
-    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="32" height="32" rx="8" fill="rgba(0, 242, 254, 0.15)" stroke="#00F2FE" stroke-width="2"/><text x="14" y="29" fill="#00F2FE" font-size="14" font-weight="900" font-family="sans-serif">FI</text></svg>`,
+    verify_url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
+    glow_color: '#8A2BE2',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="8" width="32" height="32" rx="8" fill="rgba(138, 43, 226, 0.15)" stroke="#8A2BE2" stroke-width="2"/><text x="14" y="29" fill="#8A2BE2" font-size="14" font-weight="900" font-family="sans-serif">FI</text></svg>`,
     display_order: 4,
     deck_name: 'Future Interns'
   },
   {
-    course: 'Algorithmic Systems Contributor Award',
+    course: 'Lead Module Builder & Quant Tools',
     issuer: 'ZeTheta / EduForge',
-    platform: 'EduForge Open Systems',
-    date: '2026',
-    verify_url: 'https://github.com/mylifeastanmay-hub',
-    glow_color: '#9945FF',
-    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><polygon points="24,8 40,38 8,38" fill="rgba(153, 69, 255, 0.2)" stroke="#9945FF" stroke-width="2"/><text x="18" y="32" fill="#9945FF" font-size="16" font-weight="bold">θ</text></svg>`,
+    platform: 'EduForge Engineering',
+    date: 'Jul - Aug 2026',
+    verify_url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
+    glow_color: '#10B981',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><polygon points="24,8 40,38 8,38" fill="rgba(16, 185, 129, 0.2)" stroke="#10B981" stroke-width="2"/><text x="18" y="32" fill="#10B981" font-size="16" font-weight="bold">θ</text></svg>`,
     display_order: 5,
-    deck_name: 'ZeTheta'
+    deck_name: 'ZeTheta / EduForge'
+  },
+  {
+    course: 'Python for Data Science (NPTEL Certification)',
+    issuer: 'NPTEL / IIT',
+    platform: 'NPTEL SWAYAM',
+    date: '2026',
+    verify_url: 'https://nptel.ac.in',
+    glow_color: '#F59E0B',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="10" fill="#1C1408" stroke="#F59E0B" stroke-width="2"/><circle cx="24" cy="24" r="11" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-dasharray="4 2"/><text x="24" y="28" fill="#F59E0B" font-size="10" font-weight="900" text-anchor="middle" font-family="monospace">IIT</text></svg>`,
+    display_order: 6,
+    deck_name: 'NPTEL / IIT'
+  },
+  {
+    course: 'Introduction to Android Mobile Application Development',
+    issuer: 'Meta',
+    platform: 'Coursera',
+    date: '2026',
+    verify_url: 'https://www.coursera.org/learn/introduction-to-android-mobile-application-development',
+    glow_color: '#0668E1',
+    logo_svg: `<svg viewBox="0 0 48 48" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="10" fill="#071324" stroke="#0668E1" stroke-width="2"/><path d="M12 29 C12 20, 18 17, 24 24 C30 31, 36 28, 36 19 C36 14, 31 14, 24 22 C17 30, 12 33, 12 29 Z" fill="none" stroke="#00F2FE" stroke-width="2.8" stroke-linecap="round"/></svg>`,
+    display_order: 7,
+    deck_name: 'Meta'
   }
 ];
 
@@ -333,11 +496,35 @@ async function setupMssqlTables() {
       name VARCHAR(100),
       category VARCHAR(100),
       url VARCHAR(255),
+      github_url VARCHAR(255),
+      description TEXT,
+      tech VARCHAR(500),
+      metrics VARCHAR(500),
       col1Img1 VARCHAR(255),
       col1Img2 VARCHAR(255),
       col2Img VARCHAR(255),
       display_order INT
     );
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('projects') AND name = 'description')
+    BEGIN
+        ALTER TABLE projects ADD description TEXT NULL;
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('projects') AND name = 'tech')
+    BEGIN
+        ALTER TABLE projects ADD tech VARCHAR(500) NULL;
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('projects') AND name = 'metrics')
+    BEGIN
+        ALTER TABLE projects ADD metrics VARCHAR(500) NULL;
+    END
+
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('projects') AND name = 'github_url')
+    BEGIN
+        ALTER TABLE projects ADD github_url VARCHAR(255) NULL;
+    END
 
     IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'experiences')
     CREATE TABLE experiences (
@@ -440,11 +627,15 @@ async function setupMssqlTables() {
         .input('name', p.name)
         .input('cat', p.category)
         .input('url', p.url)
+        .input('github', p.github_url || p.url)
+        .input('desc', p.description || '')
+        .input('tech', p.tech || '')
+        .input('metrics', p.metrics || '')
         .input('img1', p.col1Img1)
         .input('img2', p.col1Img2)
         .input('img3', p.col2Img)
         .input('order', p.display_order)
-        .query('INSERT INTO projects (num, name, category, url, col1Img1, col1Img2, col2Img, display_order) VALUES (@num, @name, @cat, @url, @img1, @img2, @img3, @order)');
+        .query('INSERT INTO projects (num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order) VALUES (@num, @name, @cat, @url, @github, @desc, @tech, @metrics, @img1, @img2, @img3, @order)');
     }
   }
 
@@ -534,12 +725,21 @@ async function setupSqliteTables() {
           name TEXT,
           category TEXT,
           url TEXT,
+          github_url TEXT,
+          description TEXT,
+          tech TEXT,
+          metrics TEXT,
           col1Img1 TEXT,
           col1Img2 TEXT,
           col2Img TEXT,
           display_order INTEGER
         )
       `);
+
+      sqliteDb.run("ALTER TABLE projects ADD COLUMN github_url TEXT", () => {});
+      sqliteDb.run("ALTER TABLE projects ADD COLUMN description TEXT", () => {});
+      sqliteDb.run("ALTER TABLE projects ADD COLUMN tech TEXT", () => {});
+      sqliteDb.run("ALTER TABLE projects ADD COLUMN metrics TEXT", () => {});
 
       sqliteDb.run(`
         CREATE TABLE IF NOT EXISTS experiences (
@@ -636,9 +836,23 @@ async function setupSqliteTables() {
           if (projectsCheck[0].count === 0) {
             console.log('Seeding SQLite projects...');
             for (const p of defaultProjects) {
-              await run('INSERT INTO projects (num, name, category, url, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-                p.num, p.name, p.category, p.url, p.col1Img1, p.col1Img2, p.col2Img, p.display_order
+              await run('INSERT INTO projects (num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                p.num, p.name, p.category, p.url, p.github_url || p.url, p.description || '', p.tech || '', p.metrics || '', p.col1Img1, p.col1Img2, p.col2Img, p.display_order
               ]);
+            }
+          } else {
+            // Backfill missing projects & descriptions on existing SQLite DBs
+            for (const p of defaultProjects) {
+              const existing = await query('SELECT id, description FROM projects WHERE name = ?', [p.name]);
+              if (existing.length === 0) {
+                await run('INSERT INTO projects (num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                  p.num, p.name, p.category, p.url, p.github_url || p.url, p.description || '', p.tech || '', p.metrics || '', p.col1Img1, p.col1Img2, p.col2Img, p.display_order
+                ]);
+              } else if (!existing[0].description) {
+                await run('UPDATE projects SET num = ?, category = ?, url = ?, github_url = ?, description = ?, tech = ?, metrics = ?, col1Img1 = ?, col1Img2 = ?, col2Img = ?, display_order = ? WHERE id = ?', [
+                  p.num, p.category, p.url, p.github_url || p.url, p.description || '', p.tech || '', p.metrics || '', p.col1Img1, p.col1Img2, p.col2Img, p.display_order, existing[0].id
+                ]);
+              }
             }
           }
 
@@ -650,6 +864,15 @@ async function setupSqliteTables() {
                 e.role, e.organization, e.period, e.description, e.glow_color, e.icon_svg, e.display_order
               ]);
             }
+          } else {
+            for (const e of defaultExperiences) {
+              const existingExp = await query('SELECT id FROM experiences WHERE role = ? AND organization = ?', [e.role, e.organization]);
+              if (existingExp.length === 0 && e.role === 'Event Management Head') {
+                await run('INSERT INTO experiences (role, organization, period, description, glow_color, icon_svg, display_order) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+                  e.role, e.organization, e.period, e.description, e.glow_color, e.icon_svg, e.display_order
+                ]);
+              }
+            }
           }
 
           const certCheck = await query('SELECT COUNT(*) as count FROM certificates');
@@ -659,6 +882,15 @@ async function setupSqliteTables() {
               await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
                 c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer, c.pdf_url || ''
               ]);
+            }
+          } else {
+            for (const c of defaultCertificates) {
+              const existingCert = await query('SELECT id FROM certificates WHERE course = ?', [c.course]);
+              if (existingCert.length === 0 && (c.issuer === 'NPTEL / IIT' || c.issuer === 'Meta')) {
+                await run('INSERT INTO certificates (course, issuer, platform, date, verify_url, glow_color, logo_svg, display_order, deck_name, pdf_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                  c.course, c.issuer, c.platform, c.date, c.verify_url, c.glow_color, c.logo_svg, c.display_order, c.deck_name || c.issuer, c.pdf_url || ''
+                ]);
+              }
             }
           }
 
@@ -706,12 +938,25 @@ async function setupPostgresTables() {
       name VARCHAR(100),
       category VARCHAR(100),
       url VARCHAR(255),
+      github_url VARCHAR(255),
+      description TEXT,
+      tech VARCHAR(500),
+      metrics VARCHAR(500),
       col1Img1 VARCHAR(255),
       col1Img2 VARCHAR(255),
       col2Img VARCHAR(255),
       display_order INT
     )
   `);
+
+  try {
+    await query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS github_url VARCHAR(255)");
+    await query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS description TEXT");
+    await query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS tech VARCHAR(500)");
+    await query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS metrics VARCHAR(500)");
+  } catch (e) {
+    // Ignore
+  }
 
   await query(`
     CREATE TABLE IF NOT EXISTS experiences (
@@ -799,8 +1044,8 @@ async function setupPostgresTables() {
   if (parseInt(projectsCheck[0].count, 10) === 0) {
     console.log('Seeding PostgreSQL projects...');
     for (const p of defaultProjects) {
-      await run('INSERT INTO projects (num, name, category, url, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
-        p.num, p.name, p.category, p.url, p.col1Img1, p.col1Img2, p.col2Img, p.display_order
+      await run('INSERT INTO projects (num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        p.num, p.name, p.category, p.url, p.github_url || p.url, p.description || '', p.tech || '', p.metrics || '', p.col1Img1, p.col1Img2, p.col2Img, p.display_order
       ]);
     }
   }

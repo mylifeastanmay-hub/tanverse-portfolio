@@ -82,9 +82,17 @@ app.get('/api/portfolio', async (req, res) => {
       toolsStats: s.tools ? s.tools.split(',').map(t => ({ name: t.trim(), level: 90 })) : []
     }));
 
-    // Parse project image object structure
+    // Parse project image object structure & array fields
     const parsedProjects = projects.map(p => ({
       ...p,
+      githubUrl: p.github_url || p.url,
+      description: p.description || '',
+      tech: Array.isArray(p.tech)
+        ? p.tech
+        : (p.tech ? String(p.tech).split(',').map(t => t.trim()).filter(Boolean) : []),
+      metrics: Array.isArray(p.metrics)
+        ? p.metrics
+        : (p.metrics ? String(p.metrics).split(',').map(m => m.trim()).filter(Boolean) : []),
       images: {
         col1Img1: p.col1Img1,
         col1Img2: p.col1Img2,
@@ -570,11 +578,13 @@ app.delete('/api/skills/:id', authenticateToken, async (req, res) => {
 
 // PROJECTS CRUD
 app.post('/api/projects', authenticateToken, async (req, res) => {
-  const { num, name, category, url, col1Img1, col1Img2, col2Img, display_order } = req.body;
+  const { num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order } = req.body;
+  const techStr = Array.isArray(tech) ? tech.join(', ') : (tech || '');
+  const metricsStr = Array.isArray(metrics) ? metrics.join(', ') : (metrics || '');
   try {
     await run(
-      'INSERT INTO projects (num, name, category, url, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [num, name, category, url, col1Img1, col1Img2, col2Img, display_order || 99]
+      'INSERT INTO projects (num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [num, name, category, url, github_url || url || '', description || '', techStr, metricsStr, col1Img1, col1Img2, col2Img, display_order || 99]
     );
     res.json({ success: true, message: 'Project successfully created.' });
   } catch (err) {
@@ -584,11 +594,13 @@ app.post('/api/projects', authenticateToken, async (req, res) => {
 
 app.put('/api/projects/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { num, name, category, url, col1Img1, col1Img2, col2Img, display_order } = req.body;
+  const { num, name, category, url, github_url, description, tech, metrics, col1Img1, col1Img2, col2Img, display_order } = req.body;
+  const techStr = Array.isArray(tech) ? tech.join(', ') : (tech || '');
+  const metricsStr = Array.isArray(metrics) ? metrics.join(', ') : (metrics || '');
   try {
     await run(
-      'UPDATE projects SET num = ?, name = ?, category = ?, url = ?, col1Img1 = ?, col1Img2 = ?, col2Img = ?, display_order = ? WHERE id = ?',
-      [num, name, category, url, col1Img1, col1Img2, col2Img, display_order, id]
+      'UPDATE projects SET num = ?, name = ?, category = ?, url = ?, github_url = ?, description = ?, tech = ?, metrics = ?, col1Img1 = ?, col1Img2 = ?, col2Img = ?, display_order = ? WHERE id = ?',
+      [num, name, category, url, github_url || url || '', description || '', techStr, metricsStr, col1Img1, col1Img2, col2Img, display_order, id]
     );
     res.json({ success: true, message: 'Project successfully updated.' });
   } catch (err) {

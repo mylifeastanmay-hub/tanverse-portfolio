@@ -54,6 +54,11 @@ interface Project {
   name: string;
   category: string;
   url: string;
+  github_url?: string;
+  githubUrl?: string;
+  description?: string;
+  tech?: string | string[];
+  metrics?: string | string[];
   col1Img1: string;
   col1Img2: string;
   col2Img: string;
@@ -544,6 +549,10 @@ export default function App() {
     name: '',
     category: '',
     url: '',
+    github_url: '',
+    description: '',
+    tech: '',
+    metrics: '',
     col1Img1: '',
     col1Img2: '',
     col2Img: '',
@@ -973,6 +982,10 @@ export default function App() {
           name: item.name || '',
           category: item.category || '',
           url: item.url || '',
+          github_url: item.github_url || item.githubUrl || item.url || '',
+          description: item.description || '',
+          tech: Array.isArray(item.tech) ? item.tech.join(', ') : (item.tech || ''),
+          metrics: Array.isArray(item.metrics) ? item.metrics.join(', ') : (item.metrics || ''),
           col1Img1: item.col1Img1 || '',
           col1Img2: item.col1Img2 || '',
           col2Img: item.col2Img || '',
@@ -986,6 +999,10 @@ export default function App() {
           name: '',
           category: '',
           url: '',
+          github_url: '',
+          description: '',
+          tech: '',
+          metrics: '',
           col1Img1: '',
           col1Img2: '',
           col2Img: '',
@@ -1091,6 +1108,10 @@ export default function App() {
       name: projectForm.name,
       category: projectForm.category,
       url: projectForm.url,
+      github_url: projectForm.github_url || projectForm.url,
+      description: projectForm.description,
+      tech: projectForm.tech,
+      metrics: projectForm.metrics,
       col1Img1: projectForm.col1Img1,
       col1Img2: projectForm.col1Img2,
       col2Img: projectForm.col2Img,
@@ -1257,6 +1278,10 @@ export default function App() {
           name: i.name,
           category: i.category,
           url: i.url,
+          github_url: i.github_url || i.githubUrl || i.url || '',
+          description: i.description || '',
+          tech: Array.isArray(i.tech) ? i.tech.join(', ') : (i.tech || ''),
+          metrics: Array.isArray(i.metrics) ? i.metrics.join(', ') : (i.metrics || ''),
           col1Img1: i.col1Img1,
           col1Img2: i.col1Img2,
           col2Img: i.col2Img,
@@ -2362,6 +2387,53 @@ export default function App() {
                       value={projectForm.url} 
                       onChange={(e) => setProjectForm({ ...projectForm, url: e.target.value })}
                       required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="proj-github">GitHub Repo URL</label>
+                    <input 
+                      id="proj-github" 
+                      type="url" 
+                      className="form-input" 
+                      placeholder="https://github.com/..." 
+                      value={projectForm.github_url} 
+                      onChange={(e) => setProjectForm({ ...projectForm, github_url: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group col-span-full">
+                    <label className="form-label" htmlFor="proj-desc">Project Description</label>
+                    <textarea 
+                      id="proj-desc" 
+                      className="form-input form-textarea" 
+                      placeholder="Summarize the architecture, core problem solved, and impact..." 
+                      value={projectForm.description} 
+                      onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="proj-tech">Tech Stack (Comma-separated)</label>
+                    <input 
+                      id="proj-tech" 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. FastAPI, PyTorch, React 18" 
+                      value={projectForm.tech} 
+                      onChange={(e) => setProjectForm({ ...projectForm, tech: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="proj-metrics">Key Metrics (Comma-separated)</label>
+                    <input 
+                      id="proj-metrics" 
+                      type="text" 
+                      className="form-input" 
+                      placeholder="e.g. <3ms Latency, 94.6% Accuracy" 
+                      value={projectForm.metrics} 
+                      onChange={(e) => setProjectForm({ ...projectForm, metrics: e.target.value })}
                     />
                   </div>
 

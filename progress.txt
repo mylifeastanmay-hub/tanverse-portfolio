@@ -1,0 +1,34 @@
+# Progress Log - Tanverse Portfolio
+# Initialized on: 2026-10-20
+# Format: Append-only log for Ralph Loop iterations
+
+[2026-10-20] Initialized Ralph Loop & GSD workspace integration.
+[2026-10-20] Configured PRD.md task backlog and .coderabbit.yaml review guidelines.
+[2026-11-01] Stage 1 (GSD): Decomposed v2.0 portfolio upgrade into 4 phases (Tasks 1.1-4.3) in PRD.md.
+[2026-11-01] Stage 2 (Ralph Loop):
+  - Created 6 custom SVG telemetry diagrams in src/assets/projects/ for AI Precision Irrigation System and VTON Antigravity.
+  - Upgraded src/components/SpaceCanvas.tsx with 3D z-depth parallax, click shockwave ripples, cyber data-packet pulses, document.hidden pause optimization, and prefers-reduced-motion support.
+  - Expanded src/App.tsx PROJECTS to 10 flagship systems, experienceData to 6 roles (adding Event Management Head - Prarambh 2025), and CERTIFICATES to 7 credentials (adding NPTEL Python for Data Science and Meta Android Development).
+  - Upgraded SkillsSection Hologram Diagnostic Modal (live CPU/mem telemetry, animated toolsStats proficiency bars, project badges, Escape key handler, mobile horizontal clamping).
+  - Upgraded ProjectsSection with category filter pills, keyboard navigation (ArrowLeft/ArrowRight/Escape), and interactive HUD pagination dots.
+  - Added StickyHudNav with active section scroll-spy and persistent Cyber Audio Synthesizer Mute/Unmute toggle (reusing singleton AudioContext).
+  - Extended server/db.js and server/index.js projects schema and CRUD endpoints with description, tech, metrics, and github_url + automatic ALTER TABLE and backfill migrations.
+  - Updated admin/src/App.tsx Projects CRUD form and fixed admin/tsconfig.node.json.
+  - Verified client build (npm run build), admin build (npm --prefix admin run build), and server syntax (node --check server/index.js & server/db.js) with 0 errors.
+[2026-11-01] Stage 3 (CodeRabbit & Security Review):
+  - Executed coderabbit review --agent --uncommitted (CLI requested OAuth login; performed full diff & security audit across all modified files).
+  - Verified no memory leaks in SpaceCanvas.tsx (cancelAnimationFrame + event listener cleanup + document.hidden pause) or playCyberSound (singleton AudioContext reuse).
+  - Verified SQL parameterization across SQLite, PostgreSQL, and MSSQL in server/db.js and server/index.js.
+  - All PRD.md tasks [x] complete and verified.
+[2026-11-01] Phase 5 (Vante 3D Video Ribbon Showreel):
+  - Created public/vante.html with 100% verbatim HTML, CSS, Google Fonts, importmap (three@0.170.0), and ES module script.
+  - Created src/components/VanteSection.tsx embedding the 3D scroll-driven video ribbon and 3x2 grid showcase into the Tanverse portfolio (#showreel) with proper WebGL resource disposal.
+  - Integrated <VanteSection /> in src/App.tsx right before <ProjectsSection />, added Showreel links to HeroSection and StickyHudNav, and loaded Inter Tight + IBM Plex Mono in index.html.
+
+[2026-11-01] Phase 5 Update (Vante Projects Section Replacement):
+- Replaced the ProjectsSection (`#projects`) in `src/App.tsx` with `<VanteSection projects={baseProjects} onOpenProject={...} />` (`src/components/VanteSection.tsx`).
+- Mapped all 10 Tanverse flagship projects onto the Vante 3D Video Ribbon -> 3x2 Grid:
+  - Hovering any landed card in the 3x2 grid displays the cursor-following ink pill with `${proj.num} · ${proj.name} — ⚡ ${proj.metrics[0]}`.
+  - Clicking any landed 3D video card in the 3x2 grid (or clicking any project pill in the bottom index bar) opens the 3D Holographic Project Telemetry Modal with the project's SVG diagrams, metrics, tech tags, and Live Demo / GitHub links.
+  - Clicking the top-left `←` / `→` pager arrows or `PROJECTS (1–6/10)` cycles which 6 of the 10 projects are mapped to the 3x2 grid.
+- Verified `npm run build` (`tsc -p tsconfig.app.json && vite build`) passes with 0 errors.

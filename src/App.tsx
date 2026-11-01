@@ -31,13 +31,19 @@ import futurePeSub2 from './assets/projects/future-pe-sub2.svg';
 import grandAzureHero from './assets/projects/grand-azure-hero.svg';
 import grandAzureSub1 from './assets/projects/grand-azure-sub1.svg';
 import grandAzureSub2 from './assets/projects/grand-azure-sub2.svg';
+import aiIrrigationHero from './assets/projects/ai-irrigation-hero.svg';
+import aiIrrigationSub1 from './assets/projects/ai-irrigation-sub1.svg';
+import aiIrrigationSub2 from './assets/projects/ai-irrigation-sub2.svg';
+import vtonHero from './assets/projects/vton-hero.svg';
+import vtonSub1 from './assets/projects/vton-sub1.svg';
+import vtonSub2 from './assets/projects/vton-sub2.svg';
 
 // 3D Glassmorphic Charm Imports
 import charmDodecahedron from './assets/charms/charm-dodecahedron.png';
 import charmInfinity from './assets/charms/charm-infinity.png';
-import charmLightbulb from './assets/charms/charm-lightbulb.png';
 import charmGear from './assets/charms/charm-gear.png';
 import SpaceCanvas from './components/SpaceCanvas';
+import VanteSection from './components/VanteSection';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
@@ -102,14 +108,29 @@ export function SectionDivider() {
   );
 }
 
+// Shared AudioContext & Global Mute State for Cybernetic Sound Synthesizer
+let sharedAudioCtx: AudioContext | null = null;
+let isCyberAudioMuted = typeof window !== 'undefined' && window.localStorage.getItem('tanverse_audio_muted') === 'true';
+
+export const getCyberAudioMuted = () => isCyberAudioMuted;
+export const setCyberAudioMuted = (muted: boolean) => {
+  isCyberAudioMuted = muted;
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem('tanverse_audio_muted', String(muted));
+  }
+};
+
 // Web Audio API Programmatic Cybernetic Sound Synthesizer
 export const playCyberSound = (type: 'click' | 'hover' | 'popup' | 'glide') => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isCyberAudioMuted) return;
 
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioContextClass();
+    }
+    const ctx = sharedAudioCtx;
     
     if (ctx.state === 'suspended') {
       ctx.resume();
@@ -636,9 +657,9 @@ function SectionTransition() {
 
         {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-8">
-          <StatItem end={8}  suffix="+" label="Flagship Projects"  delay={0}   />
-          <StatItem end={5}  suffix=""  label="Tech Roles & Internships" delay={120} />
-          <StatItem end={25} suffix="+" label="Technologies Mastered" delay={240} />
+          <StatItem end={10} suffix="+" label="Flagship Projects"  delay={0}   />
+          <StatItem end={6}  suffix=""  label="Tech & Leadership Roles" delay={120} />
+          <StatItem end={30} suffix="+" label="Technologies Mastered" delay={240} />
         </div>
 
         {/* Bottom hairline */}
@@ -810,6 +831,26 @@ const resolveProjectImage = (imgStr: string) => {
     grandAzureHero,
     grandAzureSub1,
     grandAzureSub2,
+    aiIrrigationHero,
+    aiIrrigationSub1,
+    aiIrrigationSub2,
+    vtonHero,
+    vtonSub1,
+    vtonSub2,
+    // Legacy DB seed aliases
+    sentinelHero: sentinelSwarmHero,
+    sentinelTelemetry: sentinelSwarmSub1,
+    aegisHero: aegisGatewayHero,
+    aegisArchitecture: aegisGatewaySub1,
+    anantamHero: anantamAgriHero,
+    anantamTelemetry: anantamAgriSub1,
+    resumeHero: aiResumeHero,
+    resumeScoreGauge: aiResumeSub1,
+    meshweaverTopology: meshweaverSub1,
+    peHero: futurePeHero,
+    peBenchmark: futurePeSub1,
+    azureHero: grandAzureHero,
+    azureInventory: grandAzureSub1,
   };
   return imageMap[imgStr] || imgStr;
 };
@@ -962,9 +1003,16 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
       }
       handlePopupClose();
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handlePopupClose();
+      }
+    };
     document.addEventListener('click', handleDocumentClick);
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('click', handleDocumentClick);
+      window.removeEventListener('keydown', handleKeyDown);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -1471,6 +1519,10 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
           const isHovered = hoveredIndex === index;
           const isPopupActive = activePopupSkill?.num === skill.num;
           const isActive = activePopupSkill ? isPopupActive : activeIndex === index;
+          const fp = floatParams[index % floatParams.length];
+          // Keep nodes safely inside 375px mobile viewports
+          const rawLeftNum = parseFloat(skill.left) || 50;
+          const safeLeft = `clamp(16%, ${rawLeftNum}%, 84%)`;
 
           return (
             <motion.div
@@ -1488,9 +1540,6 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
                 }
                 setActivePopupSkill(skill);
                 playCyberSound('popup');
-                timeoutRef.current = window.setTimeout(() => {
-                  setActivePopupSkill(null);
-                }, 3000);
               }}
               animate={isHovered || isPopupActive ? {
                 x: 0,
@@ -1498,9 +1547,9 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
                 z: 120,
                 scale: 1.35,
               } : {
-                x: floatParams[index].x,
-                y: floatParams[index].y,
-                z: floatParams[index].z,
+                x: fp.x,
+                y: fp.y,
+                z: fp.z,
                 scale: 1,
               }}
               transition={isHovered || isPopupActive ? {
@@ -1508,14 +1557,14 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
                 damping: 15,
                 stiffness: 150,
               } : {
-                x: { repeat: Infinity, duration: floatParams[index].duration, ease: 'easeInOut' },
-                y: { repeat: Infinity, duration: floatParams[index].duration, ease: 'easeInOut' },
-                z: { repeat: Infinity, duration: floatParams[index].duration, ease: 'easeInOut' },
+                x: { repeat: Infinity, duration: fp.duration, ease: 'easeInOut' },
+                y: { repeat: Infinity, duration: fp.duration, ease: 'easeInOut' },
+                z: { repeat: Infinity, duration: fp.duration, ease: 'easeInOut' },
               }}
               whileTap={{ scale: 0.88 }}
               className="skill-node absolute cursor-pointer flex flex-col items-center justify-center p-2 transition-transform duration-300 preserve-3d"
               style={{
-                left: skill.left,
+                left: safeLeft,
                 top: `calc(${skill.top} + 3cm)`,
                 transformStyle: 'preserve-3d',
                 transform: 'translate(-50%, -50%)',
@@ -1542,7 +1591,7 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
               </div>
 
               {/* Cyber text tag underneath logo */}
-              <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 text-[9px] font-mono font-medium text-white/50 tracking-widest uppercase bg-black/40 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">
+              <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 text-[9px] font-mono font-medium text-white/60 tracking-widest uppercase bg-black/50 border border-white/10 px-2 py-0.5 rounded whitespace-nowrap">
                 {skill.title}
               </div>
             </motion.div>
@@ -1559,19 +1608,33 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
             exit={{ opacity: 0, scale: 0.9, y: 10, filter: 'blur(8px)' }}
             transition={{ type: 'spring', damping: 25, stiffness: 150 }}
             onClick={(e) => e.stopPropagation()}
-            className="popup-box absolute z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-2xl bg-black/90 border rounded-2xl px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white pointer-events-auto select-none"
+            className="popup-box absolute z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-2xl bg-black/95 border rounded-2xl p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white pointer-events-auto select-none w-[90vw] max-w-[440px]"
             style={{
               borderColor: activePopupSkill.glowColor,
               boxShadow: `0 0 35px ${activePopupSkill.glowColor}25, 0 15px 40px rgba(0,0,0,0.85)`,
             }}
           >
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                handlePopupClose();
+                playCyberSound('click');
+              }}
+              aria-label="Close skill telemetry"
+              className="absolute top-3.5 right-3.5 w-7 h-7 flex items-center justify-center rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
             {/* Cyber corners */}
             <div className="absolute top-2 left-2 w-3 h-3 border-t border-l transition-colors duration-300" style={{ borderColor: activePopupSkill.glowColor }} />
             <div className="absolute top-2 right-2 w-3 h-3 border-t border-r transition-colors duration-300" style={{ borderColor: activePopupSkill.glowColor }} />
             <div className="absolute bottom-2 left-2 w-3 h-3 border-b border-l transition-colors duration-300" style={{ borderColor: activePopupSkill.glowColor }} />
             <div className="absolute bottom-2 right-2 w-3 h-3 border-b border-r transition-colors duration-300" style={{ borderColor: activePopupSkill.glowColor }} />
 
-            <div className="flex items-center gap-4 py-1 px-2">
+            <div className="flex items-center gap-4 pb-3 border-b border-white/10 pr-8">
               <div 
                 className="w-12 h-12 flex items-center justify-center flex-shrink-0"
                 style={{
@@ -1580,10 +1643,68 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
               >
                 {activePopupSkill.logo}
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-white whitespace-nowrap">
-                {activePopupSkill.title}
-              </h3>
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-2 text-[9px] font-mono tracking-widest uppercase text-[#00F2FE]">
+                  <span>NODE #{activePopupSkill.num}</span>
+                  <span>•</span>
+                  <span>MEM {memAddr}</span>
+                  <span>•</span>
+                  <span>CPU {cpuLoad}%</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white truncate">
+                  {activePopupSkill.title}
+                </h3>
+              </div>
             </div>
+
+            {activePopupSkill.desc && (
+              <p className="text-xs text-slate-300 font-light leading-relaxed mt-3">
+                {activePopupSkill.desc}
+              </p>
+            )}
+
+            {activePopupSkill.toolsStats && activePopupSkill.toolsStats.length > 0 && (
+              <div className="mt-4 flex flex-col gap-2">
+                <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-slate-400">
+                  Sub-System Telemetry &amp; Proficiency
+                </span>
+                {activePopupSkill.toolsStats.slice(0, 4).map((stat, sIdx) => (
+                  <div key={sIdx} className="flex flex-col gap-1">
+                    <div className="flex justify-between text-[10px] font-mono">
+                      <span className="text-slate-200">{stat.name}</span>
+                      <span className="text-[#00F2FE] font-bold">{stat.level}%</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${stat.level}%` }}
+                        transition={{ duration: 0.6, delay: sIdx * 0.08 }}
+                        className="h-full rounded-full"
+                        style={{
+                          background: 'linear-gradient(90deg, #00F2FE 0%, #B600A8 100%)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activePopupSkill.projects && activePopupSkill.projects.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center gap-1.5">
+                <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 mr-1">
+                  Active In:
+                </span>
+                {activePopupSkill.projects.map((proj, pIdx) => (
+                  <span
+                    key={pIdx}
+                    className="px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-[#00F2FE]/10 border border-[#00F2FE]/30 text-[#00F2FE]"
+                  >
+                    {proj}
+                  </span>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1626,6 +1747,36 @@ const PROJECTS: ProjectData[] = [
   },
   {
     num: '02',
+    name: 'AI Precision Irrigation',
+    category: 'AI & IoT / Sustainable Agritech',
+    url: 'https://github.com/mylifeastanmay-hub/ai-precision-irrigation',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/ai-precision-irrigation',
+    description: 'End-to-end sustainable smart irrigation platform combining a Hybrid Stacked ML soil moisture forecasting engine (LSTM + XGBoost + Random Forest) with Ant Colony Optimization (ACO) multi-zone scheduling, ESP32 MQTT telemetry, and multilingual farmer voice advisories.',
+    tech: ['FastAPI', 'PyTorch LSTM', 'XGBoost', 'Ant Colony Opt', 'ESP32 / MQTT', 'React 18'],
+    metrics: ['94.6% ML Accuracy', '-32.1% Water Saved', '-32.4% Pump Energy', 'R² = 0.961'],
+    images: {
+      col1Img1: aiIrrigationSub1,
+      col1Img2: aiIrrigationSub2,
+      col2Img: aiIrrigationHero,
+    },
+  },
+  {
+    num: '03',
+    name: 'VTON Antigravity',
+    category: 'Computer Vision / Chrome Extension',
+    url: 'https://github.com/mylifeastanmay-hub/vton-antigravity',
+    githubUrl: 'https://github.com/mylifeastanmay-hub/vton-antigravity',
+    description: 'Cross-site AI Virtual Try-On platform uniting a Manifest V3 Chrome Extension (universal DOM garment scraper & guided webcam studio) with an async FastAPI local CV warping & IDM-VTON cloud diffusion backend, split-view comparison slider, and wardrobe archive.',
+    tech: ['FastAPI', 'OpenCV / PIL', 'IDM-VTON Diffusion', 'Chrome MV3', 'React 18', 'TypeScript'],
+    metrics: ['Universal DOM Scraper', 'Dual Local/Cloud VTON', 'Split-View Slider', 'MV3 Side-Drawer'],
+    images: {
+      col1Img1: vtonSub1,
+      col1Img2: vtonSub2,
+      col2Img: vtonHero,
+    },
+  },
+  {
+    num: '04',
     name: 'AegisGateway',
     category: 'Enterprise AI Security Proxy',
     url: 'https://github.com/mylifeastanmay-hub/aegis-gateway',
@@ -1640,7 +1791,7 @@ const PROJECTS: ProjectData[] = [
     },
   },
   {
-    num: '03',
+    num: '05',
     name: 'Anantam Agri Dashboard',
     category: 'Autonomous UAV & Agritech',
     url: 'https://github.com/mylifeastanmay-hub/anantam-agri-dashboard',
@@ -1655,7 +1806,7 @@ const PROJECTS: ProjectData[] = [
     },
   },
   {
-    num: '04',
+    num: '06',
     name: 'AI ATS Resume Analyzer',
     category: 'NLP & Career Intelligence',
     url: 'https://github.com/mylifeastanmay-hub/ai-resume-builder',
@@ -1670,7 +1821,7 @@ const PROJECTS: ProjectData[] = [
     },
   },
   {
-    num: '05',
+    num: '07',
     name: 'MeshWeaver P2P Mesh',
     category: 'Distributed Systems & DHT',
     url: 'https://github.com/mylifeastanmay-hub/meshweaver',
@@ -1685,7 +1836,7 @@ const PROJECTS: ProjectData[] = [
     },
   },
   {
-    num: '06',
+    num: '08',
     name: 'FUTURE_PE_01 Prompt Engine',
     category: 'GenAI & Cognitive Systems',
     url: 'https://github.com/mylifeastanmay-hub/FUTURE_PE_01',
@@ -1700,7 +1851,7 @@ const PROJECTS: ProjectData[] = [
     },
   },
   {
-    num: '07',
+    num: '09',
     name: 'Grand Azure Enterprise',
     category: 'Fullstack Flask & ORM',
     url: 'https://github.com/mylifeastanmay-hub/grand-azure-hotel',
@@ -1715,7 +1866,7 @@ const PROJECTS: ProjectData[] = [
     },
   },
   {
-    num: '08',
+    num: '10',
     name: 'Tanverse 3D Universe',
     category: 'Creative WebGL & 3D Systems',
     url: 'https://github.com/mylifeastanmay-hub/tanverse-portfolio',
@@ -1731,215 +1882,9 @@ const PROJECTS: ProjectData[] = [
   },
 ];
 
-interface CardWrapperProps {
-  project: ProjectData;
-  index: number;
-  activeIndex: number;
-  onChangeIndex: (index: number) => void;
-  hoverRotation: number;
-  onOpenPopup: (project: ProjectData) => void;
-}
-
-function CardWrapper({ project, index, activeIndex, onChangeIndex, hoverRotation, onOpenPopup }: CardWrapperProps) {
-  const offset = index - activeIndex;
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  let x = '0%';
-  let rotateY = 0;
-  let z = 0;
-  let opacity = 1;
-  let zIndex = 30;
-  let scale = 1;
-  let pointerEvents: 'auto' | 'none' = 'auto';
-
-  if (offset === 0) {
-    x = '0%';
-    rotateY = 0;
-    z = 0;
-    opacity = 1;
-    scale = 1;
-    zIndex = 30;
-    pointerEvents = 'auto';
-  } else if (offset === -1) {
-    x = isMobile ? '-105%' : '-42%';
-    rotateY = isMobile ? 0 : 38;
-    z = isMobile ? -50 : -180;
-    opacity = isMobile ? 0 : 0.35;
-    scale = 0.82;
-    zIndex = 10;
-    pointerEvents = 'auto';
-  } else if (offset === 1) {
-    x = isMobile ? '105%' : '42%';
-    rotateY = isMobile ? 0 : -38;
-    z = isMobile ? -50 : -180;
-    opacity = isMobile ? 0 : 0.35;
-    scale = 0.82;
-    zIndex = 10;
-    pointerEvents = 'auto';
-  } else {
-    x = offset < 0 ? '-120%' : '120%';
-    rotateY = offset < 0 ? 55 : -55;
-    z = -250;
-    opacity = 0;
-    scale = 0.75;
-    zIndex = 5;
-    pointerEvents = 'none';
-  }
-
-  return (
-    <motion.div
-      animate={{
-        x,
-        rotateY: rotateY + (offset === 0 ? hoverRotation : hoverRotation * 0.5),
-        z,
-        opacity,
-        scale,
-      }}
-      transition={{ type: 'spring', damping: 25, stiffness: 85 }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onChangeIndex(index);
-        onOpenPopup(project);
-        playCyberSound('popup');
-      }}
-      className="absolute w-full max-w-[580px]"
-      style={{
-        zIndex,
-        pointerEvents,
-        transformStyle: 'preserve-3d',
-      }}
-    >
-      <motion.article
-        className="w-full rounded-3xl sm:rounded-[36px] md:rounded-[40px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-5 md:p-6 shadow-2xl flex flex-col gap-4"
-      >
-        {/* Top Row */}
-        <div className="flex justify-between items-center w-full gap-4">
-          <div className="flex items-center gap-3">
-            <span className="font-black text-xl sm:text-2xl md:text-3xl leading-none text-[#D7E2EA]">
-              {project.num}
-            </span>
-            <div className="flex flex-col">
-              <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] opacity-60">
-                {project.category}
-              </span>
-              <h3 className="text-sm sm:text-base md:text-lg font-bold uppercase leading-tight text-[#D7E2EA]">
-                {project.name}
-              </h3>
-              {project.metrics && project.metrics[0] && (
-                <span className="text-[8px] md:text-[9px] font-mono text-[#00F2FE] tracking-wider mt-0.5 opacity-90">
-                  ⚡ {project.metrics[0]}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Row - Two-Column Image Grid or Cyber Blank State */}
-        {project.images.col1Img1 ? (
-          <div className="grid grid-cols-[40%_60%] gap-3 w-full h-[180px] sm:h-[220px] md:h-[260px] overflow-hidden">
-            {/* Left Column (40%): 2 Stacked Images */}
-            <div className="flex flex-col gap-3">
-              <div className="w-full h-[calc(42%-6px)] overflow-hidden rounded-2xl sm:rounded-[20px] md:rounded-[24px]">
-                <ProgressiveImage
-                  src={project.images.col1Img1}
-                  alt={`${project.name} Details 1`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="w-full h-[calc(58%-6px)] overflow-hidden rounded-2xl sm:rounded-[20px] md:rounded-[24px]">
-                <ProgressiveImage
-                  src={project.images.col1Img2}
-                  alt={`${project.name} Details 2`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-
-            {/* Right Column (60%): 1 Tall Image */}
-            <div className="w-full h-full overflow-hidden rounded-2xl sm:rounded-[20px] md:rounded-[24px]">
-              <ProgressiveImage
-                src={project.images.col2Img}
-                alt={`${project.name} Feature`}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="relative w-full h-[180px] sm:h-[220px] md:h-[260px] rounded-2xl sm:rounded-[20px] md:rounded-[24px] border border-dashed border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center overflow-hidden group">
-            {/* Holographic matrix background for blank state */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                 style={{
-                   backgroundImage: 'radial-gradient(circle at center, #00F2FE 1px, transparent 1px)',
-                   backgroundSize: '20px 20px'
-                 }} />
-            
-            <div className="relative z-10 flex flex-col items-center p-4 max-w-sm">
-              {/* Pulsing scanning radar or circle */}
-              <div className="relative w-12 h-12 mb-3 flex items-center justify-center">
-                <div 
-                  className="absolute inset-0 rounded-full border border-dashed border-[#00F2FE]/30"
-                  style={{ animation: 'spin 12s linear infinite' }}
-                />
-                <div className="absolute w-8 h-8 rounded-full border border-[#B600A8]/20 animate-pulse" />
-                <svg className="w-5 h-5 text-[#00F2FE] opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h4 className="text-xs font-black uppercase tracking-[0.25em] text-white/90">
-                Visual Telemetry Offline
-              </h4>
-              <p className="text-[10px] font-mono text-slate-400 mt-2 leading-relaxed">
-                Render sequence will initiate automatically upon live URL deployment. Compilation stream active.
-              </p>
-              
-              {/* Fake loading/terminal diagnostic stats */}
-              <div className="flex gap-3 mt-4 text-[8px] font-mono text-slate-500 uppercase tracking-widest">
-                <span>BUFFER: EMPTY</span>
-                <span>•</span>
-                <span>STATUS: STABLE</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </motion.article>
-    </motion.div>
-  );
-}
-
 function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }) {
-  const [activeProjIndex, setActiveProjIndex] = useState(0);
-  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [hoverZone, setHoverZone] = useState<'left' | 'right' | 'center' | 'none'>('none');
-  const containerRef = useRef<HTMLDivElement>(null);
   const [activePopupProject, setActivePopupProject] = useState<ProjectData | null>(null);
-
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
   const popupTouchStartY = useRef<number | null>(null);
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     if (!activePopupProject) return;
@@ -1956,39 +1901,18 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
     return () => window.removeEventListener('scroll', handleScroll);
   }, [activePopupProject]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    
-    // Relative position inside the container
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setMousePos({ x, y });
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activePopupProject) {
+        setActivePopupProject(null);
+        playCyberSound('click');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePopupProject]);
 
-    // Normalized offset for parallax/rotation (-0.5 to 0.5)
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const offsetX = (e.clientX - centerX) / rect.width;
-    const offsetY = (e.clientY - centerY) / rect.height;
-    setMouseOffset({ x: offsetX, y: offsetY });
-
-    // Determine hover zone for cursor indicator & click actions
-    const relativeX = x / rect.width;
-    if (relativeX < 0.38) {
-      setHoverZone('left');
-    } else if (relativeX > 0.62) {
-      setHoverZone('right');
-    } else {
-      setHoverZone('center');
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setMouseOffset({ x: 0, y: 0 });
-    setHoverZone('none');
-  };
-
-  const displayProjects = apiProjects && apiProjects.length > 0
+  const baseProjects = apiProjects && apiProjects.length > 0
     ? apiProjects.map(p => ({
         ...p,
         images: {
@@ -1999,36 +1923,6 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
       }))
     : PROJECTS;
 
-  const handlePrev = () => {
-    setActiveProjIndex((prev) => (prev > 0 ? prev - 1 : displayProjects.length - 1));
-    playCyberSound('click');
-  };
-
-  const handleNext = () => {
-    setActiveProjIndex((prev) => (prev < displayProjects.length - 1 ? prev + 1 : 0));
-    playCyberSound('click');
-  };
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchEndX.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    const distance = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-    if (distance > minSwipeDistance) {
-      handleNext();
-    } else if (distance < -minSwipeDistance) {
-      handlePrev();
-    }
-  };
-
   const handlePopupTouchStart = (e: React.TouchEvent) => {
     popupTouchStartY.current = e.targetTouches[0].clientY;
   };
@@ -2037,7 +1931,7 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
     if (popupTouchStartY.current === null) return;
     const currentY = e.targetTouches[0].clientY;
     const diffY = currentY - popupTouchStartY.current;
-    const dismissDistance = 25; // Close if swiped up or down by ~25px (~0.5cm)
+    const dismissDistance = 25;
     if (Math.abs(diffY) > dismissDistance) {
       setActivePopupProject(null);
       playCyberSound('click');
@@ -2045,138 +1939,16 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
     }
   };
 
-  const handleSectionClick = (e: React.MouseEvent) => {
-    // If they clicked on an 'a' link inside active card, let it pass through
-    if ((e.target as HTMLElement).closest('a')) {
-      return;
-    }
-    
-    if (hoverZone === 'left') {
-      handlePrev();
-    } else if (hoverZone === 'right') {
-      handleNext();
-    }
-  };
-
-  const hoverRotation = mouseOffset.x * 25; // -12.5 to +12.5 degrees
-
   return (
-    <section
-      id="projects"
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={`relative z-20 bg-[#0C0C0C] px-5 pb-12 pt-12 sm:pb-24 sm:pt-24 sm:px-8 md:px-10 overflow-hidden ${!isMobile && hoverZone !== 'none' ? 'cursor-none' : ''}`}
-    >
-      {/* Top and Bottom Fades to blend the section background with adjacent sections */}
-      <div className="pointer-events-none absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-[#0C0C0C] to-transparent z-10" />
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#0C0C0C] to-transparent z-10" />
-
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(124,183,255,0.07),transparent_38%)]" />
-
-      {/* 3D Lightbulb Charm with reactive mouse parallax */}
-      <motion.div 
-        animate={{
-          x: mouseOffset.x * 35,
-          y: mouseOffset.y * -35,
-          rotate: mouseOffset.x * 8
+    <section id="projects" className="relative z-20 bg-[#0a0a0b]">
+      {/* Vante 3D Video Ribbon -> 3x2 Grid Projects Experience */}
+      <VanteSection
+        projects={baseProjects}
+        onOpenProject={(proj) => {
+          setActivePopupProject(proj);
+          playCyberSound('popup');
         }}
-        transition={{ type: 'spring', damping: 25, stiffness: 60 }}
-        className="absolute top-[12%] right-[4%] sm:right-[8%] md:right-[12%] w-[110px] sm:w-[140px] md:w-[185px] pointer-events-none select-none z-10"
-      >
-        <FadeIn delay={0.2} x={50} y={0} duration={0.9}>
-          <img
-            src={charmLightbulb}
-            alt="3D Lightbulb Decor"
-            className="w-full object-contain"
-            style={{
-              filter: 'drop-shadow(0 0 20px rgba(182, 0, 168, 0.45))'
-            }}
-          />
-        </FadeIn>
-      </motion.div>
-      
-      {/* Heading */}
-      <FadeIn delay={0} y={40} className="mb-14 text-center relative z-20">
-        <h2 className="hero-heading text-[clamp(2.8rem,9vw,120px)] font-black uppercase leading-none tracking-tight">
-          Project
-        </h2>
-      </FadeIn>
-
-      {/* 3D Rotating Deck Carousel Viewport */}
-      <div className="relative w-full max-w-5xl mx-auto flex flex-col items-center z-20">
-        
-        {/* Clickable 3D Rotating Deck Carousel Viewport */}
-        <div 
-          onClick={handleSectionClick}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          style={{
-            perspective: '1500px',
-            transformStyle: 'preserve-3d'
-          }}
-          className="relative w-full h-[320px] sm:h-[420px] md:h-[480px] flex items-center justify-center overflow-visible select-none"
-        >
-          {displayProjects.map((project, index) => (
-            <CardWrapper
-              key={project.num}
-              project={project}
-              index={index}
-              activeIndex={activeProjIndex}
-              onChangeIndex={setActiveProjIndex}
-              hoverRotation={hoverRotation}
-              onOpenPopup={setActivePopupProject}
-            />
-          ))}
-        </div>
-
-        {/* Monospace interaction indicator */}
-        <div className="mt-8 text-[10px] font-mono tracking-[0.25em] text-[#D7E2EA]/30 uppercase flex items-center gap-2 select-none pointer-events-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00F2FE] animate-ping" />
-          <span>Move cursor to tilt deck • Click sides to navigate • Click cards to view project details</span>
-        </div>
-      </div>
-
-      {/* Sleek Custom Cursor Indicator */}
-      {!isMobile && hoverZone !== 'none' && (
-        <motion.div
-          className="pointer-events-none absolute z-50 flex items-center justify-center -translate-x-1/2 -translate-y-1/2"
-          style={{
-            left: mousePos.x,
-            top: mousePos.y,
-          }}
-          animate={{
-            scale: hoverZone === 'center' ? 1 : 0.85,
-          }}
-          transition={{ type: 'spring', damping: 20, stiffness: 150 }}
-        >
-          {hoverZone === 'left' && (
-            <div className="flex flex-col items-center gap-1 filter drop-shadow-[0_0_8px_rgba(0,242,254,0.8)]">
-              <svg className="w-12 h-12 text-[#00F2FE] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="text-[8px] font-mono tracking-[0.25em] text-[#00F2FE] uppercase font-bold">PREV</span>
-            </div>
-          )}
-          {hoverZone === 'right' && (
-            <div className="flex flex-col items-center gap-1 filter drop-shadow-[0_0_8px_rgba(0,242,254,0.8)]">
-              <svg className="w-12 h-12 text-[#00F2FE] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-              <span className="text-[8px] font-mono tracking-[0.25em] text-[#00F2FE] uppercase font-bold">NEXT</span>
-            </div>
-          )}
-          {hoverZone === 'center' && (
-            <div className="w-14 h-14 rounded-full bg-[#B600A8]/20 border border-[#B600A8] flex flex-col items-center justify-center filter drop-shadow-[0_0_8px_rgba(182,0,168,0.8)]">
-              <svg className="w-5 h-5 text-white mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              <span className="text-[8px] font-mono tracking-widest text-white uppercase font-black font-bold">VIEW</span>
-            </div>
-          )}
-        </motion.div>
-      )}
+      />
 
       {/* 3D Holographic Project Details Pop-up Modal */}
       <AnimatePresence>
@@ -2488,6 +2260,37 @@ const CERTIFICATES: CertificateData[] = [
       </svg>
     ),
   },
+  {
+    course: 'Python for Data Science (NPTEL Certification)',
+    issuer: 'NPTEL / IIT',
+    platform: 'NPTEL SWAYAM',
+    date: '2026',
+    verifyUrl: 'https://nptel.ac.in',
+    glowColor: '#F59E0B',
+    deckName: 'NPTEL / IIT',
+    logo: (
+      <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="10" fill="#1C1408" stroke="#F59E0B" strokeWidth="2"/>
+        <circle cx="24" cy="24" r="11" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeDasharray="4 2"/>
+        <text x="24" y="28" fill="#F59E0B" fontSize="10" fontWeight="900" textAnchor="middle" fontFamily="monospace">IIT</text>
+      </svg>
+    ),
+  },
+  {
+    course: 'Introduction to Android Mobile Application Development',
+    issuer: 'Meta',
+    platform: 'Coursera',
+    date: '2026',
+    verifyUrl: 'https://www.coursera.org/learn/introduction-to-android-mobile-application-development',
+    glowColor: '#0668E1',
+    deckName: 'Meta',
+    logo: (
+      <svg viewBox="0 0 48 48" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="10" fill="#071324" stroke="#0668E1" strokeWidth="2"/>
+        <path d="M12 29 C12 20, 18 17, 24 24 C30 31, 36 28, 36 19 C36 14, 31 14, 24 22 C17 30, 12 33, 12 29 Z" fill="none" stroke="#00F2FE" strokeWidth="2.8" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ];
 
 function ExperienceSection({ experiences: apiExperiences, certificates: apiCertificates }: { experiences?: ExperienceItem[], certificates?: any[] }) {
@@ -2703,6 +2506,21 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
           <path d="M 40 42 C 52 44, 62 49, 67 52" stroke="#FFFFFF" strokeWidth="1.8" opacity="0.6" strokeLinecap="round" />
           <circle cx="41" cy="70" r="2.5" fill="#FFFFFF" opacity="0.8" />
           <line x1="43.5" y1="70" x2="43.5" y2="59" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.8" />
+        </svg>
+      )
+    },
+    {
+      role: 'Event Management Head',
+      organization: 'Prarambh 2025, NMIMS Shirpur',
+      period: 'Sep 2025',
+      description: "Led end-to-end event operations, venue logistics, stage scheduling, and cross-functional volunteer coordination for Prarambh'25 at SVKM's NMIMS Mukesh Patel Technology Park, delivering seamless execution across flagship student events.",
+      glowColor: '#EC4899',
+      icon: (
+        <svg className="w-14 h-14" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" stroke="#EC4899" strokeWidth="2.5" />
+          <circle cx="50" cy="50" r="41" stroke="rgba(236, 72, 153, 0.15)" strokeWidth="1.5" />
+          <polygon points="50,22 58,40 78,42 63,55 67,75 50,64 33,75 37,55 22,42 42,40" fill="#1F0916" stroke="#EC4899" strokeWidth="2.5" strokeLinejoin="round" />
+          <circle cx="50" cy="50" r="5" fill="#00F2FE" />
         </svg>
       )
     }
@@ -3632,7 +3450,126 @@ function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
 }
 
 // ==========================================
-// 6. MASTER APP CONTAINER
+// 6. STICKY HUD NAVIGATION BAR & AUDIO TOGGLE
+// ==========================================
+function StickyHudNav() {
+  const [visible, setVisible] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('about');
+  const [isMuted, setIsMuted] = useState<boolean>(() => getCyberAudioMuted());
+
+  useEffect(() => {
+    const sections = ['about', 'skills', 'experience', 'projects', 'contact'];
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setVisible(scrollY > 280);
+
+      const viewportMid = scrollY + window.innerHeight * 0.4;
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (viewportMid >= top && viewportMid < top + height) {
+            setActiveSection(id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleAudio = () => {
+    const next = !isMuted;
+    setIsMuted(next);
+    setCyberAudioMuted(next);
+    if (!next) {
+      playCyberSound('click');
+    }
+  };
+
+  const navLinks = [
+    { id: 'about', label: 'About' },
+    { id: 'skills', label: 'Skills' },
+    { id: 'experience', label: 'Experience' },
+    { id: 'projects', label: 'Projects' },
+    { id: 'contact', label: 'Contact' },
+  ];
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.nav
+          initial={{ y: -60, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -60, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+          aria-label="Floating HUD Navigation"
+          className="fixed top-4 inset-x-0 z-40 flex justify-center px-3 pointer-events-none"
+        >
+          <div className="pointer-events-auto flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-full border border-white/15 bg-[#0C0C0C]/80 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,0.75),0_0_20px_rgba(0,242,254,0.12)]">
+            <a
+              href="#"
+              onClick={() => playCyberSound('click')}
+              className="hidden sm:flex items-center gap-1.5 pr-2 mr-1 border-r border-white/10 text-[10px] font-black font-mono uppercase tracking-[0.22em] text-white hover:text-[#00F2FE] transition-colors"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#00F2FE] shadow-[0_0_8px_#00F2FE]" />
+              <span>TANVERSE</span>
+            </a>
+
+            {navLinks.map((item) => {
+              const isActive = activeSection === item.id;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={() => playCyberSound('click')}
+                  onMouseEnter={() => playCyberSound('hover')}
+                  className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-[0.16em] transition-all duration-300 ${
+                    isActive
+                      ? 'bg-[#00F2FE]/15 text-[#00F2FE] border border-[#00F2FE]/50 shadow-[0_0_12px_rgba(0,242,254,0.25)]'
+                      : 'text-slate-300 hover:text-white border border-transparent'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={toggleAudio}
+              title={isMuted ? 'Unmute Cyber Audio' : 'Mute Cyber Audio'}
+              aria-label={isMuted ? 'Unmute Cyber Audio' : 'Mute Cyber Audio'}
+              className={`ml-1 w-7 h-7 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                isMuted
+                  ? 'border-white/10 bg-white/[0.03] text-slate-500 hover:text-slate-300'
+                  : 'border-[#00F2FE]/40 bg-[#00F2FE]/10 text-[#00F2FE] shadow-[0_0_10px_rgba(0,242,254,0.2)]'
+              }`}
+            >
+              {isMuted ? (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </motion.nav>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ==========================================
+// 7. MASTER APP CONTAINER
 // ==========================================
 export default function App() {
   const [skills, setSkills] = useState<SkillData[] | undefined>(undefined);
@@ -3693,6 +3630,9 @@ export default function App() {
       {/* Space particle background */}
       <SpaceCanvas />
 
+      {/* Floating Sticky HUD Navbar with Cyber Audio Mute Toggle */}
+      <StickyHudNav />
+
       {/* Intro Entrance Splash Overlay */}
       <IntroOverlay />
 
@@ -3717,7 +3657,7 @@ export default function App() {
 
       <SectionDivider />
 
-      {/* Projects Section */}
+      {/* Projects Section (Vante 3D Video Ribbon -> 3x2 Grid) */}
       <ProjectsSection projects={projects} />
 
       <SectionDivider />
