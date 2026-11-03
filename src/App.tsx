@@ -46,6 +46,7 @@ import charmInfinity from './assets/charms/charm-infinity.png';
 import charmGear from './assets/charms/charm-gear.png';
 import SpaceCanvas from './components/SpaceCanvas';
 import VanteSection from './components/VanteSection';
+import { ExperienceCardsCarousel } from './components/ExperienceCardsCarousel';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
@@ -521,194 +522,306 @@ interface EmojiMoodItem {
   glowColor: string;
 }
 
-const TANVERSE_EMOJI_MOODS: EmojiMoodItem[] = [
-  {
-    id: 'smiling',
-    src: tanverseEmojiSmiling,
-    label: 'Joyful & Smiling',
-    glowColor: 'rgba(91, 116, 140, 0.25)',
-  },
-  {
-    id: 'not-smiling',
-    src: tanverseEmojiNotSmiling,
-    label: 'Focused & Analytical',
-    glowColor: 'rgba(120, 140, 175, 0.25)',
-  },
-  {
-    id: 'winking',
-    src: tanverseEmojiWinking,
-    label: 'Playful & Creative',
-    glowColor: 'rgba(96, 165, 250, 0.28)',
-  },
+const TANVERSE_EMOJI_MOODS = [
+  { id: 'smiling', src: tanverseEmojiSmiling, label: 'Joyful & Smiling', glowColor: 'rgba(91, 116, 140, 0.25)', isWinking: 0.0 },
+  { id: 'not-smiling', src: tanverseEmojiNotSmiling, label: 'Focused & Analytical', glowColor: 'rgba(120, 140, 175, 0.25)', isWinking: 0.0 },
+  { id: 'winking', src: tanverseEmojiWinking, label: 'Playful & Creative', glowColor: 'rgba(96, 165, 250, 0.28)', isWinking: 1.0 },
 ];
 
 function InteractiveHeroAvatar({ avatarUrl }: { avatarUrl?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const headRef = useRef<HTMLDivElement>(null);
-  const specularRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [activeMoodIndex, setActiveMoodIndex] = useState(0);
   const [bounceCount, setBounceCount] = useState(0);
-  const [cycleResetKey, setCycleResetKey] = useState(0);
+  const [isGlReady, setIsGlReady] = useState(false);
 
-  // 5-Second Auto Emotion Cycling
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveMoodIndex((prev) => (prev + 1) % TANVERSE_EMOJI_MOODS.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [cycleResetKey]);
+  const curIndexRef = useRef(0);
+  const targetIndexRef = useRef(0);
+  const mixRef = useRef(0.0);
+  const mixStartRef = useRef(0);
 
-  // Direct Tap / Click to Cycle Mood Immediately (resets 5s cycle)
+  // Direct Click to switch emotion (no 5s auto timer)
   const handleTapAvatar = () => {
-    setActiveMoodIndex((prev) => (prev + 1) % TANVERSE_EMOJI_MOODS.length);
-    setCycleResetKey((k) => k + 1);
+    const next = (activeMoodIndex + 1) % TANVERSE_EMOJI_MOODS.length;
+    curIndexRef.current = activeMoodIndex;
+    targetIndexRef.current = next;
+    mixRef.current = 0.0;
+    mixStartRef.current = performance.now();
+    setActiveMoodIndex(next);
     setBounceCount((c) => c + 1);
     playCyberSound('click');
   };
 
-  // High-performance 3D Gaze & Head Tilt tracking cursor
   useEffect(() => {
-    const head = headRef.current;
-    const specular = specularRef.current;
-    if (!head) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    let targetRotY = 0;
-    let targetRotX = 0;
-    let targetTransX = 0;
-    let targetTransY = 0;
-    let curRotY = 0;
-    let curRotX = 0;
-    let curTransX = 0;
-    let curTransY = 0;
+    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, antialias: true });
+    if (!gl) {
+      console.warn('WebGL not available for eye tracking');
+      return;
+    }
 
-    let targetSpecX = 50;
-    let targetSpecY = 46;
-    let curSpecX = 50;
-    let curSpecY = 46;
+    const vsSource = `
+      attribute vec2 aPos;
+      varying vec2 vUv;
+      void main() {
+        vUv = aPos * 0.5 + 0.5;
+        vUv.y = 1.0 - vUv.y;
+        gl_Position = vec4(aPos, 0.0, 1.0);
+      }
+    `;
 
+    const fsSource = `
+      precision highp float;
+      uniform sampler2D uTexCur;
+      uniform sampler2D uTexNext;
+      uniform float uMix;
+      uniform vec2 uGaze;
+      uniform float uIsWinking;
+      varying vec2 vUv;
+
+      void main() {
+        vec2 uv = vUv;
+        vec2 eyeL = vec2(427.0 / 1024.0, 528.0 / 1024.0);
+        vec2 eyeR = vec2(621.0 / 1024.0, 530.0 / 1024.0);
+        float radius = 54.0 / 1024.0;
+        vec2 maxShift = vec2(17.0 / 1024.0, 12.0 / 1024.0);
+        vec2 shift = uGaze * maxShift;
+
+        // Left Eye warp (active if not winking; in winking avatar left eye is closed)
+        float distL = distance(uv, eyeL) / radius;
+        if (distL < 1.0 && uIsWinking < 0.5) {
+          float wL = 1.0 - distL * distL * (3.0 - 2.0 * distL);
+          uv -= shift * wL;
+        }
+
+        // Right Eye warp (always active)
+        float distR = distance(uv, eyeR) / radius;
+        if (distR < 1.0) {
+          float wR = 1.0 - distR * distR * (3.0 - 2.0 * distR);
+          uv -= shift * wR;
+        }
+
+        vec4 colCur = texture2D(uTexCur, uv);
+        vec4 colNext = texture2D(uTexNext, uv);
+        gl_FragColor = mix(colCur, colNext, uMix);
+      }
+    `;
+
+    const compileShader = (type: number, src: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, src);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('Shader compile failed:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    };
+
+    const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+    const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+    if (!vs || !fs) return;
+
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program link failed:', gl.getProgramInfoLog(program));
+      return;
+    }
+    gl.useProgram(program);
+
+    const quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1,
+      ]),
+      gl.STATIC_DRAW
+    );
+
+    const aPos = gl.getAttribLocation(program, 'aPos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    const uGaze = gl.getUniformLocation(program, 'uGaze');
+    const uIsWinking = gl.getUniformLocation(program, 'uIsWinking');
+    const uMix = gl.getUniformLocation(program, 'uMix');
+    const uTexCur = gl.getUniformLocation(program, 'uTexCur');
+    const uTexNext = gl.getUniformLocation(program, 'uTexNext');
+
+    // Create textures for each emotion
+    const glTextures: WebGLTexture[] = [];
+    let loadedCount = 0;
+
+    TANVERSE_EMOJI_MOODS.forEach((mood, idx) => {
+      const tex = gl.createTexture()!;
+      glTextures[idx] = tex;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = mood.src;
+      img.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        loadedCount++;
+        if (loadedCount === TANVERSE_EMOJI_MOODS.length) {
+          setIsGlReady(true);
+        }
+      };
+    });
+
+    let targetGx = 0;
+    let targetGy = 0;
+    let curGx = 0;
+    let curGy = 0;
     let lastMoveTime = performance.now();
-    let rafId = 0;
 
     const handlePointerMove = (e: MouseEvent) => {
       lastMoveTime = performance.now();
-      const rect = head.getBoundingClientRect();
+      const rect = canvas.getBoundingClientRect();
       const eyeCenterX = rect.left + rect.width * 0.5;
-      const eyeCenterY = rect.top + rect.height * 0.46;
+      const eyeCenterY = rect.top + rect.height * 0.52;
 
-      const dx = e.clientX - eyeCenterX;
-      const dy = e.clientY - eyeCenterY;
+      const dx = (e.clientX - eyeCenterX) / Math.max(260, window.innerWidth * 0.42);
+      const dy = (e.clientY - eyeCenterY) / Math.max(220, window.innerHeight * 0.36);
 
-      const maxDistX = Math.max(280, window.innerWidth * 0.42);
-      const maxDistY = Math.max(220, window.innerHeight * 0.36);
-
-      const normX = Math.max(-1, Math.min(1, dx / maxDistX));
-      const normY = Math.max(-1, Math.min(1, dy / maxDistY));
-
-      // 3D perspective rotation directly following the cursor
-      targetRotY = normX * 11.5;
-      targetRotX = -normY * 8.5;
-      targetTransX = normX * 7.0;
-      targetTransY = normY * 5.0;
-
-      // Specular catchlight moves across glasses
-      targetSpecX = 50 + normX * 22;
-      targetSpecY = 46 + normY * 18;
+      targetGx = Math.max(-1, Math.min(1, dx));
+      targetGy = Math.max(-1, Math.min(1, dy));
     };
 
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
 
-    const animate = (now: number) => {
-      // Natural ambient breathing & subtle glance when idle (> 3.5s)
+    let rafId = 0;
+
+    const render = (now: number) => {
+      // Natural subtle idle glance if cursor stationary > 3.5s
       if (now - lastMoveTime > 3500) {
         const timeSec = (now - lastMoveTime) * 0.001;
-        targetRotY = Math.sin(timeSec * 0.8) * 3.2;
-        targetRotX = Math.cos(timeSec * 0.6) * 1.8;
-        targetTransX = Math.sin(timeSec * 0.8) * 1.5;
-        targetTransY = Math.cos(timeSec * 0.6) * 1.2;
-        targetSpecX = 50 + Math.sin(timeSec * 0.8) * 8;
-        targetSpecY = 46 + Math.cos(timeSec * 0.6) * 6;
+        targetGx = Math.sin(timeSec * 0.8) * 0.25;
+        targetGy = Math.cos(timeSec * 0.6) * 0.15;
       }
 
-      curRotY += (targetRotY - curRotY) * 0.14;
-      curRotX += (targetRotX - curRotX) * 0.14;
-      curTransX += (targetTransX - curTransX) * 0.14;
-      curTransY += (targetTransY - curTransY) * 0.14;
+      curGx += (targetGx - curGx) * 0.18;
+      curGy += (targetGy - curGy) * 0.18;
 
-      curSpecX += (targetSpecX - curSpecX) * 0.12;
-      curSpecY += (targetSpecY - curSpecY) * 0.12;
-
-      head.style.transform = `perspective(950px) rotateX(${curRotX.toFixed(2)}deg) rotateY(${curRotY.toFixed(2)}deg) translate3d(${curTransX.toFixed(2)}px, ${curTransY.toFixed(2)}px, 0)`;
-
-      if (specular) {
-        specular.style.background = `radial-gradient(circle at ${curSpecX.toFixed(1)}% ${curSpecY.toFixed(1)}%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0) 40%)`;
+      // Handle texture transition mix
+      if (mixStartRef.current > 0) {
+        const elapsed = now - mixStartRef.current;
+        const progress = Math.min(1.0, elapsed / 220);
+        mixRef.current = progress;
+        if (progress >= 1.0) {
+          curIndexRef.current = targetIndexRef.current;
+          mixRef.current = 0.0;
+          mixStartRef.current = 0;
+        }
       }
 
-      rafId = requestAnimationFrame(animate);
+      if (loadedCount === TANVERSE_EMOJI_MOODS.length) {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Bind active and next textures
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, glTextures[curIndexRef.current]);
+        gl.uniform1i(uTexCur, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, glTextures[targetIndexRef.current]);
+        gl.uniform1i(uTexNext, 1);
+
+        gl.uniform1f(uMix, mixRef.current);
+        gl.uniform2f(uGaze, curGx, curGy);
+        gl.uniform1f(uIsWinking, TANVERSE_EMOJI_MOODS[curIndexRef.current].isWinking);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
+
+      rafId = requestAnimationFrame(render);
     };
 
-    rafId = requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(render);
 
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener('mousemove', handlePointerMove);
+      gl.deleteBuffer(quadBuffer);
+      gl.deleteProgram(program);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+      glTextures.forEach((t) => gl.deleteTexture(t));
     };
   }, []);
+
+  const activeMood = TANVERSE_EMOJI_MOODS[activeMoodIndex];
 
   return (
     <div
       ref={containerRef}
       onClick={handleTapAvatar}
-      className="relative select-none w-full cursor-pointer"
-      title="Tanverse 3D Avatar (Auto-cycles every 5s • Tap to change emotion)"
+      className={`relative select-none w-full cursor-pointer aspect-square ${
+        bounceCount > 0 ? 'animate-bounce-subtle' : ''
+      }`}
+      title="Tanverse Avatar (Click to change emotion)"
     >
-      <div
-        ref={headRef}
-        key={bounceCount}
-        className={`relative w-full aspect-square will-change-transform ${
-          bounceCount > 0 ? 'animate-bounce-subtle' : ''
-        }`}
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        {avatarUrl ? (
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt="Tanverse Avatar"
+          className="w-full h-full object-contain pointer-events-none drop-shadow-2xl"
+          loading="eager"
+        />
+      ) : (
+        <>
+          {/* Static fallback and drop shadow */}
           <img
-            src={avatarUrl}
-            alt="Tanverse 3D Avatar"
-            className="w-full h-full object-contain pointer-events-none drop-shadow-2xl"
+            src={activeMood.src}
+            alt={`Tanverse Emoji - ${activeMood.label}`}
+            className={`w-full h-full object-contain pointer-events-none transition-opacity duration-300 ${
+              isGlReady ? 'opacity-0' : 'opacity-100'
+            }`}
+            style={{
+              filter: `drop-shadow(0 24px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 45px ${activeMood.glowColor})`,
+            }}
             loading="eager"
           />
-        ) : (
-          TANVERSE_EMOJI_MOODS.map((mood, idx) => {
-            const isActive = idx === activeMoodIndex;
-            return (
-              <img
-                key={mood.id}
-                src={mood.src}
-                alt={`Tanverse Emoji - ${mood.label}`}
-                className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-700 ease-in-out ${
-                  isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                }`}
-                style={{
-                  filter: `drop-shadow(0 24px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 45px ${mood.glowColor})`,
-                }}
-                loading="eager"
-              />
-            );
-          })
-        )}
 
-        {/* Dynamic Specular Lens Catchlight reacting to cursor position */}
-        <div
-          ref={specularRef}
-          className="absolute inset-0 pointer-events-none rounded-full"
-          style={{ mixBlendMode: 'screen' }}
-        />
+          {/* WebGL Canvas with stationary head and interactive gaze rotation */}
+          <canvas
+            ref={canvasRef}
+            width={1024}
+            height={1024}
+            className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-300 ${
+              isGlReady ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              filter: `drop-shadow(0 24px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 45px ${activeMood.glowColor})`,
+            }}
+          />
+        </>
+      )}
 
-        {/* Hair Wind & Cyber Ambient Motion Strands */}
-        <div className="alive-avatar-hair alive-avatar-hair-one" />
-        <div className="alive-avatar-hair alive-avatar-hair-two" />
-        <div className="alive-avatar-hair alive-avatar-hair-three" />
-      </div>
+      {/* Hair Wind & Cyber Ambient Motion Strands */}
+      <div className="alive-avatar-hair alive-avatar-hair-one" />
+      <div className="alive-avatar-hair alive-avatar-hair-two" />
+      <div className="alive-avatar-hair alive-avatar-hair-three" />
     </div>
   );
 }
@@ -739,9 +852,7 @@ function HeroSection({ avatarUrl }: { avatarUrl?: string }) {
       {/* Hero Portrait with Cursor-Tracking Eyes & Dynamic Emotions */}
       <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[250px] sm:w-[320px] md:w-[390px] lg:w-[460px] bottom-24 sm:bottom-0">
         <FadeIn delay={0.6} y={30}>
-          <Magnet padding={150} strength={3}>
-            <InteractiveHeroAvatar avatarUrl={avatarUrl} />
-          </Magnet>
+          <InteractiveHeroAvatar avatarUrl={avatarUrl} />
         </FadeIn>
       </div>
 
@@ -2755,214 +2866,64 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
   }, [displayCertificates]);
 
   return (
-    <section id="experience" className="relative z-20 bg-[#0C0C0C] py-12 sm:py-24 md:py-36 px-5 sm:px-8 md:px-10 overflow-hidden">
-      {/* Dynamic Keyframe Animations for Circuit Pulses */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes circuitFlow {
-          0% {
-            stroke-dashoffset: 40;
-          }
-          100% {
-            stroke-dashoffset: 0;
-          }
-        }
-        .circuit-pulse {
-          stroke-dasharray: 6 10;
-          animation: circuitFlow 1.8s linear infinite;
-        }
-      `}} />
+    <section id="experience" className="relative z-20 bg-[#000000] py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-10 overflow-hidden">
+      {/* Top and Bottom Fades to blend the pure black background with adjacent sections */}
+      <div className="pointer-events-none absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-[#000000] to-transparent z-10" />
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#000000] to-transparent z-10" />
 
-      {/* Top and Bottom Fades to blend the section background with adjacent sections */}
-      <div className="pointer-events-none absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-[#0C0C0C] to-transparent z-10" />
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#0C0C0C] to-transparent z-10" />
+      {/* Cyber Ambient Glow Effects */}
+      <div className="pointer-events-none absolute top-1/4 left-0 w-[40vw] h-[40vh] rounded-full bg-[radial-gradient(circle,rgba(0,242,254,0.06),transparent_60%)] filter blur-3xl" />
+      <div className="pointer-events-none absolute bottom-1/4 right-0 w-[40vw] h-[40vh] rounded-full bg-[radial-gradient(circle,rgba(182,0,168,0.06),transparent_60%)] filter blur-3xl" />
 
-      {/* Glow Effects */}
-      <div className="pointer-events-none absolute top-1/4 left-0 w-[40vw] h-[40vh] rounded-full bg-[radial-gradient(circle,rgba(0,242,254,0.04),transparent_60%)] filter blur-3xl" />
-      <div className="pointer-events-none absolute bottom-1/4 right-0 w-[40vw] h-[40vh] rounded-full bg-[radial-gradient(circle,rgba(182,0,168,0.04),transparent_60%)] filter blur-3xl" />
-
-      <div className="max-w-5xl mx-auto flex flex-col items-center relative">
-        <FadeIn delay={0} y={40} className="mb-24 text-center">
+      <div className="max-w-6xl mx-auto flex flex-col items-center relative">
+        <FadeIn delay={0} y={30} className="mb-6 sm:mb-8 text-center">
+          <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.25em] text-[#00F2FE] uppercase px-3 py-1 rounded-full border border-[#00F2FE]/30 bg-[#00F2FE]/5 mb-3 inline-block">
+            3D VOLUMETRIC CYLINDER DECK
+          </span>
           <h2 className="hero-heading text-[clamp(2.5rem,8vw,100px)] font-black uppercase leading-none tracking-tight">
             Experience
           </h2>
+          <p className="mt-3 text-xs sm:text-sm font-mono text-[#D7E2EA]/60 uppercase tracking-widest max-w-xl mx-auto">
+            Hover to tilt in 3D • Continuous Volumetric Roll • Click Card to Inspect Telemetry
+          </p>
         </FadeIn>
 
-        {/* Modern Cyber-Timeline Layout */}
-        <div className="relative w-full max-w-5xl mx-auto z-10">
-          
-          {/* Central Neural Data Bus Spine (Desktop: Centered, Mobile: Left-Aligned) */}
-          <div className="absolute left-[24px] md:left-1/2 top-4 bottom-8 -translate-x-1/2 w-[3px] pointer-events-none">
-            {/* Base fiber line */}
-            <div className="w-full h-full bg-gradient-to-b from-[#00F2FE]/30 via-[#9945FF]/30 to-[#00E676]/30 rounded-full" />
-            {/* Animated Laser Pulse overlay */}
-            <div className="absolute inset-0 w-full bg-gradient-to-b from-transparent via-[#00F2FE] to-transparent opacity-80 blur-[1px] animate-pulse" />
-          </div>
+        {/* High-Performance 3D Cylinder Bank Cards Carousel */}
+        <div className="relative w-full z-10 flex flex-col items-center">
+          <ExperienceCardsCarousel
+            experiences={displayExperiences}
+            onOpenPopup={(exp) => {
+              handleOpenPopup(exp);
+              playCyberSound('popup');
+            }}
+          />
 
-          {/* Timeline Items List */}
-          <div className="flex flex-col gap-10 md:gap-14 relative">
-            {displayExperiences.map((exp, index) => {
-              const isEven = index % 2 === 0;
-              const glowColor = exp.glowColor || '#00F2FE';
-
+          {/* Quick Telemetry Jump Selector Chips */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4 sm:mt-6 max-w-3xl px-4 z-20">
+            {displayExperiences.map((exp, idx) => {
+              const glow = exp.glowColor || '#00F2FE';
               return (
-                <div
-                  key={index}
-                  className={`relative flex flex-col md:flex-row items-start md:items-center ${
-                    isEven ? 'md:flex-row-reverse' : ''
-                  } group`}
+                <button
+                  key={idx}
+                  onClick={() => {
+                    handleOpenPopup(exp);
+                    playCyberSound('click');
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-mono tracking-wider transition-all duration-200 hover:scale-105 cursor-pointer backdrop-blur-md bg-white/[0.04]"
+                  style={{
+                    borderColor: `${glow}40`,
+                    color: '#FFFFFF',
+                  }}
+                  title={exp.role}
                 >
-                  {/* Content Card Side (Takes 50% on desktop minus gutter) */}
-                  <div className="w-full md:w-[calc(50%-42px)] pl-14 md:pl-0">
-                    <motion.div
-                      whileHover={{ y: -4, scale: 1.01 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                      onMouseEnter={() => {
-                        setHoveredCard(index);
-                        playCyberSound('hover');
-                      }}
-                      onMouseLeave={() => setHoveredCard(null)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenPopup(exp);
-                        playCyberSound('popup');
-                      }}
-                      className="experience-node cursor-pointer relative rounded-2xl p-5 sm:p-6 backdrop-blur-xl bg-[#0E0E0E]/90 border transition-all duration-300 select-text group/card"
-                      style={{
-                        borderColor: hoveredCard === index ? glowColor : 'rgba(255, 255, 255, 0.09)',
-                        boxShadow: hoveredCard === index 
-                          ? `0 0 25px ${glowColor}28, 0 10px 30px rgba(0,0,0,0.7)` 
-                          : '0 8px 30px rgba(0,0,0,0.5)'
-                      }}
-                    >
-                      {/* Top Header: Badge, Status, Date */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-2">
-                          <span 
-                            className="inline-block w-2 h-2 rounded-full"
-                            style={{ 
-                              backgroundColor: glowColor,
-                              boxShadow: `0 0 8px ${glowColor}`
-                            }}
-                          />
-                          <span 
-                            className="text-[10px] sm:text-[11px] font-mono font-bold tracking-[0.2em] uppercase px-2.5 py-0.5 rounded-full border"
-                            style={{ 
-                              color: glowColor, 
-                              borderColor: `${glowColor}40`,
-                              backgroundColor: `${glowColor}10` 
-                            }}
-                          >
-                            {exp.period}
-                          </span>
-                        </div>
-
-                        {/* Optional Certificate / Verified Indicator */}
-                        {exp.certificate_url && (
-                          <span className="text-[10px] font-mono tracking-widest text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-md flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            VERIFIED
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Role & Organization */}
-                      <div className="flex items-start gap-3.5 mb-3">
-                        {/* Icon Node */}
-                        <div 
-                          className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border p-2 transition-transform duration-300 group-hover/card:scale-105"
-                          style={{ 
-                            backgroundColor: 'rgba(18, 18, 18, 0.9)',
-                            borderColor: `${glowColor}35`,
-                            boxShadow: `0 0 12px ${glowColor}18`
-                          }}
-                        >
-                          {exp.icon}
-                        </div>
-
-                        <div className="flex flex-col min-w-0">
-                          <h3 
-                            className="font-black text-base sm:text-lg uppercase tracking-wider text-white transition-colors duration-300 leading-snug"
-                            style={{ color: hoveredCard === index ? glowColor : '#FFFFFF' }}
-                          >
-                            {exp.role}
-                          </h3>
-                          <span className="text-xs sm:text-sm font-mono text-[#D7E2EA]/60 uppercase tracking-widest mt-0.5 truncate">
-                            {exp.organization}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Description / Accomplishments */}
-                      <p className="text-xs sm:text-sm text-[#D7E2EA]/75 font-sans leading-relaxed mb-4 line-clamp-3 group-hover/card:line-clamp-none transition-all">
-                        {exp.description}
-                      </p>
-
-                      {/* Bottom Footer / Action Link */}
-                      <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
-                        <span 
-                          className="flex items-center gap-1.5 text-[10px] sm:text-[11px] tracking-wider transition-colors font-semibold"
-                          style={{ color: glowColor }}
-                        >
-                          VIEW TELEMETRY & CREDENTIALS
-                          <svg className="w-3.5 h-3.5 transition-transform group-hover/card:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                          </svg>
-                        </span>
-                        
-                        <span className="text-[10px] tracking-widest text-[#D7E2EA]/40">
-                          EXP_NODE_{index + 1 < 10 ? `0${index + 1}` : index + 1}
-                        </span>
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Central Node Marker on the Line */}
-                  <div className="absolute left-[24px] md:left-1/2 top-6 md:top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none flex items-center justify-center">
-                    {/* Pulsing ring */}
-                    <div 
-                      className="w-7 h-7 rounded-full animate-ping opacity-35 absolute"
-                      style={{ backgroundColor: glowColor }}
-                    />
-                    {/* Outer border ring */}
-                    <div 
-                      className="w-7 h-7 rounded-full border-2 bg-[#0C0C0C] flex items-center justify-center relative shadow-lg"
-                      style={{ 
-                        borderColor: glowColor,
-                        boxShadow: `0 0 12px ${glowColor}70`
-                      }}
-                    >
-                      {/* Inner dot */}
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: glowColor }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Opposite Side (Desktop Timestamp / Milestone Label) */}
-                  <div 
-                    className={`hidden md:flex w-[calc(50%-42px)] ${
-                      isEven ? 'justify-end pr-8 text-right' : 'justify-start pl-8 text-left'
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-2xl font-black font-mono tracking-wider text-white/85 group-hover:text-white transition-colors">
-                        {exp.period.split('-')[0].trim()}
-                      </span>
-                      <span 
-                        className="text-xs font-mono tracking-[0.2em] uppercase mt-0.5"
-                        style={{ color: glowColor }}
-                      >
-                        {exp.organization}
-                      </span>
-                    </div>
-                  </div>
-
-                </div>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: glow }} />
+                  <span className="font-bold text-white/90">{exp.organization.split(',')[0].split('/')[0].trim()}</span>
+                  <span className="text-white/40">·</span>
+                  <span className="text-white/60">{exp.period.split('-')[0].trim()}</span>
+                </button>
               );
             })}
           </div>
-
         </div>
 
       </div>

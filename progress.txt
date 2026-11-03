@@ -69,3 +69,17 @@
   - Completely clean hero HUD with zero text, pills, or buttons below the avatar.
 - Verified build passes with 0 errors (`npm run build`).
 
+[2026-11-03] Phase 7 (Stationary Fixed Hero Avatar with Dedicated Eye Gaze Rotation + 3D Cylinder Bank Cards Carousel in Experience):
+- Hero Avatar Fix (Task 1):
+  - Removed `<Magnet>` wrapper and all 3D tilt/position transforms (`rotateX`, `rotateY`, `translate3d`) from `InteractiveHeroAvatar`.
+  - The entire avatar emoji is 100% stationary and anchored to a fixed place within the page, never moving location with the cursor.
+  - Built precision WebGL eye tracking shader: as the cursor moves on screen, only the irises and pupils rotate and follow the cursor across the screen inside their sockets (`vec2 shift = uGaze * maxShift`). Winking mode leaves the closed left eye static while the open right eye tracks.
+  - Erased the 5-second automatic interval timer completely. The emotion changes ONLY when the user clicks directly on the avatar.
+- 3D Cylinder Bank Cards Experience Carousel (Task 2):
+  - Created `src/components/ExperienceCardsCarousel.tsx` with high-performance 60fps `requestAnimationFrame` render loop, continuous progress scroll with non-linear magnetic dwell pause, volumetric 3D thickness (5 physical stacked depth layers `[-1.47..1.47px]`), perspective `1350px`, and smoothstep interpolation.
+  - Added interactive 3D parallax tilt responding to cursor movement with inertia damping.
+  - Front face features autoplaying looping videos, metallic silver contact chip SVG, JWT brand logo top-right, dual intersecting circles, and real Tanverse experience telemetry.
+  - Back face features 16px blurred video background, dark magnetic stripe, and JetBrains Mono cardholder details (CIN, organization, period, CVV).
+  - Embedded into the `#experience` section on a pure black background (`#000000`), with quick-selector jump chips and seamless integration with the 3D Holographic Experience Details Pop-up Modal.
+- Verified build passes cleanly with 0 errors (`npm run build`).
+

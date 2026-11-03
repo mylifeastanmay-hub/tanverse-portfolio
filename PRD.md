@@ -43,3 +43,10 @@ Personal portfolio web application featuring interactive UI, 3D elements, projec
 - [x] **Task 6.1**: Erase legacy static PNG and construct 3 brand-new, identically aligned 1024×1024 3D character emojis (`tanverse-emoji-smiling.png`, `tanverse-emoji-not-smiling.png`, `tanverse-emoji-winking.png`) with matching hair, glasses, freckles, diamond earring, and distinct expressions (smiling, not-smiling, winking).
 - [x] **Task 6.2**: Rebuild `InteractiveHeroAvatar` in `src/App.tsx` with automatic 5-second emotion cycling, seamless 700ms cross-fading, 3D perspective head & eye gaze cursor tracking, dynamic specular lens catchlight, tap-to-cycle mood with spring bounce (`animate-bounce-subtle`), and clean HUD with no text/pills below.
 - [x] **Task 6.3**: Verify production build (`npm run build`), commit, push to `origin/master`, verify live Vercel production deployment, and open https://tanverse-portfolio-client.vercel.app/ in Chrome.
+
+### Phase 7: Stationary Fixed Hero Avatar Eye Rotation & 3D Cylinder Bank Cards Experience Section
+- [x] **Task 7.1**: Lock the Hero Avatar to a completely fixed position on the page (remove `<Magnet>` and head perspective tilt/translation) so the whole emoji never moves with cursor.
+- [x] **Task 7.2**: Integrate WebGL eye tracking shader inside eye sockets so only the irises/pupils rotate toward the cursor, leaving glasses and head completely stationary. Remove the 5-second interval timer so emotions change only on click.
+- [x] **Task 7.3**: Build `src/components/ExperienceCardsCarousel.tsx` (continuous cylinder scroll, volumetric 3D thickness layers, inertia damped parallax tilt, smoothstep interpolation, video background, JWT logo, and JetBrains Mono back face details).
+- [x] **Task 7.4**: Blend 3D Cylinder Carousel into `#experience` on a pure black `#000000` background with quick telemetry jump selector chips and pop-up modal integration.
+- [x] **Task 7.5**: Verify production build (`npm run build`), commit, push to `origin/master`, and deploy to Vercel production.
