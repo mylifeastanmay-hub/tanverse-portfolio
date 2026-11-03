@@ -95,3 +95,19 @@
   * Floating glassmorphic Up (▲) and Down (▼) arrow buttons
   * Direct click on adjacent cards to roll them smoothly into center focus
   * Click on center card to open telemetry inspector
+[2026-11-03 19:25:55]
+- Removed SpaceCanvas rotating dots and connecting network lines from all pages across the website.
+- Removed twinkling star particles from SpaceExplorationBridge.
+- Updated ExperienceCardsCarousel:
+  * Continuous smooth rotation at normal steady speed.
+  * Direct card stepping when clicking side Up/Down buttons.
+  * Responsive mobile card dimensions (240-310px width) to fit all mobile viewports cleanly without lag.
+  * Added preload="metadata" to videos to eliminate mobile GPU video decode stalls.
+- Updated VanteSection (Projects):
+  * Replaced 'CRAFT IN' and 'MOTION' with 'MY' (left) and 'PROJECTS' (right), converging as 'MY PROJECTS'.
+  * Removed 'FLAGSHIP ENGINEERING SYSTEMS, AI ARCHITECTURES & INTERACTIVE PRODUCTS.' text.
+  * Converted cards to display a single clean screenshot per project.
+  * Replaced 60fps canvas re-rendering loop with one-time image caching and repaint-on-change, eliminating all lag between Experience and Projects.
+  * Configured exactly two buttons per card: Live Link ↗ (Vercel deployment) and GitHub ↗ (repository).
+- Verified security & authentication: zero credentials/secrets in client bundles.
+- Verified mobile and tablet responsiveness and zero horizontal overflow.

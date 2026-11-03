@@ -82,9 +82,13 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
       const h = window.innerHeight;
 
       let cardW = Math.round(w * 0.16 + 140);
-      const heightFactor = Math.min(1.0, Math.max(0.65, h / 850));
-      cardW = Math.round(cardW * heightFactor);
-      cardW = Math.min(360, Math.max(220, cardW));
+      if (w < 640) {
+        cardW = Math.min(310, Math.max(240, Math.round(w * 0.78)));
+      } else {
+        const heightFactor = Math.min(1.0, Math.max(0.65, h / 850));
+        cardW = Math.round(cardW * heightFactor);
+        cardW = Math.min(340, Math.max(220, cardW));
+      }
       const cardH = Math.round(cardW / 1.5925);
 
       setMetrics({ cardW, cardH });
@@ -161,9 +165,9 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
   const renderLoop = () => {
     const now = performance.now();
 
-    // Gentle auto-idle drift ONLY if user hasn't touched the deck for > 8 seconds
-    if (!isDragging.current && now - lastInteractionTime.current > 8000) {
-      targetProgress.current += 0.0012;
+    // Continuous rotation at normal steady speed when not actively dragged
+    if (!isDragging.current) {
+      targetProgress.current += 0.0016;
     }
 
     // Smoothly lerp current progress towards target progress (smooth 60fps spring)
@@ -402,6 +406,7 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
                           loop
                           muted
                           playsInline
+                          preload="metadata"
                           className="absolute inset-0 w-full h-full object-cover rounded-[16px]"
                         />
 
@@ -559,7 +564,7 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
       </div>
 
       {/* Floating Glassmorphic Up / Down Arrows to Navigate Deck */}
-      <div className="absolute right-4 sm:right-8 md:right-12 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 pointer-events-auto">
+      <div className="absolute right-2 sm:right-6 md:right-10 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 pointer-events-auto">
         <button
           onClick={(e) => {
             e.stopPropagation();

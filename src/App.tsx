@@ -44,7 +44,6 @@ import vtonSub2 from './assets/projects/vton-sub2.svg';
 import charmDodecahedron from './assets/charms/charm-dodecahedron.png';
 import charmInfinity from './assets/charms/charm-infinity.png';
 import charmGear from './assets/charms/charm-gear.png';
-import SpaceCanvas from './components/SpaceCanvas';
 import VanteSection from './components/VanteSection';
 import { ExperienceCardsCarousel } from './components/ExperienceCardsCarousel';
 
@@ -1722,39 +1721,6 @@ function SkillsSection({ skills: apiSkills }: { skills?: SkillData[] }) {
         className="absolute bottom-[210px] left-1/2 -translate-x-1/2 w-[90%] h-[550px] pointer-events-none bg-[radial-gradient(ellipse_at_bottom,rgba(0,242,254,0.02),transparent_70%)] blur-md"
         style={{ clipPath: 'polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%)' }}
       />
-
-      {/* Twinkling star particles floating up */}
-      {Array.from({ length: 30 }).map((_, idx) => {
-        const randomLeft = Math.random() * 90 + 5;
-        const randomTop = Math.random() * 70 + 5;
-        const randomDelay = Math.random() * 4;
-        const randomDur = Math.random() * 6 + 4;
-        const randomSize = Math.random() * 1.5 + 1.2;
-        return (
-          <motion.div
-            key={`star-${idx}`}
-            initial={{ opacity: 0.1, y: 15 }}
-            animate={{ 
-              opacity: [0.1, 0.7, 0.1], 
-              y: [15, -25, 15] 
-            }}
-            transition={{ 
-              repeat: Infinity, 
-              duration: randomDur, 
-              delay: randomDelay, 
-              ease: 'easeInOut' 
-            }}
-            className="absolute bg-cyan-300/35 rounded-full pointer-events-none"
-            style={{
-              left: `${randomLeft}%`,
-              top: `${randomTop}%`,
-              width: randomSize,
-              height: randomSize,
-              boxShadow: '0 0 6px rgba(103, 232, 249, 0.25)',
-            }}
-          />
-        );
-      })}
 
       {/* Heading */}
       <FadeIn delay={0} y={40} className="relative z-20 text-center w-full mt-2 select-none pointer-events-none">
@@ -3746,9 +3712,6 @@ export default function App() {
 
   return (
     <main className="main-wrapper overflow-x-clip bg-[#0C0C0C]">
-      {/* Space particle background */}
-      <SpaceCanvas />
-
       {/* Floating Sticky HUD Navbar with Cyber Audio Mute Toggle */}
       <StickyHudNav />
 

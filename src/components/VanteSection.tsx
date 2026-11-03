@@ -131,13 +131,16 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
   const pageOffsetRef = useRef(pageOffset);
   const onOpenProjectRef = useRef(onOpenProject);
   const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const repaintCardsRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     projectsRef.current = projects;
+    repaintCardsRef.current?.();
   }, [projects]);
 
   useEffect(() => {
     pageOffsetRef.current = pageOffset;
+    repaintCardsRef.current?.();
   }, [pageOffset]);
 
   useEffect(() => {
@@ -316,8 +319,8 @@ void main(){
       return img.complete && img.naturalWidth > 0 ? img : null;
     };
 
-    // Draw a project's sliding photo gallery + clean HUD onto the card's 2D canvas
-    function paintCardTexture(c: RibbonCard, timeSec: number) {
+    // Draw a project's single clean screenshot + HUD onto the card's 2D canvas
+    function paintCardTexture(c: RibbonCard) {
       const proj = resolveMappedProject(c.i);
       const { ctx } = c;
 
@@ -329,63 +332,15 @@ void main(){
         return;
       }
 
-      const photoUrls = [
-        proj.images.col2Img,
-        proj.images.col1Img1,
-        proj.images.col1Img2,
-      ].filter(Boolean);
+      // Single clean screenshot per project
+      const photoUrl = proj.images.col2Img || proj.images.col1Img1 || proj.images.col1Img2;
+      const img = getCachedImage(photoUrl);
 
-      const loadedPhotos = photoUrls
-        .map((u) => getCachedImage(u))
-        .filter((img): img is HTMLImageElement => img !== null);
-
-      const HOLD_SEC = 2.5;
-      const SLIDE_SEC = 0.85;
-      const STEP_SEC = HOLD_SEC + SLIDE_SEC;
-      const localT = timeSec + c.i * 0.75;
-
-      if (loadedPhotos.length > 0) {
-        const count = loadedPhotos.length;
-        const cycleIdx = Math.floor(localT / STEP_SEC);
-        const phase = localT - cycleIdx * STEP_SEC;
-        const curIdx = cycleIdx % count;
-        const nextIdx = (curIdx + 1) % count;
-        const slideT = count > 1 && phase > HOLD_SEC ? ease((phase - HOLD_SEC) / SLIDE_SEC) : 0;
-
-        const curImg = loadedPhotos[curIdx];
-        const nextImg = loadedPhotos[nextIdx];
-        const zoomCur = 1.01 + 0.04 * clamp(phase / STEP_SEC, 0, 1);
-        const zoomNext = 1.01;
-
-        ctx.save();
-        if (slideT <= 0.001) {
-          drawCoverImage(ctx, curImg, 0, 0, TEX_W, TEX_H, zoomCur);
-        } else {
-          // Horizontal parallax slide transition between the project's photos
-          const curOffsetX = -slideT * TEX_W * 0.42;
-          const nextOffsetX = (1 - slideT) * TEX_W;
-
-          drawCoverImage(ctx, curImg, curOffsetX, 0, TEX_W, TEX_H, zoomCur);
-
-          // Dim outgoing image slightly as incoming photo slides over it
-          ctx.fillStyle = `rgba(6, 8, 12, ${slideT * 0.45})`;
-          ctx.fillRect(0, 0, TEX_W, TEX_H);
-
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(nextOffsetX, 0, TEX_W, TEX_H);
-          ctx.clip();
-          drawCoverImage(ctx, nextImg, nextOffsetX * 0.25, 0, TEX_W, TEX_H, zoomNext);
-          ctx.restore();
-
-          // Glowing cyan seam line along the sliding photo edge
-          ctx.fillStyle = 'rgba(0, 242, 254, 0.75)';
-          ctx.fillRect(nextOffsetX - 2, 0, 3, TEX_H);
-        }
-        ctx.restore();
+      if (img && img.complete && img.naturalWidth > 0) {
+        drawCoverImage(ctx, img, 0, 0, TEX_W, TEX_H, 1.0);
       } else {
-        // Fallback grid while image finishes decoding
-        ctx.strokeStyle = 'rgba(0, 242, 254, 0.12)';
+        // High-tech fallback grid while image finishes loading
+        ctx.strokeStyle = 'rgba(0, 242, 254, 0.15)';
         ctx.lineWidth = 1;
         for (let gx = 0; gx < TEX_W; gx += 48) {
           ctx.beginPath();
@@ -399,21 +354,25 @@ void main(){
           ctx.lineTo(TEX_W, gy);
           ctx.stroke();
         }
+        if (img) {
+          img.onload = () => {
+            paintCardTexture(c);
+          };
+        }
       }
 
       // Subtle top & bottom gradient scrims so text & badges are always crisp
-      const topGrad = ctx.createLinearGradient(0, 0, 0, 130);
-      topGrad.addColorStop(0, 'rgba(8, 9, 12, 0.78)');
+      const topGrad = ctx.createLinearGradient(0, 0, 0, 110);
+      topGrad.addColorStop(0, 'rgba(8, 9, 12, 0.88)');
       topGrad.addColorStop(1, 'rgba(8, 9, 12, 0)');
       ctx.fillStyle = topGrad;
-      ctx.fillRect(0, 0, TEX_W, 130);
+      ctx.fillRect(0, 0, TEX_W, 110);
 
-      const botGrad = ctx.createLinearGradient(0, TEX_H - 190, 0, TEX_H);
+      const botGrad = ctx.createLinearGradient(0, TEX_H - 140, 0, TEX_H);
       botGrad.addColorStop(0, 'rgba(8, 9, 12, 0)');
-      botGrad.addColorStop(0.42, 'rgba(8, 9, 12, 0.76)');
-      botGrad.addColorStop(1, 'rgba(8, 9, 12, 0.95)');
+      botGrad.addColorStop(1, 'rgba(8, 9, 12, 0.94)');
       ctx.fillStyle = botGrad;
-      ctx.fillRect(0, TEX_H - 190, TEX_W, 190);
+      ctx.fillRect(0, TEX_H - 140, TEX_W, 140);
 
       // Top-left category badge
       const badgeText = `${proj.num} · ${proj.category.toUpperCase()}`;
@@ -422,7 +381,7 @@ void main(){
       const badgeW = badgeMetrics.width + 46;
       const badgeH = 38;
       drawRoundedRectPath(ctx, 28, 24, badgeW, badgeH, 19);
-      ctx.fillStyle = 'rgba(10, 12, 16, 0.78)';
+      ctx.fillStyle = 'rgba(10, 12, 16, 0.85)';
       ctx.fill();
       ctx.strokeStyle = 'rgba(244, 241, 234, 0.28)';
       ctx.lineWidth = 1.5;
@@ -438,30 +397,18 @@ void main(){
       ctx.textBaseline = 'middle';
       ctx.fillText(badgeText, 60, 44);
 
-      // Top-right slide progress indicators (shows which of the 3 project photos is active)
-      const slideCount = Math.max(1, photoUrls.length);
-      const activeSlide = Math.floor(localT / STEP_SEC) % slideCount;
-      for (let sIdx = 0; sIdx < slideCount; sIdx++) {
-        const pillW = sIdx === activeSlide ? 34 : 14;
-        const rightOffset = 28 + (slideCount - 1 - sIdx) * 24 + (sIdx === activeSlide ? 0 : 0);
-        const px = TEX_W - rightOffset - pillW;
-        drawRoundedRectPath(ctx, px, 38, pillW, 8, 4);
-        ctx.fillStyle = sIdx === activeSlide ? '#00F2FE' : 'rgba(244, 241, 234, 0.35)';
-        ctx.fill();
-      }
-
-      // Bottom-left project title & metric
-      ctx.fillStyle = '#f4f1ea';
-      ctx.font = '700 34px "Inter Tight", system-ui, sans-serif';
+      // Bottom-left project title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 32px "Inter Tight", system-ui, sans-serif';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillText(proj.name, 30, TEX_H - 64);
+      ctx.fillText(proj.name, 30, TEX_H - 46);
 
       const subLine = proj.metrics?.[0]
         ? `⚡ ${proj.metrics[0]}   ·   ${(proj.tech || []).slice(0, 3).join(' / ')}`
         : (proj.tech || []).slice(0, 4).join(' · ');
       ctx.fillStyle = '#00F2FE';
-      ctx.font = '500 18px "IBM Plex Mono", monospace';
-      ctx.fillText(subLine, 30, TEX_H - 30);
+      ctx.font = '500 16px "IBM Plex Mono", monospace';
+      ctx.fillText(subLine, 30, TEX_H - 18);
 
       // Subtle inner border
       ctx.strokeStyle = 'rgba(244, 241, 234, 0.18)';
@@ -639,7 +586,6 @@ void main(){
           c.mesh.visible = s > CARD_W;
           c.rect = null;
           if (c.mesh.visible) {
-            paintCardTexture(c, timeSec);
             poseRibbon(c, head);
           }
         } else if (c.i < cols * rows) {
@@ -648,7 +594,6 @@ void main(){
           const q = out(span(pp, st, st + 0.13));
           c.mesh.visible = q > 0.001;
           if (c.mesh.visible) {
-            paintCardTexture(c, timeSec);
             poseGrid(c, q);
           }
         } else {
@@ -718,10 +663,13 @@ void main(){
     /* ---------- loop ---------- */
     let rafId = 0;
     const t0 = performance.now();
-    // Initial paint for all cards
-    for (const c of cards) {
-      paintCardTexture(c, 0);
-    }
+    // Register and perform initial card painting
+    repaintCardsRef.current = () => {
+      for (const c of cards) {
+        paintCardTexture(c);
+      }
+    };
+    repaintCardsRef.current();
 
     function loop(now: number) {
       readScroll();
@@ -737,6 +685,7 @@ void main(){
     rafId = requestAnimationFrame(loop);
 
     return () => {
+      repaintCardsRef.current = null;
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize', resize);
       window.removeEventListener('scroll', readScroll);
@@ -784,21 +733,22 @@ void main(){
           position: absolute;
           left: 0;
           right: 0;
-          font-weight: 400;
-          font-size: clamp(40px, 6.7vw, 130px);
+          font-weight: 800;
+          font-size: clamp(48px, 8.5vw, 136px);
           line-height: 1;
-          letter-spacing: -.055em;
+          letter-spacing: -.03em;
+          text-transform: uppercase;
           white-space: nowrap;
           text-align: center;
           will-change: transform;
           color: var(--ink);
           pointer-events: none;
         }
-        .vante-l1 { top: calc(50% - .98em); }
-        .vante-l2 { top: calc(50% + .03em); }
+        .vante-l1 { top: calc(50% - 1.05em); }
+        .vante-l2 { top: calc(50% + 0.05em); }
         .vante-l1 span, .vante-l2 span { display: inline-block; }
-        .vante-l1 span { margin-right: 15vw; }
-        .vante-l2 span { margin-left: 15vw; }
+        .vante-l1 span { margin-right: 14vw; }
+        .vante-l2 span { margin-left: 14vw; }
         .vante-cap {
           position: absolute;
           left: 50%;
@@ -949,24 +899,32 @@ void main(){
           z-index: 30;
         }
         @media (max-width: 760px) {
-          .vante-slot-link { padding: 4px 8px; font-size: 8.5px; }
+          .vante-slot-links {
+            gap: 4px;
+            width: 100%;
+            justify-content: flex-end;
+          }
+          .vante-slot-link { 
+            padding: 5px 9px; 
+            font-size: 9px; 
+            backdrop-filter: blur(12px);
+          }
+          .vante-grid-dock { bottom: 12px; padding: 4px 10px; }
           .vante-grid-dock .vante-dock-pill { display: none; }
         }
       `}</style>
 
       <div className="vante-track" ref={trackRef}>
         <main className="vante-stage" ref={stageRef}>
-          <h2 aria-label="Craft in motion">
+          <h2 aria-label="My Projects">
             <div className="vante-hl vante-l1" ref={l1Ref} aria-hidden="true">
-              <span>CRAFT IN</span>
+              <span>MY</span>
             </div>
             <div className="vante-hl vante-l2" ref={l2Ref} aria-hidden="true">
-              <span>MOTION</span>
+              <span>PROJECTS</span>
             </div>
           </h2>
-          <div className="vante-cap" ref={capRef}>
-            Flagship engineering systems, AI architectures &amp; interactive products.
-          </div>
+          <div className="vante-cap hidden" ref={capRef} />
           <div className="vante-rule" ref={ruleRef} />
           <canvas className="vante-gl" ref={canvasRef} />
 
@@ -997,38 +955,30 @@ void main(){
                     title={`Click to inspect ${proj.name}`}
                   />
                   <div className="vante-slot-links">
-                    <button
-                      type="button"
-                      className="vante-slot-link"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenProject(proj);
-                      }}
-                    >
-                      Details
-                    </button>
-                    {proj.githubUrl && proj.githubUrl !== proj.url && (
+                    {proj.url && (
+                      <a
+                        href={proj.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="vante-slot-link vante-slot-link--primary"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Open ${proj.name} live deployment`}
+                      >
+                        Live Link ↗
+                      </a>
+                    )}
+                    {proj.githubUrl && (
                       <a
                         href={proj.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="vante-slot-link"
                         onClick={(e) => e.stopPropagation()}
-                        aria-label={`${proj.name} GitHub source code`}
+                        aria-label={`${proj.name} GitHub repository`}
                       >
                         GitHub ↗
                       </a>
                     )}
-                    <a
-                      href={proj.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="vante-slot-link vante-slot-link--primary"
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`Open ${proj.name} live project`}
-                    >
-                      Open Live ↗
-                    </a>
                   </div>
                 </div>
               );
