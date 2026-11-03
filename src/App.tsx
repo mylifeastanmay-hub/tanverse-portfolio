@@ -2866,10 +2866,10 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
   }, [displayCertificates]);
 
   return (
-    <section id="experience" className="relative z-20 bg-[#000000] py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-10 overflow-hidden">
-      {/* Top and Bottom Fades to blend the pure black background with adjacent sections */}
-      <div className="pointer-events-none absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-[#000000] to-transparent z-10" />
-      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#000000] to-transparent z-10" />
+    <section id="experience" className="relative z-20 bg-gradient-to-b from-[#0C0C0C] via-[#000000] to-[#0C0C0C] py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-10 overflow-hidden">
+      {/* Top and Bottom Fades to blend the pure black background seamlessly with adjacent sections */}
+      <div className="pointer-events-none absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-[#0C0C0C] to-transparent z-10" />
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-36 bg-gradient-to-t from-[#0C0C0C] to-transparent z-10" />
 
       {/* Cyber Ambient Glow Effects */}
       <div className="pointer-events-none absolute top-1/4 left-0 w-[40vw] h-[40vh] rounded-full bg-[radial-gradient(circle,rgba(0,242,254,0.06),transparent_60%)] filter blur-3xl" />
@@ -2877,15 +2877,9 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
 
       <div className="max-w-6xl mx-auto flex flex-col items-center relative">
         <FadeIn delay={0} y={30} className="mb-6 sm:mb-8 text-center">
-          <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.25em] text-[#00F2FE] uppercase px-3 py-1 rounded-full border border-[#00F2FE]/30 bg-[#00F2FE]/5 mb-3 inline-block">
-            3D VOLUMETRIC CYLINDER DECK
-          </span>
           <h2 className="hero-heading text-[clamp(2.5rem,8vw,100px)] font-black uppercase leading-none tracking-tight">
             Experience
           </h2>
-          <p className="mt-3 text-xs sm:text-sm font-mono text-[#D7E2EA]/60 uppercase tracking-widest max-w-xl mx-auto">
-            Hover to tilt in 3D • Continuous Volumetric Roll • Click Card to Inspect Telemetry
-          </p>
         </FadeIn>
 
         {/* High-Performance 3D Cylinder Bank Cards Carousel */}
@@ -2897,33 +2891,6 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
               playCyberSound('popup');
             }}
           />
-
-          {/* Quick Telemetry Jump Selector Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4 sm:mt-6 max-w-3xl px-4 z-20">
-            {displayExperiences.map((exp, idx) => {
-              const glow = exp.glowColor || '#00F2FE';
-              return (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    handleOpenPopup(exp);
-                    playCyberSound('click');
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-mono tracking-wider transition-all duration-200 hover:scale-105 cursor-pointer backdrop-blur-md bg-white/[0.04]"
-                  style={{
-                    borderColor: `${glow}40`,
-                    color: '#FFFFFF',
-                  }}
-                  title={exp.role}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: glow }} />
-                  <span className="font-bold text-white/90">{exp.organization.split(',')[0].split('/')[0].trim()}</span>
-                  <span className="text-white/40">·</span>
-                  <span className="text-white/60">{exp.period.split('-')[0].trim()}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
       </div>
@@ -3802,12 +3769,8 @@ export default function App() {
       {/* Services Section */}
       <SkillsSection skills={skills} />
 
-      <SectionDivider />
-
       {/* Experience + Credentials Section */}
       <ExperienceSection experiences={experiences} certificates={certificates} />
-
-      <SectionDivider />
 
       {/* Projects Section (Vante 3D Video Ribbon -> 3x2 Grid) */}
       <ProjectsSection projects={projects} />

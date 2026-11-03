@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface ExperienceItem {
   role: string;
@@ -30,8 +30,18 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
   const frameId = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Continuous scroll progress
+  // Smooth continuous progress vs user target progress
   const progress = useRef<number>(0);
+  const targetProgress = useRef<number>(0);
+
+  // Dragging state
+  const isDragging = useRef<boolean>(false);
+  const dragStartY = useRef<number>(0);
+  const dragStartProgress = useRef<number>(0);
+  const lastDragY = useRef<number>(0);
+  const lastDragTime = useRef<number>(0);
+  const dragVelocity = useRef<number>(0);
+  const lastInteractionTime = useRef<number>(performance.now());
 
   // Track mouse coordinates for interactive 3D parallax tilt with inertia damping
   const mouse = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
@@ -42,9 +52,10 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
     cardH: 211, // 1.59 standard credit card ratio
   });
 
+  const [activeCenterIndex, setActiveCenterIndex] = useState(0);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Screen-space cursor offset relative to window center, clamped to [-1.0, 1.0] range
       const rx = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
       const ry = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
       mouse.current.targetX = Math.max(-1, Math.min(1, rx));
@@ -70,7 +81,6 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
       const w = window.innerWidth;
       const h = window.innerHeight;
 
-      // 1. Calculate Card Metrics (shrink cards if height is small to save vertical space)
       let cardW = Math.round(w * 0.16 + 140);
       const heightFactor = Math.min(1.0, Math.max(0.65, h / 850));
       cardW = Math.round(cardW * heightFactor);
@@ -85,12 +95,81 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Pointer Drag Event Handlers for Moving Deck Up and Down
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    isDragging.current = true;
+    dragStartY.current = e.clientY;
+    dragStartProgress.current = targetProgress.current;
+    lastDragY.current = e.clientY;
+    lastDragTime.current = performance.now();
+    dragVelocity.current = 0;
+    lastInteractionTime.current = performance.now();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const now = performance.now();
+    const dt = Math.max(8, now - lastDragTime.current);
+    const dy = e.clientY - lastDragY.current;
+
+    dragVelocity.current = -dy / dt;
+    lastDragY.current = e.clientY;
+    lastDragTime.current = now;
+
+    const totalDy = e.clientY - dragStartY.current;
+    // Dragging mouse UP (-totalDy) moves deck forward (+progress)
+    // Dragging mouse DOWN (+totalDy) moves deck backward (-progress)
+    const progressShift = -totalDy / (metrics.cardH * 1.05);
+    targetProgress.current = dragStartProgress.current + progressShift;
+    lastInteractionTime.current = now;
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
+    // Apply inertia flick and snap to nearest card
+    const projected = targetProgress.current + dragVelocity.current * 160;
+    targetProgress.current = Math.round(projected);
+    lastInteractionTime.current = performance.now();
+  };
+
+  // Wheel event on container moves deck up and down
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (Math.abs(e.deltaY) < 4) return;
+    e.preventDefault();
+    targetProgress.current += e.deltaY * 0.0022;
+    lastInteractionTime.current = performance.now();
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    // non-passive wheel listener so preventDefault prevents whole page jump while scrolling deck
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
+
   // Compute positions, rotations, and visual rules at 60fps
   const renderLoop = () => {
-    // Upward flow speed of continuous transition
-    progress.current += 0.0016;
+    const now = performance.now();
 
-    // Smoothly interpolate current mouse variables towards their target positions (damping/inertia logic)
+    // Gentle auto-idle drift ONLY if user hasn't touched the deck for > 8 seconds
+    if (!isDragging.current && now - lastInteractionTime.current > 8000) {
+      targetProgress.current += 0.0012;
+    }
+
+    // Smoothly lerp current progress towards target progress (smooth 60fps spring)
+    progress.current += (targetProgress.current - progress.current) * 0.12;
+
+    // Smoothly interpolate current mouse variables towards their target positions
     mouse.current.x += (mouse.current.targetX - mouse.current.x) * 0.08;
     mouse.current.y += (mouse.current.targetY - mouse.current.y) * 0.08;
 
@@ -100,17 +179,21 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
 
     const continuousProgress = progress.current;
     const roundedIndex = Math.round(continuousProgress);
-    const diffFromRound = continuousProgress - roundedIndex; // ranges between [-0.5, 0.5]
+    const diffFromRound = continuousProgress - roundedIndex;
 
-    // Custom non-linear magnetic step logic: dwell/pause at front center before accelerating
+    // Non-linear magnetic step logic: dwell/pause at front center before accelerating
     const easedDiff = Math.sign(diffFromRound) * Math.pow(Math.abs(diffFromRound) * 2, 4.2) / 2;
     const virtualActiveIndex = roundedIndex + easedDiff;
+
+    const activeNormIndex = ((roundedIndex % cardCount) + cardCount) % cardCount;
+    if (activeNormIndex !== activeCenterIndex) {
+      setActiveCenterIndex(activeNormIndex);
+    }
 
     for (let i = 0; i < cardCount; i++) {
       const card = cards[i];
       if (!card) continue;
 
-      // Solve circular wrapping to get closest representation in [-cardCount/2, cardCount/2]
       let offset = i - virtualActiveIndex;
       const halfCount = cardCount / 2;
       while (offset > halfCount) offset -= cardCount;
@@ -119,7 +202,6 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
       const absOffset = Math.abs(offset);
       const sign = Math.sign(offset);
 
-      // Allow cards to render completely off-screen smoothly up to offset 3.0
       if (absOffset > 3.0) {
         card.style.visibility = 'hidden';
         continue;
@@ -127,17 +209,15 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
         card.style.visibility = 'visible';
       }
 
-      // Spacing gap between center card and adjacent cards
       const gap = 36;
       const peekAmount = -55;
-      const D = 1350; // Perspective distance
+      const D = 1350;
 
       let y = 0;
       let z = 0;
       let rot = 0;
 
       if (absOffset <= 1) {
-        // Smoothstep interpolation from 0 to 1 (Center card to first adjacent card)
         const t = absOffset;
         const easedT = t * t * (3 - 2 * t);
         const targetY = cardH + gap;
@@ -145,7 +225,6 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
         z = 400 + easedT * (220 - 400);
         rot = easedT * 132;
       } else if (absOffset <= 2) {
-        // Smoothstep interpolation from 1 to 2 (Adjacent card to peeking screen-edge card)
         const t = absOffset - 1;
         const easedT = t * t * (3 - 2 * t);
 
@@ -165,7 +244,6 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
         z = zStart + easedT * (zEnd - zStart);
         rot = rotStart + easedT * (rotEnd - rotStart);
       } else {
-        // Smoothstep interpolation from 2 to 3 (Peeking card to completely off-screen card)
         const t = Math.min(absOffset - 2, 1);
         const easedT = t * t * (3 - 2 * t);
 
@@ -222,7 +300,11 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[620px] sm:h-[680px] md:h-[720px] flex items-center justify-center overflow-hidden select-none"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      className="relative w-full h-[600px] sm:h-[660px] md:h-[700px] flex items-center justify-center overflow-hidden select-none cursor-grab active:cursor-grabbing touch-none"
     >
       {/* 3D perspective camera space */}
       <div
@@ -245,7 +327,6 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
             const baseBgColor = '#0f0f0f';
             const glow = exp.glowColor || '#00F2FE';
 
-            // Formatted card details derived from real experience
             const cardNumber = exp.certificate_url
               ? `CIN: FIT/AUG26/PE3831`
               : `EXP 0${i + 1} • ${exp.period.split('-')[0].trim()} • VERIFIED`;
@@ -258,7 +339,20 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenPopup(exp);
+                  // Check offset from virtual center
+                  let offset = i - progress.current;
+                  const halfCount = cardCount / 2;
+                  while (offset > halfCount) offset -= cardCount;
+                  while (offset < -halfCount) offset += cardCount;
+
+                  // If user clicked the center card, open telemetry modal
+                  if (Math.abs(offset) < 0.45) {
+                    onOpenPopup(exp);
+                  } else {
+                    // Otherwise smoothly roll that clicked card to center!
+                    targetProgress.current = Math.round(targetProgress.current + offset);
+                    lastInteractionTime.current = performance.now();
+                  }
                 }}
                 className="absolute inset-0 cursor-pointer pointer-events-auto transition-shadow duration-300 group"
                 style={{
@@ -267,7 +361,7 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
                   transformStyle: 'preserve-3d',
                   backfaceVisibility: 'visible',
                 }}
-                title={`${exp.role} • ${exp.organization} (Click to inspect telemetry)`}
+                title={`${exp.role} • ${exp.organization} (Drag up/down to browse • Click to inspect)`}
               >
                 {/* Build physical 3D volumetric thickness by dense parallel layering */}
                 {thicknessLayers.map((zOffset, layerIdx) => {
@@ -311,7 +405,7 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
                           className="absolute inset-0 w-full h-full object-cover rounded-[16px]"
                         />
 
-                        {/* Front Face Holographic Cyber Overlay */}
+                        {/* Front Face Cyber Overlay */}
                         <div className="absolute inset-0 p-5 sm:p-6 text-white h-full w-full font-sans z-10 bg-gradient-to-t from-black/85 via-black/35 to-black/55 flex flex-col justify-between">
                           {/* Top Row: Period Tag + JWT Brand Logo */}
                           <div className="flex items-center justify-between w-full">
@@ -380,12 +474,6 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
                               </h4>
                               <span className="text-[10px] sm:text-[11px] font-mono tracking-widest text-[#D7E2EA]/75 uppercase truncate mt-0.5">
                                 {exp.organization}
-                              </span>
-                              <span
-                                className="text-[9px] font-mono tracking-wider mt-1.5 flex items-center gap-1 font-semibold"
-                                style={{ color: glow }}
-                              >
-                                INSPECT TELEMETRY ↗
                               </span>
                             </div>
 
@@ -468,6 +556,37 @@ export function ExperienceCardsCarousel({ experiences, onOpenPopup }: Experience
             );
           })}
         </div>
+      </div>
+
+      {/* Floating Glassmorphic Up / Down Arrows to Navigate Deck */}
+      <div className="absolute right-4 sm:right-8 md:right-12 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 pointer-events-auto">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            targetProgress.current = Math.round(targetProgress.current - 1);
+            lastInteractionTime.current = performance.now();
+          }}
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-white/20 bg-black/70 hover:bg-white/15 backdrop-blur-xl flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-[0_4px_20px_rgba(0,0,0,0.8)] cursor-pointer"
+          title="Move Deck Up (Previous Card)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            targetProgress.current = Math.round(targetProgress.current + 1);
+            lastInteractionTime.current = performance.now();
+          }}
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-white/20 bg-black/70 hover:bg-white/15 backdrop-blur-xl flex items-center justify-center text-white/80 hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-[0_4px_20px_rgba(0,0,0,0.8)] cursor-pointer"
+          title="Move Deck Down (Next Card)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
       </div>
     </div>
   );

@@ -83,3 +83,15 @@
   - Embedded into the `#experience` section on a pure black background (`#000000`), with quick-selector jump chips and seamless integration with the 3D Holographic Experience Details Pop-up Modal.
 - Verified build passes cleanly with 0 errors (`npm run build`).
 
+[2026-11-03 18:36:29]
+- Blended Skills and Experience section boundaries seamlessly: removed SectionDivider and its cyan diamond marker.
+- Updated ExperienceSection background to smoothly blend from #0C0C0C to #000000 with 36px top/bottom gradient fades.
+- Removed badge pill '3D VOLUMETRIC CYLINDER DECK' from ExperienceSection header.
+- Removed subtitle 'Hover to tilt in 3D • Continuous Volumetric Roll • Click Card to Inspect Telemetry'.
+- Removed bottom experience chips ('Future Interns • Aug 2026', 'ZeTheta Algorithms', etc.).
+- Added full interactive up/down movement to the experience deck:
+  * Mouse/touch pointer dragging up & down with 1:1 tactile inertia and snap-to-card
+  * Non-passive mouse wheel scrolling up & down without whole-page jumping
+  * Floating glassmorphic Up (▲) and Down (▼) arrow buttons
+  * Direct click on adjacent cards to roll them smoothly into center focus
+  * Click on center card to open telemetry inspector
