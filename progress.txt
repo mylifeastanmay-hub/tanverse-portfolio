@@ -42,3 +42,8 @@
 - Removed the duplicate Vante top bar (`TANVERSE`, `←`/`→`, `FEATURED PROJECTS →`, `LET'S TALK`, `PROJECTS (...)`), top glow band (`.vante-glow`), crosshair line (`.vante-cross`), and static bottom bar (`.vante-bot`) from `src/components/VanteSection.tsx`.
 - Made `#projects`, `.vante-root`, and `.vante-stage` `background: transparent` so the 3D starfield (`SpaceCanvas`) and `#0C0C0C` canvas flow seamlessly from the Experience section above into the Contact section below with zero visible border or box.
 - Updated `src/App.tsx` so `baseProjects`, `displayExperiences`, and `displayCertificates` always show all 10 flagship projects, 6 experiences, and 7 certificates on the live site even when the remote DB has fewer legacy rows.
+
+[2026-11-03] Phase 6 (Interactive Cursor-Tracking Hero Avatar Eyes & Dynamic Emotions):
+- Built `InteractiveHeroAvatar` in `src/App.tsx` using a precision 1254x1254 `<canvas>` overlay aligned to the exact eye openings inside the glasses frames of `tanverse-avatar-cutout.png`.
+- Implemented 360-degree smooth cursor eye tracking, 3D head tilt, natural blinking, and 6 dynamic emotions (`curious`, `happy`, `amazed`, `cyber`, `wink`, `love`) that react automatically to cursor movement/velocity/position and can also be cycled on click.
+- Verified `npm run build` passes with 0 errors.
