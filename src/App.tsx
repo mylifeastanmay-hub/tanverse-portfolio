@@ -46,6 +46,8 @@ import charmInfinity from './assets/charms/charm-infinity.png';
 import charmGear from './assets/charms/charm-gear.png';
 import VanteSection from './components/VanteSection';
 import { ExperienceCardsCarousel } from './components/ExperienceCardsCarousel';
+import CyberCommandPalette from './components/CyberCommandPalette';
+import BookingModal from './components/BookingModal';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
 
@@ -788,6 +790,19 @@ function HeroSection({ avatarUrl }: { avatarUrl?: string }) {
       {/* Hero Heading - Animated Assembling TANVERSE */}
       <div className="relative z-20 flex flex-col items-center justify-start mt-4 md:mt-6 overflow-visible">
         <AnimatedLogo />
+
+        {/* Live Availability & Timezone Status Pill */}
+        <FadeIn delay={0.25} y={15} className="mt-2.5 sm:mt-3">
+          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full border border-emerald-500/35 bg-emerald-500/10 backdrop-blur-md shadow-[0_0_18px_rgba(16,185,129,0.18)] text-[10px] sm:text-[11px] font-mono">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-bold text-emerald-400 tracking-wider uppercase">Available for Opportunities</span>
+            <span className="text-white/30">·</span>
+            <span className="text-white/80">Bengaluru (IST / UTC+5:30)</span>
+          </div>
+        </FadeIn>
       </div>
 
       {/* Hero Portrait with Cursor-Tracking Eyes & Dynamic Emotions */}
@@ -3252,7 +3267,7 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
 // ==========================================
 // 5. INTERACTIVE CONTACT SECTION
 // ==========================================
-function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
+function ContactSection({ contactInfo: apiContact, onOpenBooking }: { contactInfo?: any; onOpenBooking?: () => void }) {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -3377,6 +3392,21 @@ function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
                   </a>
                 </Magnet>
               </div>
+
+              {/* VIP Intro Call Button */}
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playCyberSound('click');
+                    onOpenBooking?.();
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl border border-[#00F2FE]/45 bg-[#00F2FE]/10 hover:bg-[#00F2FE]/20 text-[#00F2FE] hover:shadow-[0_0_25px_rgba(0,242,254,0.3)] transition-all font-mono font-bold text-xs uppercase tracking-wider cursor-pointer group"
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#00F2FE] animate-ping" />
+                  <span>Schedule 15-Min Intro Call ↗</span>
+                </button>
+              </div>
             </FadeIn>
           </div>
 
@@ -3479,10 +3509,21 @@ function ContactSection({ contactInfo: apiContact }: { contactInfo?: any }) {
 // ==========================================
 // 6. STICKY HUD NAVIGATION BAR & AUDIO TOGGLE
 // ==========================================
-function StickyHudNav() {
+function StickyHudNav({
+  onOpenCommand,
+  onOpenBooking,
+  isAudioMuted: propMuted,
+  onToggleAudio,
+}: {
+  onOpenCommand?: () => void;
+  onOpenBooking?: () => void;
+  isAudioMuted?: boolean;
+  onToggleAudio?: () => void;
+}) {
   const [visible, setVisible] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('about');
-  const [isMuted, setIsMuted] = useState<boolean>(() => getCyberAudioMuted());
+  const [localMuted, setLocalMuted] = useState<boolean>(() => getCyberAudioMuted());
+  const isMuted = propMuted !== undefined ? propMuted : localMuted;
 
   useEffect(() => {
     const sections = ['about', 'skills', 'experience', 'projects', 'contact'];
@@ -3510,11 +3551,15 @@ function StickyHudNav() {
   }, []);
 
   const toggleAudio = () => {
-    const next = !isMuted;
-    setIsMuted(next);
-    setCyberAudioMuted(next);
-    if (!next) {
-      playCyberSound('click');
+    if (onToggleAudio) {
+      onToggleAudio();
+    } else {
+      const next = !localMuted;
+      setLocalMuted(next);
+      setCyberAudioMuted(next);
+      if (!next) {
+        playCyberSound('click');
+      }
     }
   };
 
@@ -3566,6 +3611,34 @@ function StickyHudNav() {
               );
             })}
 
+            {/* Quick Command Palette HUD trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                playCyberSound('click');
+                onOpenCommand?.();
+              }}
+              title="Open Cyber Command Palette (Cmd + K / Ctrl + K)"
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#00F2FE]/40 bg-[#00F2FE]/10 text-[9px] font-mono font-bold uppercase tracking-wider text-[#00F2FE] hover:bg-[#00F2FE]/20 hover:border-[#00F2FE] transition-all cursor-pointer shadow-[0_0_10px_rgba(0,242,254,0.15)]"
+            >
+              <span className="text-[10px]">⌘K</span>
+              <span>HUD</span>
+            </button>
+
+            {/* Quick 15-Min Intro Call Booking trigger */}
+            <button
+              type="button"
+              onClick={() => {
+                playCyberSound('click');
+                onOpenBooking?.();
+              }}
+              title="Schedule 15-Min Intro Call"
+              className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-400 transition-all cursor-pointer"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Book Call</span>
+            </button>
+
             <button
               type="button"
               onClick={toggleAudio}
@@ -3604,6 +3677,69 @@ export default function App() {
   const [projects, setProjects] = useState<ProjectData[] | undefined>(undefined);
   const [contactInfo, setContactInfo] = useState<any>(undefined);
   const [certificates, setCertificates] = useState<any[] | undefined>(undefined);
+
+  // World-Class Interactive Modals & Easter Eggs
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isOverclocked, setIsOverclocked] = useState(false);
+  const [isAudioMuted, setIsAudioMutedState] = useState<boolean>(() => getCyberAudioMuted());
+
+  const handleToggleAudio = () => {
+    const next = !isAudioMuted;
+    setIsAudioMutedState(next);
+    setCyberAudioMuted(next);
+    if (!next) playCyberSound('click');
+  };
+
+  const handleToggleOverclock = () => {
+    setIsOverclocked((prev) => {
+      const next = !prev;
+      if (next) {
+        document.body.classList.add('overclocked-mode');
+        playCyberSound('popup');
+      } else {
+        document.body.classList.remove('overclocked-mode');
+        playCyberSound('click');
+      }
+      return next;
+    });
+  };
+
+  // Global Keyboard shortcuts: Cmd+K / Ctrl+K and Konami Code
+  useEffect(() => {
+    const konamiSequence = [
+      'ArrowUp', 'ArrowUp',
+      'ArrowDown', 'ArrowDown',
+      'ArrowLeft', 'ArrowRight',
+      'ArrowLeft', 'ArrowRight',
+      'b', 'a'
+    ];
+    let konamiIndex = 0;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd + K or Ctrl + K
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandOpen((prev) => !prev);
+        playCyberSound('click');
+        return;
+      }
+
+      // Konami code check
+      if (e.key.toLowerCase() === konamiSequence[konamiIndex].toLowerCase()) {
+        konamiIndex++;
+        if (konamiIndex === konamiSequence.length) {
+          konamiIndex = 0;
+          handleToggleOverclock();
+        }
+      } else {
+        konamiIndex = 0;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     document.title = 'Tanverse -- 3D Creator';
@@ -3654,8 +3790,30 @@ export default function App() {
 
   return (
     <main className="main-wrapper overflow-x-clip bg-[#0C0C0C]">
-      {/* Floating Sticky HUD Navbar with Cyber Audio Mute Toggle */}
-      <StickyHudNav />
+      {/* Floating Sticky HUD Navbar with Cyber Audio Mute Toggle & Command Palette Launcher */}
+      <StickyHudNav
+        onOpenCommand={() => setIsCommandOpen(true)}
+        onOpenBooking={() => setIsBookingOpen(true)}
+        isAudioMuted={isAudioMuted}
+        onToggleAudio={handleToggleAudio}
+      />
+
+      {/* Global Cyber Command Palette (Cmd + K / Ctrl + K) */}
+      <CyberCommandPalette
+        isOpen={isCommandOpen}
+        onClose={() => setIsCommandOpen(false)}
+        isAudioMuted={isAudioMuted}
+        onToggleAudio={handleToggleAudio}
+        isOverclocked={isOverclocked}
+        onToggleOverclock={handleToggleOverclock}
+        onOpenBooking={() => setIsBookingOpen(true)}
+      />
+
+      {/* 1-Click VIP 15-Minute Intro Call Booking Modal */}
+      <BookingModal
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+      />
 
       {/* Intro Entrance Splash Overlay */}
       <IntroOverlay />
@@ -3683,7 +3841,7 @@ export default function App() {
       <SectionDivider />
 
       {/* Contact Section */}
-      <ContactSection contactInfo={contactInfo} />
+      <ContactSection contactInfo={contactInfo} onOpenBooking={() => setIsBookingOpen(true)} />
 
       {/* Simple Brand Footer */}
       <footer
