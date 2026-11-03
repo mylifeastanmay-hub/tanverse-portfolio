@@ -1912,7 +1912,7 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePopupProject]);
 
-  const baseProjects = apiProjects && apiProjects.length > 0
+  const baseProjects = apiProjects && apiProjects.length >= PROJECTS.length
     ? apiProjects.map(p => ({
         ...p,
         images: {
@@ -1940,7 +1940,7 @@ function ProjectsSection({ projects: apiProjects }: { projects?: ProjectData[] }
   };
 
   return (
-    <section id="projects" className="relative z-20 bg-[#0a0a0b]">
+    <section id="projects" className="relative z-20 bg-transparent">
       {/* Vante 3D Video Ribbon -> 3x2 Grid Projects Experience */}
       <VanteSection
         projects={baseProjects}
@@ -2526,7 +2526,7 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
     }
   ];
 
-  const displayExperiences = apiExperiences && apiExperiences.length > 0
+  const displayExperiences = apiExperiences && apiExperiences.length >= experienceData.length
     ? apiExperiences.map(e => ({
         ...e,
         icon: typeof e.icon === 'string'
@@ -2535,7 +2535,7 @@ function ExperienceSection({ experiences: apiExperiences, certificates: apiCerti
       }))
     : experienceData;
 
-  const displayCertificates = apiCertificates && apiCertificates.length > 0
+  const displayCertificates = apiCertificates && apiCertificates.length >= CERTIFICATES.length
     ? apiCertificates.map(c => ({
         ...c,
         verifyUrl: c.verify_url || c.verifyUrl || '',

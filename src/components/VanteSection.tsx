@@ -120,11 +120,7 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
   const l1Ref = useRef<HTMLDivElement>(null);
   const l2Ref = useRef<HTMLDivElement>(null);
   const capRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
-  const crossRef = useRef<HTMLDivElement>(null);
   const ruleRef = useRef<HTMLDivElement>(null);
-  const hintRef = useRef<HTMLDivElement>(null);
-  const pagerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
   const overlayLayerRef = useRef<HTMLDivElement>(null);
 
@@ -172,11 +168,7 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
     const l1El = l1Ref.current;
     const l2El = l2Ref.current;
     const capEl = capRef.current;
-    const glowEl = glowRef.current;
-    const crossEl = crossRef.current;
     const ruleEl = ruleRef.current;
-    const hintEl = hintRef.current;
-    const pagerEl = pagerRef.current;
     const nameEl = nameRef.current;
     const overlayLayerEl = overlayLayerRef.current;
 
@@ -187,11 +179,7 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
       !l1El ||
       !l2El ||
       !capEl ||
-      !glowEl ||
-      !crossEl ||
       !ruleEl ||
-      !hintEl ||
-      !pagerEl ||
       !nameEl ||
       !overlayLayerEl
     ) {
@@ -633,11 +621,6 @@ void main(){
       const capA = 1 - span(pp, 0.52, 0.57);
       capEl!.style.opacity = String(capA);
       capEl!.style.transform = `translate(-50%,calc(-50% + ${rise * 34}vh))`;
-      const intro = String(1 - span(pp, 0, 0.05));
-      hintEl!.style.opacity = intro;
-      pagerEl!.style.opacity = String(Math.max(1 - span(pp, 0, 0.05), span(pp, 0.72, 0.84)));
-      crossEl!.style.opacity = intro;
-      glowEl!.style.opacity = intro;
       ruleEl!.style.transform = `scaleX(${ease(span(pp, 0.72, 0.86))})`;
       ruleEl!.style.top = '50%';
 
@@ -777,17 +760,16 @@ void main(){
     <div className="vante-root relative z-20">
       <style>{`
         .vante-root {
-          --bg: #0a0a0b;
           --ink: #f4f1ea;
           --mid: #8d8b86;
           --line: rgba(244,241,234,.14);
           font-family: 'Inter Tight', system-ui, sans-serif;
           color: var(--ink);
-          background: var(--bg);
+          background: transparent;
           -webkit-font-smoothing: antialiased;
         }
         .vante-track {
-          height: 900vh;
+          height: 820vh;
           position: relative;
         }
         .vante-stage {
@@ -796,7 +778,7 @@ void main(){
           height: 100vh;
           height: 100svh;
           overflow: hidden;
-          background: var(--bg);
+          background: transparent;
         }
         .vante-hl {
           position: absolute;
@@ -810,6 +792,7 @@ void main(){
           text-align: center;
           will-change: transform;
           color: var(--ink);
+          pointer-events: none;
         }
         .vante-l1 { top: calc(50% - .98em); }
         .vante-l2 { top: calc(50% + .03em); }
@@ -821,14 +804,15 @@ void main(){
           left: 50%;
           top: 50%;
           transform: translate(-50%, -50%);
-          width: 15em;
+          width: 18em;
           text-align: center;
           font-size: clamp(9px, .74vw, 13px);
           font-weight: 500;
-          line-height: 1.3;
-          letter-spacing: .03em;
+          line-height: 1.35;
+          letter-spacing: .06em;
           text-transform: uppercase;
-          color: var(--ink);
+          color: rgba(215, 226, 234, 0.85);
+          pointer-events: none;
         }
         .vante-gl {
           position: absolute;
@@ -836,140 +820,6 @@ void main(){
           width: 100%;
           height: 100%;
           display: block;
-        }
-        .vante-top {
-          position: absolute;
-          left: 32px;
-          right: 32px;
-          top: 26px;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          pointer-events: none;
-          z-index: 25;
-        }
-        .vante-acts {
-          margin-left: auto;
-          display: flex;
-          align-items: center;
-          gap: 7px;
-          pointer-events: auto;
-        }
-        .vante-pager {
-          display: flex;
-          margin: -26px 0 0 28px;
-          pointer-events: auto;
-          transition: opacity .25s;
-        }
-        .vante-pager button {
-          display: grid;
-          place-items: center;
-          width: 44px;
-          height: 50px;
-          border: 1px solid var(--line);
-          border-top: 0;
-          margin-left: -1px;
-          background: rgba(10, 10, 11, 0.75);
-          font: 400 11px 'IBM Plex Mono', monospace;
-          color: var(--ink);
-          cursor: pointer;
-          transition: color .2s, background .2s, border-color .2s;
-        }
-        .vante-pager button:hover {
-          color: #00F2FE;
-          border-color: rgba(0, 242, 254, 0.45);
-          background: rgba(0, 242, 254, 0.08);
-        }
-        .vante-glow {
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          height: 42%;
-          background: linear-gradient(rgba(244,241,234,.1), rgba(244,241,234,0));
-          pointer-events: none;
-        }
-        .vante-cross {
-          position: absolute;
-          left: 32px;
-          right: 32px;
-          top: 37.5%;
-          height: 1px;
-          background: var(--line);
-          pointer-events: none;
-        }
-        .vante-cross i {
-          position: absolute;
-          left: 50%;
-          top: -.62em;
-          margin-left: -.3em;
-          font: 400 13px 'IBM Plex Mono', monospace;
-          color: var(--mid);
-          background: var(--bg);
-          padding: 0 .3em;
-          line-height: 1.2;
-          font-style: normal;
-        }
-        .vante-logo {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          font-size: 19px;
-          font-weight: 600;
-          letter-spacing: .09em;
-          color: var(--ink);
-        }
-        .vante-logo svg {
-          width: 22px;
-          height: 18px;
-          fill: var(--ink);
-        }
-        .vante-acts a, .vante-acts button {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          height: 32px;
-          padding: 0 15px;
-          border: 1px solid rgba(244,241,234,.55);
-          border-radius: 99px;
-          background: rgba(10,10,11,.65);
-          color: var(--ink);
-          text-decoration: none;
-          font-family: 'Inter Tight', system-ui, sans-serif;
-          font-size: 12px;
-          font-weight: 500;
-          letter-spacing: .06em;
-          cursor: pointer;
-          transition: background .2s, color .2s, border-color .2s;
-        }
-        .vante-acts a:hover, .vante-acts button:hover {
-          background: var(--ink);
-          color: var(--bg);
-        }
-        .vante-acts a i, .vante-acts button i {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: currentColor;
-        }
-        .vante-acts a b, .vante-acts button b {
-          display: block;
-          width: 13px;
-          height: 7px;
-          border-top: 1px solid currentColor;
-          border-bottom: 1px solid currentColor;
-        }
-        .vante-hint {
-          position: absolute;
-          left: 50%;
-          top: 33px;
-          transform: translateX(-50%);
-          font: 400 11.5px 'IBM Plex Mono', monospace;
-          letter-spacing: .06em;
-          color: var(--ink);
-          padding-bottom: 6px;
-          border-bottom: 1px solid var(--line);
-          z-index: 10;
         }
         .vante-overlay-layer {
           position: absolute;
@@ -1019,7 +869,7 @@ void main(){
           letter-spacing: 0.06em;
           text-transform: uppercase;
           text-decoration: none;
-          background: rgba(10, 10, 11, 0.88);
+          background: rgba(12, 12, 12, 0.88);
           color: var(--ink);
           border: 1px solid rgba(244, 241, 234, 0.35);
           backdrop-filter: blur(8px);
@@ -1028,71 +878,47 @@ void main(){
         }
         .vante-slot-link:hover {
           background: #00F2FE;
-          color: #0a0a0b;
+          color: #0C0C0C;
           border-color: #00F2FE;
         }
         .vante-slot-link--primary {
           border-color: rgba(0, 242, 254, 0.55);
           color: #00F2FE;
         }
-        .vante-bot {
+        .vante-grid-dock {
           position: absolute;
-          left: 32px;
-          right: 32px;
-          bottom: 26px;
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
-          align-items: end;
-          font-size: 12.5px;
-          line-height: 1.35;
-          pointer-events: none;
-          z-index: 25;
-        }
-        .vante-bot p {
-          color: var(--ink);
-          max-width: 22em;
-        }
-        .vante-bot .vante-mid {
-          font: 400 11px 'IBM Plex Mono', monospace;
-          letter-spacing: .05em;
-          color: var(--ink);
+          left: 50%;
+          bottom: 22px;
+          transform: translateX(-50%);
           display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 4px;
-          pointer-events: auto;
-          background: rgba(10, 10, 11, 0.72);
+          align-items: center;
+          gap: 6px;
           padding: 6px 12px;
           border-radius: 99px;
-          border: 1px solid var(--line);
-          backdrop-filter: blur(8px);
+          background: rgba(12, 12, 12, 0.82);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          backdrop-filter: blur(12px);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+          font: 500 10.5px 'IBM Plex Mono', monospace;
+          letter-spacing: 0.06em;
+          z-index: 20;
         }
-        .vante-bot .vante-mid s {
-          text-decoration: none;
-          color: var(--mid);
-          margin: 0 .45em;
-        }
-        .vante-bot .vante-r {
-          justify-self: end;
-          display: flex;
-          gap: 12px;
+        .vante-dock-arrow {
+          display: inline-flex;
           align-items: center;
-          font: 400 11.5px 'IBM Plex Mono', monospace;
-          letter-spacing: .06em;
-          color: var(--ink);
-          background: transparent;
-          border: 0;
-          cursor: pointer;
-          pointer-events: auto;
-        }
-        .vante-bot .vante-r:hover {
+          justify-content: center;
+          padding: 4px 10px;
+          border-radius: 99px;
+          border: 1px solid rgba(0, 242, 254, 0.35);
+          background: rgba(0, 242, 254, 0.08);
           color: #00F2FE;
+          font: inherit;
+          cursor: pointer;
+          transition: all 0.18s ease;
         }
-        .vante-bot .vante-r:after {
-          content: "";
-          width: 22px;
-          height: 1px;
-          background: currentColor;
+        .vante-dock-arrow:hover {
+          background: #00F2FE;
+          color: #0C0C0C;
         }
         .vante-rule {
           position: absolute;
@@ -1111,7 +937,7 @@ void main(){
           top: 0;
           padding: 6px 12px;
           background: var(--ink);
-          color: var(--bg);
+          color: #0C0C0C;
           border-radius: 99px;
           font-size: 11.5px;
           font-weight: 600;
@@ -1123,12 +949,8 @@ void main(){
           z-index: 30;
         }
         @media (max-width: 760px) {
-          .vante-top { left: 18px; right: 18px; top: 18px; }
-          .vante-bot { left: 18px; right: 18px; bottom: 18px; grid-template-columns: 1fr auto; }
-          .vante-bot .vante-mid { display: none; }
-          .vante-hint { display: none; }
-          .vante-bot p { max-width: 17em; font-size: 11px; }
           .vante-slot-link { padding: 4px 8px; font-size: 8.5px; }
+          .vante-grid-dock .vante-dock-pill { display: none; }
         }
       `}</style>
 
@@ -1144,10 +966,6 @@ void main(){
           </h2>
           <div className="vante-cap" ref={capRef}>
             Flagship engineering systems, AI architectures &amp; interactive products.
-          </div>
-          <div className="vante-glow" ref={glowRef} />
-          <div className="vante-cross" ref={crossRef}>
-            <i>+</i>
           </div>
           <div className="vante-rule" ref={ruleRef} />
           <canvas className="vante-gl" ref={canvasRef} />
@@ -1215,89 +1033,53 @@ void main(){
                 </div>
               );
             })}
+
+            {/* Subtle floating pagination dock only visible when the grid has landed */}
+            <div className="vante-grid-dock vante-deck-bar">
+              <button
+                type="button"
+                className="vante-dock-arrow"
+                onClick={() => cycleProjects(-1)}
+                title="Previous 6 Projects"
+              >
+                ← PREV
+              </button>
+              {projects.map((proj, idx) => {
+                const inCurrentGrid =
+                  Array.from({ length: Math.min(6, projects.length) }, (_, k) => (pageOffset + k) % projects.length).includes(idx);
+                return (
+                  <button
+                    key={proj.num}
+                    type="button"
+                    className="vante-dock-pill"
+                    onClick={() => onOpenProject(proj)}
+                    style={{
+                      background: inCurrentGrid ? 'rgba(0, 242, 254, 0.14)' : 'transparent',
+                      border: inCurrentGrid ? '1px solid rgba(0, 242, 254, 0.4)' : '1px solid transparent',
+                      borderRadius: '99px',
+                      color: inCurrentGrid ? '#00F2FE' : 'rgba(244, 241, 234, 0.55)',
+                      font: 'inherit',
+                      letterSpacing: 'inherit',
+                      cursor: 'pointer',
+                      padding: '3px 7px',
+                    }}
+                    title={`Inspect ${proj.num} — ${proj.name}`}
+                  >
+                    {proj.num}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                className="vante-dock-arrow"
+                onClick={() => cycleProjects(1)}
+                title="Next 6 Projects"
+              >
+                NEXT →
+              </button>
+            </div>
           </div>
 
-          <div className="vante-hint" ref={hintRef}>
-            FEATURED PROJECTS &nbsp;→
-          </div>
-          <header className="vante-top">
-            <div className="vante-logo">
-              <svg viewBox="0 0 22 18">
-                <path d="M11 0l11 18h-6.200L11 9.600 6.200 18H0z" />
-              </svg>
-              TANVERSE
-            </div>
-            <div className="vante-pager" ref={pagerRef}>
-              <button
-                type="button"
-                onClick={() => cycleProjects(-1)}
-                title="Previous Projects Batch"
-                aria-label="Previous Projects Batch"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={() => cycleProjects(1)}
-                title="Next Projects Batch"
-                aria-label="Next Projects Batch"
-              >
-                →
-              </button>
-            </div>
-            <nav className="vante-acts">
-              <a href="#contact">
-                <i />
-                LET&apos;S TALK
-              </a>
-              <button
-                type="button"
-                onClick={() => cycleProjects(1)}
-                title="Cycle Flagship Projects in Grid"
-              >
-                PROJECTS ({pageOffset + 1}–{((pageOffset + 5) % Math.max(1, projects.length)) + 1}/
-                {projects.length})
-                <b />
-              </button>
-            </nav>
-          </header>
-          <footer className="vante-bot">
-            <p>
-              Scroll to slide all 10 project galleries along the 3D rail into the interactive grid.
-              Click any card for telemetry or open its live link directly.
-            </p>
-            <div className="vante-mid vante-deck-bar">
-              {projects.map((proj, idx) => (
-                <button
-                  key={proj.num}
-                  type="button"
-                  onClick={() => onOpenProject(proj)}
-                  style={{
-                    background: 'transparent',
-                    border: 0,
-                    color: idx >= pageOffset && idx < pageOffset + 6 ? '#00F2FE' : 'inherit',
-                    font: 'inherit',
-                    letterSpacing: 'inherit',
-                    cursor: 'pointer',
-                    padding: '2px 4px',
-                    opacity: idx >= pageOffset && idx < pageOffset + 6 ? 1 : 0.6,
-                  }}
-                  title={`Inspect ${proj.num} — ${proj.name} (${proj.url})`}
-                >
-                  {proj.num}·{proj.name.split(' ')[0].toUpperCase()}
-                  {idx < projects.length - 1 && <s>/</s>}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => cycleProjects(1)}
-              className="vante-r"
-              title="Switch Next 6 Projects in Grid"
-            >
-              NEXT PROJECTS
-            </button>
-          </footer>
           <div className="vante-name" ref={nameRef} />
         </main>
       </div>

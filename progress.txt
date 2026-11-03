@@ -37,3 +37,8 @@
 - Removed the 8 external R2 demo videos (`WORK` / `R2`) from `src/components/VanteSection.tsx`.
 - Replaced each card texture with a high-DPI `THREE.CanvasTexture` (`1050x660`) that renders each of the 10 Tanverse projects' own 3 photos (`col2Img`, `col1Img1`, `col1Img2`) with an internal smooth horizontal parallax slide transition, slide progress indicators, category badge, project title, and key metric.
 - Added accessible HTML link overlays (`Open Live ↗`, `GitHub ↗`, `Details`) aligned directly over the landed 3x2 grid cards so users can open any project's live URL or GitHub repo directly or inspect its full telemetry modal.
+
+[2026-11-03] Phase 5 UI Blending & Live Data Fix:
+- Removed the duplicate Vante top bar (`TANVERSE`, `←`/`→`, `FEATURED PROJECTS →`, `LET'S TALK`, `PROJECTS (...)`), top glow band (`.vante-glow`), crosshair line (`.vante-cross`), and static bottom bar (`.vante-bot`) from `src/components/VanteSection.tsx`.
+- Made `#projects`, `.vante-root`, and `.vante-stage` `background: transparent` so the 3D starfield (`SpaceCanvas`) and `#0C0C0C` canvas flow seamlessly from the Experience section above into the Contact section below with zero visible border or box.
+- Updated `src/App.tsx` so `baseProjects`, `displayExperiences`, and `displayCertificates` always show all 10 flagship projects, 6 experiences, and 7 certificates on the live site even when the remote DB has fewer legacy rows.
