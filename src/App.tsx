@@ -514,57 +514,214 @@ function IntroOverlay() {
 
 type AvatarEmotion = 'curious' | 'happy' | 'amazed' | 'cyber' | 'wink' | 'love';
 
-const EMOTION_META: Record<AvatarEmotion, { label: string; badge: string; color: string }> = {
-  curious: { label: 'CURIOUS', badge: '👀 Tracking Cursor', color: '#00F2FE' },
-  happy: { label: 'HAPPY', badge: '😄 Joyful Vibe', color: '#F59E0B' },
-  amazed: { label: 'AMAZED', badge: '✨ Starstruck', color: '#A855F7' },
-  cyber: { label: 'CYBER FOCUS', badge: '⚡ Neural Lock', color: '#00F2FE' },
-  wink: { label: 'PLAYFUL', badge: '😉 Cheeky Wink', color: '#10B981' },
-  love: { label: 'INSPIRED', badge: '💖 Loving It', color: '#EC4899' },
-};
-
 const EMOTION_ORDER: AvatarEmotion[] = ['curious', 'happy', 'cyber', 'amazed', 'wink', 'love'];
 
 function InteractiveHeroAvatar({ avatarSrc }: { avatarSrc: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [emotion, setEmotion] = useState<AvatarEmotion>('curious');
-  const [manualOverrideUntil, setManualOverrideUntil] = useState<number>(0);
+  const [isGlReady, setIsGlReady] = useState(false);
+  const [bounceKey, setBounceKey] = useState(0);
 
   const emotionRef = useRef<AvatarEmotion>('curious');
-  const manualOverrideRef = useRef<number>(0);
-
-  useEffect(() => {
-    emotionRef.current = emotion;
-  }, [emotion]);
-
-  useEffect(() => {
-    manualOverrideRef.current = manualOverrideUntil;
-  }, [manualOverrideUntil]);
+  const manualOverrideUntil = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
 
-    // Target & smoothed gaze in normalized [-1, 1]
+    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, antialias: true });
+    if (!gl) {
+      console.warn('WebGL not available for avatar eye tracking, using static image');
+      return;
+    }
+
+    const vsSource = `
+      attribute vec2 aPos;
+      varying vec2 vUv;
+      void main() {
+        vUv = aPos * 0.5 + 0.5;
+        vUv.y = 1.0 - vUv.y;
+        gl_Position = vec4(aPos, 0.0, 1.0);
+      }
+    `;
+
+    const fsSource = `
+      precision highp float;
+      uniform sampler2D uTex;
+      uniform vec2 uGaze;
+      uniform float uBlinkL;
+      uniform float uBlinkR;
+      uniform float uSquint;
+      uniform float uAmazed;
+      uniform float uCyber;
+      uniform float uLove;
+      varying vec2 vUv;
+
+      void main() {
+        vec2 uv = vUv;
+
+        // Exact 1254x1254 coordinates of avatar eye centers
+        vec2 eyeL = vec2(544.5 / 1254.0, 670.5 / 1254.0);
+        vec2 eyeR = vec2(754.5 / 1254.0, 672.0 / 1254.0);
+        float radius = 68.0 / 1254.0;
+
+        // Eye pupil shift in UV space: max ~17px X, ~11px Y
+        vec2 shift = uGaze * vec2(17.0 / 1254.0, 11.0 / 1254.0);
+
+        // Left Eye 3D Socket Warp
+        float distL = distance(uv, eyeL) / radius;
+        if (distL < 1.0) {
+          float wL = 1.0 - distL * distL * (3.0 - 2.0 * distL);
+          uv -= shift * wL;
+
+          float lidL = max(uBlinkL, uSquint * 0.55);
+          if (lidL > 0.001) {
+            float lidEff = (1.0 - distL);
+            float relY = (uv.y - eyeL.y) / radius;
+            if (relY < 0.25) {
+              uv.y -= lidL * 0.05 * lidEff * (1.0 - relY);
+            } else {
+              uv.y += uSquint * 0.02 * lidEff * relY;
+            }
+          }
+        }
+
+        // Right Eye 3D Socket Warp
+        float distR = distance(uv, eyeR) / radius;
+        if (distR < 1.0) {
+          float wR = 1.0 - distR * distR * (3.0 - 2.0 * distR);
+          uv -= shift * wR;
+
+          float lidR = max(uBlinkR, uSquint * 0.55);
+          if (lidR > 0.001) {
+            float lidEff = (1.0 - distR);
+            float relY = (uv.y - eyeR.y) / radius;
+            if (relY < 0.25) {
+              uv.y -= lidR * 0.05 * lidEff * (1.0 - relY);
+            } else {
+              uv.y += uSquint * 0.02 * lidEff * relY;
+            }
+          }
+        }
+
+        vec4 color = texture2D(uTex, uv);
+
+        // Cyber focus HUD ring around pupil centers
+        if (uCyber > 0.01) {
+          vec2 pL = eyeL + shift;
+          vec2 pR = eyeR + shift;
+          float rL = distance(vUv, pL) / (20.0 / 1254.0);
+          float rR = distance(vUv, pR) / (20.0 / 1254.0);
+          float ringL = smoothstep(0.15, 0.0, abs(rL - 1.0));
+          float ringR = smoothstep(0.15, 0.0, abs(rR - 1.0));
+          float ring = max(ringL, ringR) * uCyber;
+          color.rgb = mix(color.rgb, vec3(0.0, 0.95, 1.0), ring * 0.85);
+        }
+
+        // Rosy cheeks for Love or Happy
+        if (uLove > 0.01 || uSquint > 0.01) {
+          float blushAmount = max(uLove, uSquint * 0.7);
+          vec2 cheekL = vec2(455.0 / 1254.0, 785.0 / 1254.0);
+          vec2 cheekR = vec2(850.0 / 1254.0, 785.0 / 1254.0);
+          float dL = distance(vUv, cheekL) / (65.0 / 1254.0);
+          float dR = distance(vUv, cheekR) / (65.0 / 1254.0);
+          float blush = (smoothstep(1.0, 0.0, dL) + smoothstep(1.0, 0.0, dR)) * blushAmount * 0.22;
+          color.rgb = mix(color.rgb, vec3(1.0, 0.35, 0.45), blush * color.a);
+        }
+
+        gl_FragColor = color;
+      }
+    `;
+
+    const compileShader = (type: number, src: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, src);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('Shader compile failed:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    };
+
+    const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+    const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+    if (!vs || !fs) return;
+
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program link failed:', gl.getProgramInfoLog(program));
+      return;
+    }
+    gl.useProgram(program);
+
+    // Quad geometry covering [-1, 1]
+    const quadBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1,
+      ]),
+      gl.STATIC_DRAW
+    );
+
+    const aPos = gl.getAttribLocation(program, 'aPos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    const uGaze = gl.getUniformLocation(program, 'uGaze');
+    const uBlinkL = gl.getUniformLocation(program, 'uBlinkL');
+    const uBlinkR = gl.getUniformLocation(program, 'uBlinkR');
+    const uSquint = gl.getUniformLocation(program, 'uSquint');
+    const uAmazed = gl.getUniformLocation(program, 'uAmazed');
+    const uCyber = gl.getUniformLocation(program, 'uCyber');
+    const uLove = gl.getUniformLocation(program, 'uLove');
+
+    // Create and load texture
+    const texture = gl.createTexture();
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = avatarSrc;
+
+    let textureLoaded = false;
+    img.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      textureLoaded = true;
+      setIsGlReady(true);
+    };
+
+    // Tracking state
     let targetGx = 0;
     let targetGy = 0;
     let curGx = 0;
     let curGy = 0;
 
-    // Smooth morphing state for eyelids & pupil scale
-    let curUpperL = 0;
-    let curUpperR = 0;
-    let curLowerL = 0;
-    let curLowerR = 0;
-    let curPupilScale = 1;
-    let curSmileRaise = 0;
+    let curBlinkL = 0;
+    let curBlinkR = 0;
+    let curSquint = 0;
+    let curAmazed = 0;
+    let curCyber = 0;
+    let curLove = 0;
 
-    // Blink state
-    let nextBlinkAt = performance.now() + 2400;
+    let nextBlinkAt = performance.now() + 2500;
     let blinkEndAt = 0;
     let lastMoveAt = performance.now();
     let lastClientX = window.innerWidth * 0.5;
@@ -572,18 +729,15 @@ function InteractiveHeroAvatar({ avatarSrc }: { avatarSrc: string }) {
     let speedSmoothed = 0;
 
     const setAutoEmotion = (next: AvatarEmotion) => {
-      if (performance.now() < manualOverrideRef.current) return;
-      if (emotionRef.current !== next) {
-        emotionRef.current = next;
-        setEmotion(next);
-      }
+      if (performance.now() < manualOverrideUntil.current) return;
+      emotionRef.current = next;
     };
 
     const handlePointerMove = (e: MouseEvent) => {
       const now = performance.now();
       const dt = Math.max(8, now - lastMoveAt);
       const dist = Math.hypot(e.clientX - lastClientX, e.clientY - lastClientY);
-      const instSpeed = dist / dt; // px per ms
+      const instSpeed = dist / dt;
       speedSmoothed = speedSmoothed * 0.75 + instSpeed * 0.25;
       lastClientX = e.clientX;
       lastClientY = e.clientY;
@@ -601,20 +755,18 @@ function InteractiveHeroAvatar({ avatarSrc }: { avatarSrc: string }) {
       targetGx = Math.max(-1, Math.min(1, dx / maxDistX));
       targetGy = Math.max(-1, Math.min(1, dy / maxDistY));
 
-      // Apply subtle 3D head tilt toward cursor
-      const rotY = targetGx * 8;
-      const rotX = -targetGy * 6;
+      // 3D head tilt toward cursor
+      const rotY = targetGx * 8.5;
+      const rotX = -targetGy * 6.5;
       container.style.transform = `perspective(900px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
 
-      // Determine automatic emotion from cursor velocity & zone
+      // Auto emotion transitions based on interaction
       const distFromFace = Math.hypot(dx / (rect.width * 0.5), dy / (rect.height * 0.5));
-      if (speedSmoothed > 2.6) {
+      if (speedSmoothed > 2.8) {
         setAutoEmotion('amazed');
-      } else if (distFromFace < 0.78) {
+      } else if (distFromFace < 0.8) {
         setAutoEmotion('happy');
-      } else if (e.clientY < window.innerHeight * 0.16) {
-        setAutoEmotion('cyber');
-      } else if (Math.abs(targetGx) > 0.72) {
+      } else if (e.clientY < window.innerHeight * 0.16 || Math.abs(targetGx) > 0.75) {
         setAutoEmotion('cyber');
       } else if (e.clientY > window.innerHeight * 0.8) {
         setAutoEmotion('happy');
@@ -625,306 +777,25 @@ function InteractiveHeroAvatar({ avatarSrc }: { avatarSrc: string }) {
 
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
 
-    const lerpNum = (a: number, b: number, t: number) => a + (b - a) * t;
-    const clampNum = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
-
-    // Helper: trace the almond eye socket path in 1254x1254 space
-    const traceEyeSocket = (
-      c: CanvasRenderingContext2D,
-      x0: number,
-      y0: number,
-      x1: number,
-      y1: number,
-      topArchY: number,
-      botArchY: number
-    ) => {
-      const w = x1 - x0;
-      c.beginPath();
-      c.moveTo(x0, y0);
-      c.bezierCurveTo(x0 + w * 0.24, topArchY, x0 + w * 0.76, topArchY, x1, y1);
-      c.bezierCurveTo(x0 + w * 0.76, botArchY, x0 + w * 0.24, botArchY, x0, y0);
-      c.closePath();
-    };
-
-    const drawSparkle = (c: CanvasRenderingContext2D, sx: number, sy: number, r: number) => {
-      c.save();
-      c.translate(sx, sy);
-      c.fillStyle = '#FFFFFF';
-      c.beginPath();
-      for (let i = 0; i < 8; i++) {
-        const ang = (i * Math.PI) / 4;
-        const rad = i % 2 === 0 ? r : r * 0.32;
-        const px = Math.cos(ang) * rad;
-        const py = Math.sin(ang) * rad;
-        if (i === 0) c.moveTo(px, py);
-        else c.lineTo(px, py);
-      }
-      c.closePath();
-      c.fill();
-      c.restore();
-    };
-
-    const drawHeart = (c: CanvasRenderingContext2D, hx: number, hy: number, size: number) => {
-      c.save();
-      c.translate(hx, hy - size * 0.3);
-      c.fillStyle = '#FF6EC7';
-      c.beginPath();
-      c.moveTo(0, size * 0.35);
-      c.bezierCurveTo(0, 0, -size, 0, -size, size * 0.45);
-      c.bezierCurveTo(-size, size * 0.9, 0, size * 1.15, 0, size * 1.45);
-      c.bezierCurveTo(0, size * 1.15, size, size * 0.9, size, size * 0.45);
-      c.bezierCurveTo(size, 0, 0, 0, 0, size * 0.35);
-      c.closePath();
-      c.fill();
-      c.restore();
-    };
-
-    const drawEye = (
-      c: CanvasRenderingContext2D,
-      isLeft: boolean,
-      gx: number,
-      gy: number,
-      upperDrop: number,
-      lowerRise: number,
-      pupilScale: number,
-      activeEmotion: AvatarEmotion,
-      timeSec: number
-    ) => {
-      // Exact 1254x1254 coordinates inside the avatar's glasses frames
-      const x0 = isLeft ? 477 : 721;
-      const y0 = isLeft ? 695 : 697;
-      const x1 = isLeft ? 595 : 843;
-      const y1 = isLeft ? 697 : 695;
-      const topArchY = 635;
-      const botArchY = 742;
-      const cx = (x0 + x1) * 0.5;
-      const cy = 690;
-      const w = x1 - x0;
-
-      c.save();
-      traceEyeSocket(c, x0, y0, x1, y1, topArchY, botArchY);
-      c.clip();
-
-      // 1. 3D Shaded Sclera (Eyeball white)
-      const scleraGrad = c.createRadialGradient(
-        cx + gx * 7,
-        cy + gy * 5,
-        8,
-        cx,
-        cy,
-        66
-      );
-      scleraGrad.addColorStop(0, '#FDF5F1');
-      scleraGrad.addColorStop(0.62, '#EFE0DC');
-      scleraGrad.addColorStop(0.88, '#D2BFC7');
-      scleraGrad.addColorStop(1, '#9A828E');
-      c.fillStyle = scleraGrad;
-      c.fillRect(x0 - 10, topArchY - 10, w + 20, botArchY - topArchY + 20);
-
-      // 2. Moving Iris & Pupil
-      const ix = cx + gx * 24;
-      const iy = cy + gy * 15;
-      const rIris = 38;
-      const rPupil = 20.5 * pupilScale;
-
-      // Outer dark limbal ring
-      c.beginPath();
-      c.arc(ix, iy, rIris, 0, Math.PI * 2);
-      c.fillStyle = '#1B0A03';
-      c.fill();
-
-      // Warm chestnut Pixar iris gradient
-      const irisGrad = c.createRadialGradient(
-        ix,
-        iy + rIris * 0.28,
-        4,
-        ix,
-        iy,
-        rIris * 0.92
-      );
-      if (activeEmotion === 'cyber') {
-        irisGrad.addColorStop(0, '#00F2FE');
-        irisGrad.addColorStop(0.45, '#5E2806');
-        irisGrad.addColorStop(1, '#1E0B02');
-      } else if (activeEmotion === 'happy') {
-        irisGrad.addColorStop(0, '#B45610');
-        irisGrad.addColorStop(0.55, '#6B2E07');
-        irisGrad.addColorStop(1, '#260E03');
-      } else {
-        irisGrad.addColorStop(0, '#8C410B');
-        irisGrad.addColorStop(0.58, '#5C2605');
-        irisGrad.addColorStop(1, '#240D02');
-      }
-      c.beginPath();
-      c.arc(ix, iy, rIris * 0.92, 0, Math.PI * 2);
-      c.fillStyle = irisGrad;
-      c.fill();
-
-      // Subtle iris fiber striations
-      c.save();
-      c.translate(ix, iy);
-      c.strokeStyle =
-        activeEmotion === 'cyber'
-          ? 'rgba(0, 242, 254, 0.28)'
-          : 'rgba(210, 120, 45, 0.22)';
-      c.lineWidth = 1.4;
-      for (let k = 0; k < 12; k++) {
-        const a = (k * Math.PI) / 6 + timeSec * (activeEmotion === 'cyber' ? 0.8 : 0);
-        c.beginPath();
-        c.moveTo(Math.cos(a) * (rPupil + 2), Math.sin(a) * (rPupil + 2));
-        c.lineTo(Math.cos(a) * (rIris * 0.86), Math.sin(a) * (rIris * 0.86));
-        c.stroke();
-      }
-      c.restore();
-
-      // Deep black pupil
-      c.beginPath();
-      c.arc(ix, iy, rPupil, 0, Math.PI * 2);
-      c.fillStyle = '#080302';
-      c.fill();
-
-      // Cyber reticle ring when in cyber focus emotion
-      if (activeEmotion === 'cyber') {
-        c.beginPath();
-        c.arc(ix, iy, rPupil + 4, 0, Math.PI * 2);
-        c.strokeStyle = 'rgba(0, 242, 254, 0.78)';
-        c.lineWidth = 1.8;
-        c.setLineDash([6, 4]);
-        c.stroke();
-        c.setLineDash([]);
-      }
-
-      // Glossy specular catchlights (shift subtly with gaze)
-      const hlX = ix - 11 + gx * 3;
-      const hlY = iy - 12 + gy * 2;
-      if (activeEmotion === 'amazed') {
-        drawSparkle(c, hlX, hlY, 12.5);
-      } else if (activeEmotion === 'love') {
-        drawHeart(c, hlX, hlY - 3, 9.5);
-      } else {
-        c.beginPath();
-        c.arc(hlX, hlY, 8.5, 0, Math.PI * 2);
-        c.fillStyle = '#FFFFFF';
-        c.fill();
-      }
-
-      // Secondary lower-right catchlight
-      c.beginPath();
-      c.arc(ix + 12 + gx * 1.5, iy + 11 + gy * 1.5, 4.2, 0, Math.PI * 2);
-      c.fillStyle = 'rgba(255, 255, 255, 0.78)';
-      c.fill();
-
-      // Soft top lash shadow cast onto eyeball
-      const topShadow = c.createLinearGradient(0, topArchY + 6, 0, topArchY + 38);
-      topShadow.addColorStop(0, 'rgba(18, 8, 8, 0.55)');
-      topShadow.addColorStop(1, 'rgba(18, 8, 8, 0)');
-      c.fillStyle = topShadow;
-      c.fillRect(x0 - 10, topArchY, w + 20, 42);
-
-      // 3. Dynamic Lower Eyelid (rises for happy smiling eyes / squint)
-      if (lowerRise > 0.01) {
-        const lowPeakY = lerpNum(botArchY, cy - 4, lowerRise);
-        c.beginPath();
-        c.moveTo(x0 - 8, botArchY + 15);
-        c.lineTo(x0 - 8, y0 + 4);
-        c.bezierCurveTo(
-          x0 + w * 0.25,
-          lowPeakY,
-          x0 + w * 0.75,
-          lowPeakY,
-          x1 + 8,
-          y1 + 4
-        );
-        c.lineTo(x1 + 8, botArchY + 15);
-        c.closePath();
-        const lowLidGrad = c.createLinearGradient(0, lowPeakY, 0, botArchY);
-        lowLidGrad.addColorStop(0, '#9E5944');
-        lowLidGrad.addColorStop(0.3, '#BF746A');
-        lowLidGrad.addColorStop(1, '#C98276');
-        c.fillStyle = lowLidGrad;
-        c.fill();
-
-        // Warm lower lid crease line
-        c.beginPath();
-        c.moveTo(x0 - 2, y0 + 4);
-        c.bezierCurveTo(
-          x0 + w * 0.25,
-          lowPeakY,
-          x0 + w * 0.75,
-          lowPeakY,
-          x1 + 2,
-          y1 + 4
-        );
-        c.strokeStyle = 'rgba(42, 18, 14, 0.65)';
-        c.lineWidth = 3;
-        c.stroke();
-      }
-
-      // 4. Dynamic Upper Eyelid (drops for blink, wink, or focused squint)
-      const upEdgeY = lerpNum(topArchY + 2, botArchY - 4, clampNum(upperDrop, 0, 1));
-      if (upperDrop > 0.01) {
-        c.beginPath();
-        c.moveTo(x0 - 8, topArchY - 15);
-        c.lineTo(x1 + 8, topArchY - 15);
-        c.lineTo(x1 + 8, y1);
-        c.bezierCurveTo(
-          x0 + w * 0.75,
-          upEdgeY,
-          x0 + w * 0.25,
-          upEdgeY,
-          x0 - 8,
-          y0
-        );
-        c.closePath();
-        const upLidGrad = c.createLinearGradient(0, topArchY, 0, upEdgeY);
-        upLidGrad.addColorStop(0, '#C27A5E');
-        upLidGrad.addColorStop(0.7, '#B3684E');
-        upLidGrad.addColorStop(1, '#8C4B36');
-        c.fillStyle = upLidGrad;
-        c.fill();
-      }
-
-      // Thick dark Pixar upper eyelash line moving with the upper eyelid
-      c.beginPath();
-      c.moveTo(x0 - 3, y0);
-      c.bezierCurveTo(
-        x0 + w * 0.24,
-        upEdgeY,
-        x0 + w * 0.76,
-        upEdgeY,
-        x1 + 3,
-        y1
-      );
-      c.strokeStyle = '#120A08';
-      c.lineWidth = 7.5;
-      c.lineCap = 'round';
-      c.stroke();
-
-      c.restore();
-    };
-
     let rafId = 0;
     const t0 = performance.now();
 
-    const animate = (now: number) => {
+    const render = (now: number) => {
       const timeSec = (now - t0) * 0.001;
 
-      // Idle subtle glance when cursor hasn't moved for > 3.5s
+      // Subtle idle glancing if cursor inactive
       if (now - lastMoveAt > 3500) {
         targetGx = Math.sin(timeSec * 0.9) * 0.35;
         targetGy = Math.cos(timeSec * 0.65) * 0.18;
       }
 
-      // Smooth spring interpolation for eye gaze
       curGx += (targetGx - curGx) * 0.18;
       curGy += (targetGy - curGy) * 0.18;
 
-      // Natural blinking schedule
+      // Blinking
       let isBlinking = false;
       if (now >= nextBlinkAt) {
-        if (blinkEndAt === 0) {
-          blinkEndAt = now + 150;
-        }
+        if (blinkEndAt === 0) blinkEndAt = now + 150;
         if (now <= blinkEndAt) {
           isBlinking = true;
         } else {
@@ -933,153 +804,108 @@ function InteractiveHeroAvatar({ avatarSrc }: { avatarSrc: string }) {
         }
       }
 
-      // Emotion target parameters
       const activeEmotion = emotionRef.current;
-      let targUpperL = 0.04 + Math.max(0, curGy * 0.16);
-      let targUpperR = 0.04 + Math.max(0, curGy * 0.16);
-      let targLowerL = Math.max(0, -curGy * 0.12);
-      let targLowerR = Math.max(0, -curGy * 0.12);
-      let targPupil = 1.0;
-      let targSmile = 0;
+      let targBlinkL = isBlinking ? 1.0 : 0.0;
+      let targBlinkR = isBlinking ? 1.0 : 0.0;
+      let targSquint = 0.0;
+      let targAmazed = 0.0;
+      let targCyber = 0.0;
+      let targLove = 0.0;
 
       if (activeEmotion === 'happy') {
-        targUpperL = 0.08;
-        targUpperR = 0.08;
-        targLowerL = 0.42;
-        targLowerR = 0.42;
-        targPupil = 1.08;
-        targSmile = 1;
+        targSquint = 0.85;
       } else if (activeEmotion === 'amazed') {
-        targUpperL = 0.0;
-        targUpperR = 0.0;
-        targLowerL = 0.0;
-        targLowerR = 0.0;
-        targPupil = 1.22;
-        targSmile = 0.4;
+        targAmazed = 1.0;
       } else if (activeEmotion === 'cyber') {
-        targUpperL = 0.28;
-        targUpperR = 0.28;
-        targLowerL = 0.22;
-        targLowerR = 0.22;
-        targPupil = 0.9;
-        targSmile = 0.2;
+        targCyber = 1.0;
+        targSquint = 0.45;
       } else if (activeEmotion === 'wink') {
-        targUpperL = 0.94;
-        targLowerL = 0.35;
-        targUpperR = 0.05;
-        targLowerR = 0.32;
-        targPupil = 1.08;
-        targSmile = 1;
+        targBlinkL = 1.0;
+        targSquint = 0.45;
       } else if (activeEmotion === 'love') {
-        targUpperL = 0.06;
-        targUpperR = 0.06;
-        targLowerL = 0.34;
-        targLowerR = 0.34;
-        targPupil = 1.18;
-        targSmile = 1;
+        targLove = 1.0;
+        targSquint = 0.65;
       }
 
-      if (isBlinking) {
-        targUpperL = 0.98;
-        targUpperR = 0.98;
+      curBlinkL += (targBlinkL - curBlinkL) * 0.32;
+      curBlinkR += (targBlinkR - curBlinkR) * 0.32;
+      curSquint += (targSquint - curSquint) * 0.22;
+      curAmazed += (targAmazed - curAmazed) * 0.2;
+      curCyber += (targCyber - curCyber) * 0.2;
+      curLove += (targLove - curLove) * 0.2;
+
+      if (textureLoaded) {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.uniform2f(uGaze, curGx, curGy);
+        gl.uniform1f(uBlinkL, curBlinkL);
+        gl.uniform1f(uBlinkR, curBlinkR);
+        gl.uniform1f(uSquint, curSquint);
+        gl.uniform1f(uAmazed, curAmazed);
+        gl.uniform1f(uCyber, curCyber);
+        gl.uniform1f(uLove, curLove);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
 
-      curUpperL += (targUpperL - curUpperL) * 0.28;
-      curUpperR += (targUpperR - curUpperR) * 0.28;
-      curLowerL += (targLowerL - curLowerL) * 0.22;
-      curLowerR += (targLowerR - curLowerR) * 0.22;
-      curPupilScale += (targPupil - curPupilScale) * 0.18;
-      curSmileRaise += (targSmile - curSmileRaise) * 0.15;
-
-      ctx.clearRect(0, 0, 1254, 1254);
-
-      // Draw both interactive cursor-tracking eyes
-      drawEye(ctx, true, curGx, curGy, curUpperL, curLowerL, curPupilScale, activeEmotion, timeSec);
-      drawEye(ctx, false, curGx, curGy, curUpperR, curLowerR, curPupilScale, activeEmotion, timeSec);
-
-      // Subtle glasses lens reflection glint that slides opposite the cursor
-      ctx.save();
-      const glintOffset = -curGx * 28;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
-      ctx.beginPath();
-      ctx.ellipse(495 + glintOffset, 645, 26, 8, -0.35, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(740 + glintOffset, 645, 26, 8, -0.35, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // Subtle rosy cheek warmth when Happy or Inspired
-      if (curSmileRaise > 0.05) {
-        ctx.save();
-        const blushAlpha = curSmileRaise * 0.16;
-        const leftBlush = ctx.createRadialGradient(455, 790, 4, 455, 790, 52);
-        leftBlush.addColorStop(0, `rgba(255, 95, 120, ${blushAlpha})`);
-        leftBlush.addColorStop(1, 'rgba(255, 95, 120, 0)');
-        ctx.fillStyle = leftBlush;
-        ctx.fillRect(395, 730, 120, 120);
-
-        const rightBlush = ctx.createRadialGradient(855, 790, 4, 855, 790, 52);
-        rightBlush.addColorStop(0, `rgba(255, 95, 120, ${blushAlpha})`);
-        rightBlush.addColorStop(1, 'rgba(255, 95, 120, 0)');
-        ctx.fillStyle = rightBlush;
-        ctx.fillRect(795, 730, 120, 120);
-        ctx.restore();
-      }
-
-      rafId = requestAnimationFrame(animate);
+      rafId = requestAnimationFrame(render);
     };
 
-    rafId = requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(render);
+
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener('mousemove', handlePointerMove);
+      gl.deleteBuffer(quadBuffer);
+      gl.deleteProgram(program);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+      gl.deleteTexture(texture);
     };
-  }, []);
+  }, [avatarSrc]);
 
-  const cycleEmotion = () => {
-    const idx = EMOTION_ORDER.indexOf(emotion);
+  // Tap anywhere on avatar to cycle mood immediately
+  const handleTapAvatar = () => {
+    const idx = EMOTION_ORDER.indexOf(emotionRef.current);
     const next = EMOTION_ORDER[(idx + 1) % EMOTION_ORDER.length];
-    setEmotion(next);
-    setManualOverrideUntil(performance.now() + 6000);
+    emotionRef.current = next;
+    manualOverrideUntil.current = performance.now() + 5000;
+    setBounceKey((k) => k + 1);
     playCyberSound('click');
   };
-
-  const meta = EMOTION_META[emotion];
 
   return (
     <div
       ref={containerRef}
-      onClick={cycleEmotion}
-      title="Move cursor to guide eyes · Click to switch emotion"
-      className="relative select-none w-full cursor-pointer group transition-transform duration-150 ease-out"
+      onClick={handleTapAvatar}
+      className={`relative select-none w-full cursor-pointer transition-transform duration-150 ease-out ${
+        bounceKey > 0 ? 'animate-bounce-subtle' : ''
+      }`}
       style={{ transformStyle: 'preserve-3d' }}
     >
+      {/* Underlying original image as instant fallback & drop-shadow */}
       <img
         src={avatarSrc}
-        alt="Tanverse - 3D Interactive Portrait"
-        className="w-full drop-shadow-2xl object-contain pointer-events-none"
+        alt="Tanverse - 3D Portrait"
+        className={`w-full drop-shadow-2xl object-contain pointer-events-none transition-opacity duration-300 ${
+          isGlReady ? 'opacity-0' : 'opacity-100'
+        }`}
         loading="eager"
       />
-      {/* 1254x1254 Interactive Eye & Emotion Overlay Canvas */}
+      {/* High-performance WebGL Canvas rendering the avatar with seamless real-time 3D eye tracking */}
       <canvas
         ref={canvasRef}
         width={1254}
         height={1254}
-        className="absolute inset-0 w-full h-full pointer-events-none"
+        className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 ${
+          isGlReady ? 'opacity-100' : 'opacity-0'
+        }`}
       />
       <div className="alive-avatar-hair alive-avatar-hair-one" />
       <div className="alive-avatar-hair alive-avatar-hair-two" />
       <div className="alive-avatar-hair alive-avatar-hair-three" />
-
-      {/* Subtle Interactive Emotion Pill (visible on hover or mood switch) */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 bottom-3 z-30 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/75 border border-white/15 backdrop-blur-md text-[9px] font-mono uppercase tracking-[0.18em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap"
-        style={{ color: meta.color, boxShadow: `0 0 14px ${meta.color}30` }}
-      >
-        <span>{meta.badge}</span>
-        <span className="text-white/40">· CLICK FOR MOOD</span>
-      </div>
     </div>
   );
 }

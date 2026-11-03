@@ -47,3 +47,9 @@
 - Built `InteractiveHeroAvatar` in `src/App.tsx` using a precision 1254x1254 `<canvas>` overlay aligned to the exact eye openings inside the glasses frames of `tanverse-avatar-cutout.png`.
 - Implemented 360-degree smooth cursor eye tracking, 3D head tilt, natural blinking, and 6 dynamic emotions (`curious`, `happy`, `amazed`, `cyber`, `wink`, `love`) that react automatically to cursor movement/velocity/position and can also be cycled on click.
 - Verified `npm run build` passes with 0 errors.
+
+[2026-11-03] Phase 6 Refinement (Native 3D Avatar Eye Warp Shader & Zero Pill Clean HUD):
+- Replaced the previous 2D eye overlay with an exact WebGL 3D socket warp shader running directly on `tanverse-avatar-cutout.png`.
+- The entire avatar is 100% the original 3D Pixar render with zero double-eyes or sticker seams. As the cursor moves, the irises warp smoothly within the eye sockets while the glasses, eyelashes, and eyelids remain naturally unified.
+- Completely removed the emotion pill text ("CLICK FOR MOOD") below the portrait.
+- Tapping/clicking anywhere directly on the portrait triggers an instant mood change, playful micro-bounce, and audio chime.
