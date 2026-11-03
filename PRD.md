@@ -33,8 +33,8 @@ Personal portfolio web application featuring interactive UI, 3D elements, projec
 - [x] **Task 4.2**: Verify client (`npm run build`), admin (`npm --prefix admin run build`), and server syntax (`node --check server/index.js` & `node --check server/db.js`) build cleanly with zero TypeScript or bundler errors.
 - [x] **Task 4.3**: Run CodeRabbit review (`coderabbit review --agent --uncommitted`) and remediate any critical/major findings.
 
-### Phase 5: Vante 3D Video Ribbon Scroll Hero — Projects Section (`#projects`) Replacement
-- [x] **Task 5.1**: Create standalone single-file `public/vante.html` reproducing the exact verbatim HTML, CSS, Google Fonts (`IBM Plex Mono` & `Inter Tight`), `three@0.170.0` importmap, and vanilla ES module script for **Vante — Craft in Motion**.
-- [x] **Task 5.2**: Replace the old `ProjectsSection` (`#projects`) with `src/components/VanteSection.tsx`, embedding the full 900vh scroll-driven 3D Video Ribbon (`CatmullRomCurve3` rail, 8 live R2 `THREE.VideoTexture` cards with custom SDF rounded-rect `ShaderMaterial` and backface `uv.x` flip, opposing `CRAFT IN` / `MOTION` kinetic headline, and 3x2 landing grid with cursor pill).
-- [x] **Task 5.3**: Bind the 6 landed 3×2 grid cards (and bottom project index pills + `←`/`→` pager buttons) directly to the 10 Tanverse flagship projects so hovering shows `${num} · ${name} — ⚡ ${metric}` and clicking any card opens the 3D Holographic Project Telemetry Modal (`activePopupProject`).
-- [x] **Task 5.4**: Verify production build (`npm run build`), update `PRD.md` & `progress.txt`, and launch `http://localhost:5174/#projects` in Chrome.
+### Phase 5: Vante 3D Ribbon Scroll Hero — Custom Project Photo Slides & Accessible Links (`#projects`)
+- [x] **Task 5.1**: Remove the generic external Vante R2 videos and replace them in `src/components/VanteSection.tsx` with dynamic `THREE.CanvasTexture` slides rendering all 10 Tanverse flagship projects' own photos (`col2Img`, `col1Img1`, `col1Img2`) with smooth horizontal parallax slide transitions + Ken Burns zoom and project telemetry HUD overlays.
+- [x] **Task 5.2**: Slide all 10 project photo cards along the 3D `CatmullRomCurve3` rail (with backface `uv.x` shader flipping so photos/text are never mirrored) and land them into the 3×2 grid.
+- [x] **Task 5.3**: Add accessible HTML action link overlays (`Open Live ↗`, `GitHub ↗`, and `Details` modal trigger) directly aligned over every landed card in the 3×2 grid, plus `←` / `→` batch pagination and bottom quick-jump project buttons.
+- [x] **Task 5.4**: Verify production build (`npm run build`), update `PRD.md` & `progress.txt`, and deploy/open in Chrome.

@@ -1,18 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-const R2 = 'https://pub-86dc5b5484314368ac5436a674b0d919.r2.dev/';
-const WORK: [string, string][] = [
-  ['Roadster 3D', 'designs/roadster-3d-car-landing.mp4'],
-  ['Living Portrait', 'aaaf/living-portrait-hero.mp4'],
-  ['Particle Self', 'aaaf/oraciteslArea.mp4'],
-  ['Robot Jellyfish', 'aaaf/medusa-jellyfish-hero.mp4'],
-  ['Ink Reveal', 'designs/ink-reveal-hover.mp4'],
-  ['Space Voyage', 'designs/space-voyage-video.mp4'],
-  ['Helion Dispatch', 'designs/helion-dispatch-landing.mp4'],
-  ['Honey Bee', 'designs/honey-bee-melli-landing.mp4'],
-];
-
 const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const ease = (t: number) => t * t * (3 - 2 * t);
@@ -46,11 +34,19 @@ interface GridRect {
   r: number;
 }
 
+interface SlotOverlayBox {
+  slotIndex: number;
+  leftPct: number;
+  topPct: number;
+  widthPct: number;
+  heightPct: number;
+}
+
 interface RibbonCard {
   i: number;
-  title: string;
-  v: HTMLVideoElement;
-  tex: THREE.VideoTexture;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  tex: THREE.CanvasTexture;
   geo: THREE.PlaneGeometry;
   mat: THREE.ShaderMaterial;
   mesh: THREE.Mesh;
@@ -60,6 +56,61 @@ interface RibbonCard {
 interface VanteSectionProps {
   projects: VanteProjectItem[];
   onOpenProject: (project: VanteProjectItem) => void;
+}
+
+const TEX_W = 1050;
+const TEX_H = 660;
+
+function drawCoverImage(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+  zoom = 1
+) {
+  const iw = img.naturalWidth || img.width || TEX_W;
+  const ih = img.naturalHeight || img.height || TEX_H;
+  const ir = iw / ih;
+  const dr = dw / dh;
+
+  let rw = dw;
+  let rh = dh;
+  if (ir > dr) {
+    rh = dh;
+    rw = dh * ir;
+  } else {
+    rw = dw;
+    rh = dw / ir;
+  }
+  rw *= zoom;
+  rh *= zoom;
+
+  const rx = dx + (dw - rw) * 0.5;
+  const ry = dy + (dh - rh) * 0.5;
+  ctx.drawImage(img, rx, ry, rw, rh);
+}
+
+function drawRoundedRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }
 
 export default function VanteSection({ projects, onOpenProject }: VanteSectionProps) {
@@ -75,11 +126,15 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
   const hintRef = useRef<HTMLDivElement>(null);
   const pagerRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
+  const overlayLayerRef = useRef<HTMLDivElement>(null);
 
   const [pageOffset, setPageOffset] = useState(0);
+  const [slotBoxes, setSlotBoxes] = useState<SlotOverlayBox[]>([]);
+
   const projectsRef = useRef(projects);
   const pageOffsetRef = useRef(pageOffset);
   const onOpenProjectRef = useRef(onOpenProject);
+  const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {
     projectsRef.current = projects;
@@ -92,6 +147,23 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
   useEffect(() => {
     onOpenProjectRef.current = onOpenProject;
   }, [onOpenProject]);
+
+  // Preload all project photos into HTMLImageElement cache
+  useEffect(() => {
+    const cache = imageCacheRef.current;
+    for (const proj of projects) {
+      const urls = [proj.images.col2Img, proj.images.col1Img1, proj.images.col1Img2].filter(Boolean);
+      for (const url of urls) {
+        if (!cache.has(url)) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.decoding = 'async';
+          img.src = url;
+          cache.set(url, img);
+        }
+      }
+    }
+  }, [projects]);
 
   useEffect(() => {
     const trackEl = trackRef.current;
@@ -106,6 +178,7 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
     const hintEl = hintRef.current;
     const pagerEl = pagerRef.current;
     const nameEl = nameRef.current;
+    const overlayLayerEl = overlayLayerRef.current;
 
     if (
       !trackEl ||
@@ -119,7 +192,8 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
       !ruleEl ||
       !hintEl ||
       !pagerEl ||
-      !nameEl
+      !nameEl ||
+      !overlayLayerEl
     ) {
       return;
     }
@@ -179,7 +253,8 @@ export default function VanteSection({ projects, onOpenProject }: VanteSectionPr
       ot.lerpVectors(pathT[i], pathT[i + 1], k).normalize();
     };
 
-    /* ---------- cards ---------- */
+    /* ---------- cards (all 10 portfolio projects) ---------- */
+    const CARD_COUNT = Math.max(8, projectsRef.current.length || 10);
     const CARD_W = 2.1;
     const CARD_H = 1.32;
     const GAP = 0.03;
@@ -197,25 +272,21 @@ void main(){
   vec2 uv=vUv;if(!gl_FrontFacing)uv.x=1.-uv.x;
   vec3 c=mix(vec3(.075),texture2D(map,(uv-.5)*cover+.5).rgb,ready);
   float edge=smoothstep(-.012-px,-.012,d);
-  gl_FragColor=vec4(mix(c,vec3(1.),edge*.1),a);
+  gl_FragColor=vec4(mix(c,vec3(1.),edge*.12),a);
 }`;
 
-    const cards: RibbonCard[] = WORK.map(([title, src], i) => {
-      const v = document.createElement('video');
-      Object.assign(v, {
-        crossOrigin: 'anonymous',
-        muted: true,
-        loop: true,
-        playsInline: true,
-        preload: 'auto',
-        src: R2 + src,
-      });
-      v.setAttribute('playsinline', '');
-      const tex = new THREE.VideoTexture(v);
+    const cards: RibbonCard[] = Array.from({ length: CARD_COUNT }, (_, i) => {
+      const cardCanvas = document.createElement('canvas');
+      cardCanvas.width = TEX_W;
+      cardCanvas.height = TEX_H;
+      const ctx = cardCanvas.getContext('2d')!;
+
+      const tex = new THREE.CanvasTexture(cardCanvas);
       tex.colorSpace = THREE.NoColorSpace;
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
       tex.generateMipmaps = false;
+
       const geo = new THREE.PlaneGeometry(1, 1, NX, NY);
       const mat = new THREE.ShaderMaterial({
         vertexShader: vs,
@@ -226,22 +297,191 @@ void main(){
           map: { value: tex },
           cover: { value: new THREE.Vector2(1, 1) },
           aspect: { value: CARD_W / CARD_H },
-          ready: { value: 0 },
+          ready: { value: 1 },
           radius: { value: 0.018 },
         },
       });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.frustumCulled = false;
       scene.add(mesh);
-      const c: RibbonCard = { i, title, v, tex, geo, mat, mesh, rect: null };
-      v.addEventListener('loadeddata', () => {
-        const va = v.videoWidth / v.videoHeight;
-        const ca = CARD_W / CARD_H;
-        mat.uniforms.cover.value.set(va > ca ? ca / va : 1, va > ca ? 1 : va / ca);
-        mat.uniforms.ready.value = 1;
-      });
-      return c;
+      return { i, canvas: cardCanvas, ctx, tex, geo, mat, mesh, rect: null };
     });
+
+    const resolveMappedProject = (cardIdx: number): VanteProjectItem | undefined => {
+      const list = projectsRef.current;
+      if (!list || list.length === 0) return undefined;
+      const idx = (pageOffsetRef.current + cardIdx) % list.length;
+      return list[idx];
+    };
+
+    const getCachedImage = (url: string): HTMLImageElement | null => {
+      if (!url) return null;
+      const cache = imageCacheRef.current;
+      let img = cache.get(url);
+      if (!img) {
+        img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.decoding = 'async';
+        img.src = url;
+        cache.set(url, img);
+      }
+      return img.complete && img.naturalWidth > 0 ? img : null;
+    };
+
+    // Draw a project's sliding photo gallery + clean HUD onto the card's 2D canvas
+    function paintCardTexture(c: RibbonCard, timeSec: number) {
+      const proj = resolveMappedProject(c.i);
+      const { ctx } = c;
+
+      ctx.fillStyle = '#0e1116';
+      ctx.fillRect(0, 0, TEX_W, TEX_H);
+
+      if (!proj) {
+        c.tex.needsUpdate = true;
+        return;
+      }
+
+      const photoUrls = [
+        proj.images.col2Img,
+        proj.images.col1Img1,
+        proj.images.col1Img2,
+      ].filter(Boolean);
+
+      const loadedPhotos = photoUrls
+        .map((u) => getCachedImage(u))
+        .filter((img): img is HTMLImageElement => img !== null);
+
+      const HOLD_SEC = 2.5;
+      const SLIDE_SEC = 0.85;
+      const STEP_SEC = HOLD_SEC + SLIDE_SEC;
+      const localT = timeSec + c.i * 0.75;
+
+      if (loadedPhotos.length > 0) {
+        const count = loadedPhotos.length;
+        const cycleIdx = Math.floor(localT / STEP_SEC);
+        const phase = localT - cycleIdx * STEP_SEC;
+        const curIdx = cycleIdx % count;
+        const nextIdx = (curIdx + 1) % count;
+        const slideT = count > 1 && phase > HOLD_SEC ? ease((phase - HOLD_SEC) / SLIDE_SEC) : 0;
+
+        const curImg = loadedPhotos[curIdx];
+        const nextImg = loadedPhotos[nextIdx];
+        const zoomCur = 1.01 + 0.04 * clamp(phase / STEP_SEC, 0, 1);
+        const zoomNext = 1.01;
+
+        ctx.save();
+        if (slideT <= 0.001) {
+          drawCoverImage(ctx, curImg, 0, 0, TEX_W, TEX_H, zoomCur);
+        } else {
+          // Horizontal parallax slide transition between the project's photos
+          const curOffsetX = -slideT * TEX_W * 0.42;
+          const nextOffsetX = (1 - slideT) * TEX_W;
+
+          drawCoverImage(ctx, curImg, curOffsetX, 0, TEX_W, TEX_H, zoomCur);
+
+          // Dim outgoing image slightly as incoming photo slides over it
+          ctx.fillStyle = `rgba(6, 8, 12, ${slideT * 0.45})`;
+          ctx.fillRect(0, 0, TEX_W, TEX_H);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(nextOffsetX, 0, TEX_W, TEX_H);
+          ctx.clip();
+          drawCoverImage(ctx, nextImg, nextOffsetX * 0.25, 0, TEX_W, TEX_H, zoomNext);
+          ctx.restore();
+
+          // Glowing cyan seam line along the sliding photo edge
+          ctx.fillStyle = 'rgba(0, 242, 254, 0.75)';
+          ctx.fillRect(nextOffsetX - 2, 0, 3, TEX_H);
+        }
+        ctx.restore();
+      } else {
+        // Fallback grid while image finishes decoding
+        ctx.strokeStyle = 'rgba(0, 242, 254, 0.12)';
+        ctx.lineWidth = 1;
+        for (let gx = 0; gx < TEX_W; gx += 48) {
+          ctx.beginPath();
+          ctx.moveTo(gx, 0);
+          ctx.lineTo(gx, TEX_H);
+          ctx.stroke();
+        }
+        for (let gy = 0; gy < TEX_H; gy += 48) {
+          ctx.beginPath();
+          ctx.moveTo(0, gy);
+          ctx.lineTo(TEX_W, gy);
+          ctx.stroke();
+        }
+      }
+
+      // Subtle top & bottom gradient scrims so text & badges are always crisp
+      const topGrad = ctx.createLinearGradient(0, 0, 0, 130);
+      topGrad.addColorStop(0, 'rgba(8, 9, 12, 0.78)');
+      topGrad.addColorStop(1, 'rgba(8, 9, 12, 0)');
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0, 0, TEX_W, 130);
+
+      const botGrad = ctx.createLinearGradient(0, TEX_H - 190, 0, TEX_H);
+      botGrad.addColorStop(0, 'rgba(8, 9, 12, 0)');
+      botGrad.addColorStop(0.42, 'rgba(8, 9, 12, 0.76)');
+      botGrad.addColorStop(1, 'rgba(8, 9, 12, 0.95)');
+      ctx.fillStyle = botGrad;
+      ctx.fillRect(0, TEX_H - 190, TEX_W, 190);
+
+      // Top-left category badge
+      const badgeText = `${proj.num} · ${proj.category.toUpperCase()}`;
+      ctx.font = '600 18px "IBM Plex Mono", monospace';
+      const badgeMetrics = ctx.measureText(badgeText);
+      const badgeW = badgeMetrics.width + 46;
+      const badgeH = 38;
+      drawRoundedRectPath(ctx, 28, 24, badgeW, badgeH, 19);
+      ctx.fillStyle = 'rgba(10, 12, 16, 0.78)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(244, 241, 234, 0.28)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Cyan status dot inside badge
+      ctx.beginPath();
+      ctx.arc(46, 43, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00F2FE';
+      ctx.fill();
+
+      ctx.fillStyle = '#f4f1ea';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(badgeText, 60, 44);
+
+      // Top-right slide progress indicators (shows which of the 3 project photos is active)
+      const slideCount = Math.max(1, photoUrls.length);
+      const activeSlide = Math.floor(localT / STEP_SEC) % slideCount;
+      for (let sIdx = 0; sIdx < slideCount; sIdx++) {
+        const pillW = sIdx === activeSlide ? 34 : 14;
+        const rightOffset = 28 + (slideCount - 1 - sIdx) * 24 + (sIdx === activeSlide ? 0 : 0);
+        const px = TEX_W - rightOffset - pillW;
+        drawRoundedRectPath(ctx, px, 38, pillW, 8, 4);
+        ctx.fillStyle = sIdx === activeSlide ? '#00F2FE' : 'rgba(244, 241, 234, 0.35)';
+        ctx.fill();
+      }
+
+      // Bottom-left project title & metric
+      ctx.fillStyle = '#f4f1ea';
+      ctx.font = '700 34px "Inter Tight", system-ui, sans-serif';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(proj.name, 30, TEX_H - 64);
+
+      const subLine = proj.metrics?.[0]
+        ? `⚡ ${proj.metrics[0]}   ·   ${(proj.tech || []).slice(0, 3).join(' / ')}`
+        : (proj.tech || []).slice(0, 4).join(' · ');
+      ctx.fillStyle = '#00F2FE';
+      ctx.font = '500 18px "IBM Plex Mono", monospace';
+      ctx.fillText(subLine, 30, TEX_H - 30);
+
+      // Subtle inner border
+      ctx.strokeStyle = 'rgba(244, 241, 234, 0.18)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, TEX_W - 2, TEX_H - 2);
+
+      c.tex.needsUpdate = true;
+    }
 
     /* ---------- layout ---------- */
     const GZ = 8;
@@ -251,24 +491,6 @@ void main(){
     let cols = 3;
     let rows = 2;
     let tanH = 0.3153;
-
-    function resize() {
-      W = window.innerWidth;
-      H = window.innerHeight;
-      asp = W / H;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(W, H, false);
-      camera.aspect = asp;
-      camera.fov = asp < 16 / 9 ? (Math.atan(0.561 / asp) * 360) / Math.PI : FOV;
-      camera.updateProjectionMatrix();
-      tanH = Math.tan((camera.fov * Math.PI) / 360);
-      cols = asp < 0.9 ? 2 : 3;
-      rows = asp < 0.9 ? 3 : 2;
-    }
-
-    window.addEventListener('resize', resize);
-    resize();
-    buildPath();
 
     function grid(i: number): GridRect {
       const vh = 2 * GZ * tanH;
@@ -291,6 +513,45 @@ void main(){
         r,
       };
     }
+
+    function syncSlotOverlayBoxes() {
+      const totalSlots = cols * rows;
+      const boxes: SlotOverlayBox[] = [];
+      for (let i = 0; i < totalSlots; i++) {
+        const g = grid(i);
+        const leftPct = ((g.x - g.w / 2) / g.vw + 0.5) * 100;
+        const topPct = (0.5 - (g.y + g.h / 2) / g.vh) * 100;
+        const widthPct = (g.w / g.vw) * 100;
+        const heightPct = (g.h / g.vh) * 100;
+        boxes.push({
+          slotIndex: i,
+          leftPct,
+          topPct,
+          widthPct,
+          heightPct,
+        });
+      }
+      setSlotBoxes(boxes);
+    }
+
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      asp = W / H;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(W, H, false);
+      camera.aspect = asp;
+      camera.fov = asp < 16 / 9 ? (Math.atan(0.561 / asp) * 360) / Math.PI : FOV;
+      camera.updateProjectionMatrix();
+      tanH = Math.tan((camera.fov * Math.PI) / 360);
+      cols = asp < 0.9 ? 2 : 3;
+      rows = asp < 0.9 ? 3 : 2;
+      syncSlotOverlayBoxes();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    buildPath();
 
     /* ---------- scroll ---------- */
     let target = 0;
@@ -362,7 +623,7 @@ void main(){
     const RIB_A = 0.14;
     const RIB_B = 0.63;
 
-    function render() {
+    function render(timeSec: number) {
       const pp = p;
       // headline runs right across the page in opposite directions
       const rise = 1 - out(span(pp, 0, 0.12));
@@ -374,11 +635,16 @@ void main(){
       capEl!.style.transform = `translate(-50%,calc(-50% + ${rise * 34}vh))`;
       const intro = String(1 - span(pp, 0, 0.05));
       hintEl!.style.opacity = intro;
-      pagerEl!.style.opacity = intro;
+      pagerEl!.style.opacity = String(Math.max(1 - span(pp, 0, 0.05), span(pp, 0.72, 0.84)));
       crossEl!.style.opacity = intro;
       glowEl!.style.opacity = intro;
       ruleEl!.style.transform = `scaleX(${ease(span(pp, 0.72, 0.86))})`;
       ruleEl!.style.top = '50%';
+
+      // Show accessible HTML action links over each landed grid card once cards settle
+      const gridAlpha = span(pp, 0.8, 0.9);
+      overlayLayerEl!.style.opacity = String(gridAlpha);
+      overlayLayerEl!.style.pointerEvents = pp > 0.82 ? 'auto' : 'none';
 
       // ribbon, then the grid
       const pr = span(pp, RIB_A, RIB_B);
@@ -389,13 +655,19 @@ void main(){
         if (s < end) {
           c.mesh.visible = s > CARD_W;
           c.rect = null;
-          if (c.mesh.visible) poseRibbon(c, head);
+          if (c.mesh.visible) {
+            paintCardTexture(c, timeSec);
+            poseRibbon(c, head);
+          }
         } else if (c.i < cols * rows) {
           // each card flies to its slot the moment it leaves the rail
           const st = mix(RIB_A, RIB_B, (end + c.i * STEP) / (PATH_L + cards.length * STEP));
           const q = out(span(pp, st, st + 0.13));
           c.mesh.visible = q > 0.001;
-          if (c.mesh.visible) poseGrid(c, q);
+          if (c.mesh.visible) {
+            paintCardTexture(c, timeSec);
+            poseGrid(c, q);
+          }
         } else {
           c.mesh.visible = false;
           c.rect = null;
@@ -403,13 +675,6 @@ void main(){
       }
       renderer.render(scene, camera);
     }
-
-    const resolveMappedProject = (cardIdx: number): VanteProjectItem | undefined => {
-      const list = projectsRef.current;
-      if (!list || list.length === 0) return undefined;
-      const idx = (pageOffsetRef.current + cardIdx) % list.length;
-      return list[idx];
-    };
 
     /* ---------- hover & click ---------- */
     const findHitCard = (clientX: number, clientY: number): RibbonCard | null => {
@@ -440,7 +705,7 @@ void main(){
         const proj = resolveMappedProject(hit.i);
         const label = proj
           ? `${proj.num} · ${proj.name}${proj.metrics?.[0] ? ` — ⚡ ${proj.metrics[0]}` : ''}`
-          : hit.title;
+          : `Project ${hit.i + 1}`;
         nameEl.textContent = label;
         nameEl.style.opacity = '1';
         nameEl.style.transform = `translate(${cx + 14}px,${cy + 16}px)`;
@@ -452,7 +717,7 @@ void main(){
     };
 
     const onStageClick = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest('a, button, .vante-pager, .vante-deck-bar')) {
+      if ((e.target as HTMLElement).closest('a, button, .vante-pager, .vante-deck-bar, .vante-slot-links')) {
         return;
       }
       const hit = findHitCard(e.clientX, e.clientY);
@@ -469,22 +734,23 @@ void main(){
 
     /* ---------- loop ---------- */
     let rafId = 0;
-    function loop() {
+    const t0 = performance.now();
+    // Initial paint for all cards
+    for (const c of cards) {
+      paintCardTexture(c, 0);
+    }
+
+    function loop(now: number) {
+      readScroll();
+      const timeSec = (now - t0) * 0.001;
       if (inView || Math.abs(target - p) > 0.0001) {
         p += (target - p) * 0.09;
         if (Math.abs(target - p) < 0.00005) p = target;
-        for (const c of cards) {
-          if (inView && c.mesh.visible && c.v.paused) {
-            c.v.play().catch(() => {});
-          } else if ((!inView || !c.mesh.visible) && !c.v.paused) {
-            c.v.pause();
-          }
-        }
-        render();
+        render(timeSec);
       }
       rafId = requestAnimationFrame(loop);
     }
-    render();
+    render(0);
     rafId = requestAnimationFrame(loop);
 
     return () => {
@@ -494,9 +760,6 @@ void main(){
       stageEl.removeEventListener('pointermove', onPointerMove);
       stageEl.removeEventListener('click', onStageClick);
       for (const c of cards) {
-        c.v.pause();
-        c.v.removeAttribute('src');
-        c.v.load();
         c.tex.dispose();
         c.geo.dispose();
         c.mat.dispose();
@@ -583,7 +846,7 @@ void main(){
           align-items: center;
           justify-content: flex-start;
           pointer-events: none;
-          z-index: 10;
+          z-index: 25;
         }
         .vante-acts {
           margin-left: auto;
@@ -596,8 +859,9 @@ void main(){
           display: flex;
           margin: -26px 0 0 28px;
           pointer-events: auto;
+          transition: opacity .25s;
         }
-        .vante-pager span {
+        .vante-pager button {
           display: grid;
           place-items: center;
           width: 44px;
@@ -605,14 +869,16 @@ void main(){
           border: 1px solid var(--line);
           border-top: 0;
           margin-left: -1px;
+          background: rgba(10, 10, 11, 0.75);
           font: 400 11px 'IBM Plex Mono', monospace;
-          color: var(--mid);
-          cursor: pointer;
-          transition: color .2s, background .2s;
-        }
-        .vante-pager span:hover {
           color: var(--ink);
-          background: rgba(244,241,234,.06);
+          cursor: pointer;
+          transition: color .2s, background .2s, border-color .2s;
+        }
+        .vante-pager button:hover {
+          color: #00F2FE;
+          border-color: rgba(0, 242, 254, 0.45);
+          background: rgba(0, 242, 254, 0.08);
         }
         .vante-glow {
           position: absolute;
@@ -666,7 +932,7 @@ void main(){
           padding: 0 15px;
           border: 1px solid rgba(244,241,234,.55);
           border-radius: 99px;
-          background: transparent;
+          background: rgba(10,10,11,.65);
           color: var(--ink);
           text-decoration: none;
           font-family: 'Inter Tight', system-ui, sans-serif;
@@ -674,7 +940,7 @@ void main(){
           font-weight: 500;
           letter-spacing: .06em;
           cursor: pointer;
-          transition: background .2s, color .2s;
+          transition: background .2s, color .2s, border-color .2s;
         }
         .vante-acts a:hover, .vante-acts button:hover {
           background: var(--ink);
@@ -705,6 +971,70 @@ void main(){
           border-bottom: 1px solid var(--line);
           z-index: 10;
         }
+        .vante-overlay-layer {
+          position: absolute;
+          inset: 0;
+          z-index: 15;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease;
+        }
+        .vante-slot-box {
+          position: absolute;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          align-items: flex-end;
+          padding: 10px 12px;
+          border-radius: 12px;
+          transition: box-shadow 0.2s ease;
+        }
+        .vante-slot-box:hover {
+          box-shadow: 0 0 0 1px rgba(0, 242, 254, 0.55), 0 12px 32px rgba(0, 0, 0, 0.55);
+        }
+        .vante-slot-hit {
+          position: absolute;
+          inset: 0;
+          background: transparent;
+          border: 0;
+          cursor: pointer;
+          border-radius: 12px;
+        }
+        .vante-slot-links {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .vante-slot-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 11px;
+          border-radius: 99px;
+          font: 500 10px 'IBM Plex Mono', monospace;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          text-decoration: none;
+          background: rgba(10, 10, 11, 0.88);
+          color: var(--ink);
+          border: 1px solid rgba(244, 241, 234, 0.35);
+          backdrop-filter: blur(8px);
+          cursor: pointer;
+          transition: all 0.18s ease;
+        }
+        .vante-slot-link:hover {
+          background: #00F2FE;
+          color: #0a0a0b;
+          border-color: #00F2FE;
+        }
+        .vante-slot-link--primary {
+          border-color: rgba(0, 242, 254, 0.55);
+          color: #00F2FE;
+        }
         .vante-bot {
           position: absolute;
           left: 32px;
@@ -716,26 +1046,31 @@ void main(){
           font-size: 12.5px;
           line-height: 1.35;
           pointer-events: none;
-          z-index: 10;
+          z-index: 25;
         }
         .vante-bot p {
           color: var(--ink);
-          max-width: 21em;
+          max-width: 22em;
         }
         .vante-bot .vante-mid {
-          font: 400 11.5px 'IBM Plex Mono', monospace;
-          letter-spacing: .06em;
+          font: 400 11px 'IBM Plex Mono', monospace;
+          letter-spacing: .05em;
           color: var(--ink);
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
-          gap: 6px;
+          gap: 4px;
           pointer-events: auto;
+          background: rgba(10, 10, 11, 0.72);
+          padding: 6px 12px;
+          border-radius: 99px;
+          border: 1px solid var(--line);
+          backdrop-filter: blur(8px);
         }
         .vante-bot .vante-mid s {
           text-decoration: none;
           color: var(--mid);
-          margin: 0 .6em;
+          margin: 0 .45em;
         }
         .vante-bot .vante-r {
           justify-self: end;
@@ -750,11 +1085,14 @@ void main(){
           cursor: pointer;
           pointer-events: auto;
         }
+        .vante-bot .vante-r:hover {
+          color: #00F2FE;
+        }
         .vante-bot .vante-r:after {
           content: "";
           width: 22px;
           height: 1px;
-          background: var(--ink);
+          background: currentColor;
         }
         .vante-rule {
           position: absolute;
@@ -771,7 +1109,7 @@ void main(){
           position: absolute;
           left: 0;
           top: 0;
-          padding: 6px 11px;
+          padding: 6px 12px;
           background: var(--ink);
           color: var(--bg);
           border-radius: 99px;
@@ -782,14 +1120,15 @@ void main(){
           opacity: 0;
           transition: opacity .16s;
           white-space: nowrap;
-          z-index: 20;
+          z-index: 30;
         }
         @media (max-width: 760px) {
           .vante-top { left: 18px; right: 18px; top: 18px; }
           .vante-bot { left: 18px; right: 18px; bottom: 18px; grid-template-columns: 1fr auto; }
           .vante-bot .vante-mid { display: none; }
-          .vante-hint, .vante-pager { display: none; }
+          .vante-hint { display: none; }
           .vante-bot p { max-width: 17em; font-size: 11px; }
+          .vante-slot-link { padding: 4px 8px; font-size: 8.5px; }
         }
       `}</style>
 
@@ -804,7 +1143,7 @@ void main(){
             </div>
           </h2>
           <div className="vante-cap" ref={capRef}>
-            Exploring ideas through daily design practice.
+            Flagship engineering systems, AI architectures &amp; interactive products.
           </div>
           <div className="vante-glow" ref={glowRef} />
           <div className="vante-cross" ref={crossRef}>
@@ -812,37 +1151,121 @@ void main(){
           </div>
           <div className="vante-rule" ref={ruleRef} />
           <canvas className="vante-gl" ref={canvasRef} />
+
+          {/* Accessible HTML Action Links & Click Targets aligned over the 3x2 landed project cards */}
+          <div className="vante-overlay-layer" ref={overlayLayerRef}>
+            {slotBoxes.map((box) => {
+              const proj =
+                projects.length > 0
+                  ? projects[(pageOffset + box.slotIndex) % projects.length]
+                  : undefined;
+              if (!proj) return null;
+              return (
+                <div
+                  key={`${box.slotIndex}-${proj.num}`}
+                  className="vante-slot-box"
+                  style={{
+                    left: `${box.leftPct}%`,
+                    top: `${box.topPct}%`,
+                    width: `${box.widthPct}%`,
+                    height: `${box.heightPct}%`,
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="vante-slot-hit"
+                    onClick={() => onOpenProject(proj)}
+                    aria-label={`Inspect ${proj.num} ${proj.name} project details`}
+                    title={`Click to inspect ${proj.name}`}
+                  />
+                  <div className="vante-slot-links">
+                    <button
+                      type="button"
+                      className="vante-slot-link"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenProject(proj);
+                      }}
+                    >
+                      Details
+                    </button>
+                    {proj.githubUrl && proj.githubUrl !== proj.url && (
+                      <a
+                        href={proj.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="vante-slot-link"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`${proj.name} GitHub source code`}
+                      >
+                        GitHub ↗
+                      </a>
+                    )}
+                    <a
+                      href={proj.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="vante-slot-link vante-slot-link--primary"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Open ${proj.name} live project`}
+                    >
+                      Open Live ↗
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           <div className="vante-hint" ref={hintRef}>
-            START A PROJECT &nbsp;→
+            FEATURED PROJECTS &nbsp;→
           </div>
           <header className="vante-top">
             <div className="vante-logo">
               <svg viewBox="0 0 22 18">
                 <path d="M11 0l11 18h-6.200L11 9.600 6.200 18H0z" />
               </svg>
-              VANTE
+              TANVERSE
             </div>
             <div className="vante-pager" ref={pagerRef}>
-              <span onClick={() => cycleProjects(-1)} title="Previous Projects Batch">
+              <button
+                type="button"
+                onClick={() => cycleProjects(-1)}
+                title="Previous Projects Batch"
+                aria-label="Previous Projects Batch"
+              >
                 ←
-              </span>
-              <span onClick={() => cycleProjects(1)} title="Next Projects Batch">
+              </button>
+              <button
+                type="button"
+                onClick={() => cycleProjects(1)}
+                title="Next Projects Batch"
+                aria-label="Next Projects Batch"
+              >
                 →
-              </span>
+              </button>
             </div>
             <nav className="vante-acts">
               <a href="#contact">
                 <i />
                 LET&apos;S TALK
               </a>
-              <button type="button" onClick={() => cycleProjects(1)} title="Cycle Flagship Projects in Grid">
-                PROJECTS ({pageOffset + 1}–{((pageOffset + 5) % projects.length) + 1}/{projects.length})
+              <button
+                type="button"
+                onClick={() => cycleProjects(1)}
+                title="Cycle Flagship Projects in Grid"
+              >
+                PROJECTS ({pageOffset + 1}–{((pageOffset + 5) % Math.max(1, projects.length)) + 1}/
+                {projects.length})
                 <b />
               </button>
             </nav>
           </header>
           <footer className="vante-bot">
-            <p>Concepts, explorations and interface experiments shared openly as part of our creative process.</p>
+            <p>
+              Scroll to slide all 10 project galleries along the 3D rail into the interactive grid.
+              Click any card for telemetry or open its live link directly.
+            </p>
             <div className="vante-mid vante-deck-bar">
               {projects.map((proj, idx) => (
                 <button
@@ -852,17 +1275,14 @@ void main(){
                   style={{
                     background: 'transparent',
                     border: 0,
-                    color: 'inherit',
+                    color: idx >= pageOffset && idx < pageOffset + 6 ? '#00F2FE' : 'inherit',
                     font: 'inherit',
                     letterSpacing: 'inherit',
                     cursor: 'pointer',
                     padding: '2px 4px',
-                    opacity:
-                      idx >= pageOffset && idx < pageOffset + 6
-                        ? 1
-                        : 0.45,
+                    opacity: idx >= pageOffset && idx < pageOffset + 6 ? 1 : 0.6,
                   }}
-                  title={`Inspect ${proj.num} — ${proj.name}`}
+                  title={`Inspect ${proj.num} — ${proj.name} (${proj.url})`}
                 >
                   {proj.num}·{proj.name.split(' ')[0].toUpperCase()}
                   {idx < projects.length - 1 && <s>/</s>}
@@ -873,9 +1293,9 @@ void main(){
               type="button"
               onClick={() => cycleProjects(1)}
               className="vante-r"
-              title="Cycle Grid Projects"
+              title="Switch Next 6 Projects in Grid"
             >
-              VIEW SHOWREEL
+              NEXT PROJECTS
             </button>
           </footer>
           <div className="vante-name" ref={nameRef} />

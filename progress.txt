@@ -32,3 +32,8 @@
   - Clicking any landed 3D video card in the 3x2 grid (or clicking any project pill in the bottom index bar) opens the 3D Holographic Project Telemetry Modal with the project's SVG diagrams, metrics, tech tags, and Live Demo / GitHub links.
   - Clicking the top-left `←` / `→` pager arrows or `PROJECTS (1–6/10)` cycles which 6 of the 10 projects are mapped to the 3x2 grid.
 - Verified `npm run build` (`tsc -p tsconfig.app.json && vite build`) passes with 0 errors.
+
+[2026-11-03] Phase 5 Refinement (Project Photo Slides + Accessible Links on Vante Ribbon):
+- Removed the 8 external R2 demo videos (`WORK` / `R2`) from `src/components/VanteSection.tsx`.
+- Replaced each card texture with a high-DPI `THREE.CanvasTexture` (`1050x660`) that renders each of the 10 Tanverse projects' own 3 photos (`col2Img`, `col1Img1`, `col1Img2`) with an internal smooth horizontal parallax slide transition, slide progress indicators, category badge, project title, and key metric.
+- Added accessible HTML link overlays (`Open Live ↗`, `GitHub ↗`, `Details`) aligned directly over the landed 3x2 grid cards so users can open any project's live URL or GitHub repo directly or inspect its full telemetry modal.
