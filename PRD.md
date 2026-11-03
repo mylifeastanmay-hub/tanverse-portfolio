@@ -39,7 +39,7 @@ Personal portfolio web application featuring interactive UI, 3D elements, projec
 - [x] **Task 5.3**: Add accessible HTML action link overlays (`Open Live ↗`, `GitHub ↗`, and `Details` modal trigger) directly aligned over every landed card in the 3×2 grid, plus `←` / `→` batch pagination and bottom quick-jump project buttons.
 - [x] **Task 5.4**: Verify production build (`npm run build`), update `PRD.md` & `progress.txt`, and deploy/open in Chrome.
 
-### Phase 6: Interactive Cursor-Tracking Hero Avatar Eyes & Dynamic Emotions (`InteractiveHeroAvatar`)
-- [x] **Task 6.1**: Map exact 1254×1254 eye socket coordinates inside the glasses frames of `tanverse-avatar-cutout.png` (`leftEye: [477..595, 635..742]`, `rightEye: [721..843, 635..742]`).
-- [x] **Task 6.2**: Build `InteractiveHeroAvatar` in `src/App.tsx` with a 1254×1254 `<canvas>` overlay rendering 3D Pixar-shaded sclera, cursor-tracking chestnut irises/pupils, specular catchlights, natural blinking, 3D head tilt, and 6 dynamic emotions (`curious`, `happy`, `amazed`, `cyber`, `wink`, `love`) driven automatically by cursor velocity/position and clickable mood cycling.
-- [x] **Task 6.3**: Build, commit, push to `origin/master`, verify live Vercel production deployment, and open https://tanverse-portfolio-client.vercel.app/ in Chrome.
+### Phase 6: Self-Constructed 3D Multi-Emotion Emoji Series & Cursor Tracking (`InteractiveHeroAvatar`)
+- [x] **Task 6.1**: Erase legacy static PNG and construct 3 brand-new, identically aligned 1024×1024 3D character emojis (`tanverse-emoji-smiling.png`, `tanverse-emoji-not-smiling.png`, `tanverse-emoji-winking.png`) with matching hair, glasses, freckles, diamond earring, and distinct expressions (smiling, not-smiling, winking).
+- [x] **Task 6.2**: Rebuild `InteractiveHeroAvatar` in `src/App.tsx` with automatic 5-second emotion cycling, seamless 700ms cross-fading, 3D perspective head & eye gaze cursor tracking, dynamic specular lens catchlight, tap-to-cycle mood with spring bounce (`animate-bounce-subtle`), and clean HUD with no text/pills below.
+- [x] **Task 6.3**: Verify production build (`npm run build`), commit, push to `origin/master`, verify live Vercel production deployment, and open https://tanverse-portfolio-client.vercel.app/ in Chrome.

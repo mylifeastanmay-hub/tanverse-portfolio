@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, useScroll, useTransform, MotionValue, AnimatePresence, useMotionValue } from 'framer-motion';
 
 // Local Asset Imports
-import tanverseAvatar from './assets/tanverse-avatar-cutout.png';
+import tanverseEmojiSmiling from './assets/tanverse-emoji-smiling.png';
+import tanverseEmojiNotSmiling from './assets/tanverse-emoji-not-smiling.png';
+import tanverseEmojiWinking from './assets/tanverse-emoji-winking.png';
 import foundlyHero from './assets/foundly-hero.png';
 import foundlyStudent from './assets/foundly-student-desktop.png';
 import portfolioHeroMockup from './assets/portfolio-hero-mockup.png';
@@ -512,400 +514,201 @@ function IntroOverlay() {
 // 3. MAIN SECTIONS
 // ==========================================
 
-type AvatarEmotion = 'curious' | 'happy' | 'amazed' | 'cyber' | 'wink' | 'love';
+interface EmojiMoodItem {
+  id: string;
+  src: string;
+  label: string;
+  glowColor: string;
+}
 
-const EMOTION_ORDER: AvatarEmotion[] = ['curious', 'happy', 'cyber', 'amazed', 'wink', 'love'];
+const TANVERSE_EMOJI_MOODS: EmojiMoodItem[] = [
+  {
+    id: 'smiling',
+    src: tanverseEmojiSmiling,
+    label: 'Joyful & Smiling',
+    glowColor: 'rgba(91, 116, 140, 0.25)',
+  },
+  {
+    id: 'not-smiling',
+    src: tanverseEmojiNotSmiling,
+    label: 'Focused & Analytical',
+    glowColor: 'rgba(120, 140, 175, 0.25)',
+  },
+  {
+    id: 'winking',
+    src: tanverseEmojiWinking,
+    label: 'Playful & Creative',
+    glowColor: 'rgba(96, 165, 250, 0.28)',
+  },
+];
 
-function InteractiveHeroAvatar({ avatarSrc }: { avatarSrc: string }) {
+function InteractiveHeroAvatar({ avatarUrl }: { avatarUrl?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isGlReady, setIsGlReady] = useState(false);
-  const [bounceKey, setBounceKey] = useState(0);
+  const headRef = useRef<HTMLDivElement>(null);
+  const specularRef = useRef<HTMLDivElement>(null);
 
-  const emotionRef = useRef<AvatarEmotion>('curious');
-  const manualOverrideUntil = useRef<number>(0);
+  const [activeMoodIndex, setActiveMoodIndex] = useState(0);
+  const [bounceCount, setBounceCount] = useState(0);
+  const [cycleResetKey, setCycleResetKey] = useState(0);
 
+  // 5-Second Auto Emotion Cycling
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
+    const timer = setInterval(() => {
+      setActiveMoodIndex((prev) => (prev + 1) % TANVERSE_EMOJI_MOODS.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [cycleResetKey]);
 
-    const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, antialias: true });
-    if (!gl) {
-      console.warn('WebGL not available for avatar eye tracking, using static image');
-      return;
-    }
+  // Direct Tap / Click to Cycle Mood Immediately (resets 5s cycle)
+  const handleTapAvatar = () => {
+    setActiveMoodIndex((prev) => (prev + 1) % TANVERSE_EMOJI_MOODS.length);
+    setCycleResetKey((k) => k + 1);
+    setBounceCount((c) => c + 1);
+    playCyberSound('click');
+  };
 
-    const vsSource = `
-      attribute vec2 aPos;
-      varying vec2 vUv;
-      void main() {
-        vUv = aPos * 0.5 + 0.5;
-        vUv.y = 1.0 - vUv.y;
-        gl_Position = vec4(aPos, 0.0, 1.0);
-      }
-    `;
+  // High-performance 3D Gaze & Head Tilt tracking cursor
+  useEffect(() => {
+    const head = headRef.current;
+    const specular = specularRef.current;
+    if (!head) return;
 
-    const fsSource = `
-      precision highp float;
-      uniform sampler2D uTex;
-      uniform vec2 uGaze;
-      uniform float uBlinkL;
-      uniform float uBlinkR;
-      uniform float uSquint;
-      uniform float uAmazed;
-      uniform float uCyber;
-      uniform float uLove;
-      varying vec2 vUv;
+    let targetRotY = 0;
+    let targetRotX = 0;
+    let targetTransX = 0;
+    let targetTransY = 0;
+    let curRotY = 0;
+    let curRotX = 0;
+    let curTransX = 0;
+    let curTransY = 0;
 
-      void main() {
-        vec2 uv = vUv;
+    let targetSpecX = 50;
+    let targetSpecY = 46;
+    let curSpecX = 50;
+    let curSpecY = 46;
 
-        // Exact 1254x1254 coordinates of avatar eye centers
-        vec2 eyeL = vec2(544.5 / 1254.0, 670.5 / 1254.0);
-        vec2 eyeR = vec2(754.5 / 1254.0, 672.0 / 1254.0);
-        float radius = 68.0 / 1254.0;
-
-        // Eye pupil shift in UV space: max ~17px X, ~11px Y
-        vec2 shift = uGaze * vec2(17.0 / 1254.0, 11.0 / 1254.0);
-
-        // Left Eye 3D Socket Warp
-        float distL = distance(uv, eyeL) / radius;
-        if (distL < 1.0) {
-          float wL = 1.0 - distL * distL * (3.0 - 2.0 * distL);
-          uv -= shift * wL;
-
-          float lidL = max(uBlinkL, uSquint * 0.55);
-          if (lidL > 0.001) {
-            float lidEff = (1.0 - distL);
-            float relY = (uv.y - eyeL.y) / radius;
-            if (relY < 0.25) {
-              uv.y -= lidL * 0.05 * lidEff * (1.0 - relY);
-            } else {
-              uv.y += uSquint * 0.02 * lidEff * relY;
-            }
-          }
-        }
-
-        // Right Eye 3D Socket Warp
-        float distR = distance(uv, eyeR) / radius;
-        if (distR < 1.0) {
-          float wR = 1.0 - distR * distR * (3.0 - 2.0 * distR);
-          uv -= shift * wR;
-
-          float lidR = max(uBlinkR, uSquint * 0.55);
-          if (lidR > 0.001) {
-            float lidEff = (1.0 - distR);
-            float relY = (uv.y - eyeR.y) / radius;
-            if (relY < 0.25) {
-              uv.y -= lidR * 0.05 * lidEff * (1.0 - relY);
-            } else {
-              uv.y += uSquint * 0.02 * lidEff * relY;
-            }
-          }
-        }
-
-        vec4 color = texture2D(uTex, uv);
-
-        // Cyber focus HUD ring around pupil centers
-        if (uCyber > 0.01) {
-          vec2 pL = eyeL + shift;
-          vec2 pR = eyeR + shift;
-          float rL = distance(vUv, pL) / (20.0 / 1254.0);
-          float rR = distance(vUv, pR) / (20.0 / 1254.0);
-          float ringL = smoothstep(0.15, 0.0, abs(rL - 1.0));
-          float ringR = smoothstep(0.15, 0.0, abs(rR - 1.0));
-          float ring = max(ringL, ringR) * uCyber;
-          color.rgb = mix(color.rgb, vec3(0.0, 0.95, 1.0), ring * 0.85);
-        }
-
-        // Rosy cheeks for Love or Happy
-        if (uLove > 0.01 || uSquint > 0.01) {
-          float blushAmount = max(uLove, uSquint * 0.7);
-          vec2 cheekL = vec2(455.0 / 1254.0, 785.0 / 1254.0);
-          vec2 cheekR = vec2(850.0 / 1254.0, 785.0 / 1254.0);
-          float dL = distance(vUv, cheekL) / (65.0 / 1254.0);
-          float dR = distance(vUv, cheekR) / (65.0 / 1254.0);
-          float blush = (smoothstep(1.0, 0.0, dL) + smoothstep(1.0, 0.0, dR)) * blushAmount * 0.22;
-          color.rgb = mix(color.rgb, vec3(1.0, 0.35, 0.45), blush * color.a);
-        }
-
-        gl_FragColor = color;
-      }
-    `;
-
-    const compileShader = (type: number, src: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, src);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error('Shader compile failed:', gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
-
-    const vs = compileShader(gl.VERTEX_SHADER, vsSource);
-    const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
-    if (!vs || !fs) return;
-
-    const program = gl.createProgram();
-    if (!program) return;
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Program link failed:', gl.getProgramInfoLog(program));
-      return;
-    }
-    gl.useProgram(program);
-
-    // Quad geometry covering [-1, 1]
-    const quadBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        -1, -1,
-         1, -1,
-        -1,  1,
-        -1,  1,
-         1, -1,
-         1,  1,
-      ]),
-      gl.STATIC_DRAW
-    );
-
-    const aPos = gl.getAttribLocation(program, 'aPos');
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-    const uGaze = gl.getUniformLocation(program, 'uGaze');
-    const uBlinkL = gl.getUniformLocation(program, 'uBlinkL');
-    const uBlinkR = gl.getUniformLocation(program, 'uBlinkR');
-    const uSquint = gl.getUniformLocation(program, 'uSquint');
-    const uAmazed = gl.getUniformLocation(program, 'uAmazed');
-    const uCyber = gl.getUniformLocation(program, 'uCyber');
-    const uLove = gl.getUniformLocation(program, 'uLove');
-
-    // Create and load texture
-    const texture = gl.createTexture();
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = avatarSrc;
-
-    let textureLoaded = false;
-    img.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-      textureLoaded = true;
-      setIsGlReady(true);
-    };
-
-    // Tracking state
-    let targetGx = 0;
-    let targetGy = 0;
-    let curGx = 0;
-    let curGy = 0;
-
-    let curBlinkL = 0;
-    let curBlinkR = 0;
-    let curSquint = 0;
-    let curAmazed = 0;
-    let curCyber = 0;
-    let curLove = 0;
-
-    let nextBlinkAt = performance.now() + 2500;
-    let blinkEndAt = 0;
-    let lastMoveAt = performance.now();
-    let lastClientX = window.innerWidth * 0.5;
-    let lastClientY = window.innerHeight * 0.5;
-    let speedSmoothed = 0;
-
-    const setAutoEmotion = (next: AvatarEmotion) => {
-      if (performance.now() < manualOverrideUntil.current) return;
-      emotionRef.current = next;
-    };
+    let lastMoveTime = performance.now();
+    let rafId = 0;
 
     const handlePointerMove = (e: MouseEvent) => {
-      const now = performance.now();
-      const dt = Math.max(8, now - lastMoveAt);
-      const dist = Math.hypot(e.clientX - lastClientX, e.clientY - lastClientY);
-      const instSpeed = dist / dt;
-      speedSmoothed = speedSmoothed * 0.75 + instSpeed * 0.25;
-      lastClientX = e.clientX;
-      lastClientY = e.clientY;
-      lastMoveAt = now;
-
-      const rect = container.getBoundingClientRect();
-      const eyeCenterX = rect.left + rect.width * 0.525;
-      const eyeCenterY = rect.top + rect.height * 0.55;
+      lastMoveTime = performance.now();
+      const rect = head.getBoundingClientRect();
+      const eyeCenterX = rect.left + rect.width * 0.5;
+      const eyeCenterY = rect.top + rect.height * 0.46;
 
       const dx = e.clientX - eyeCenterX;
       const dy = e.clientY - eyeCenterY;
-      const maxDistX = Math.max(220, window.innerWidth * 0.38);
-      const maxDistY = Math.max(180, window.innerHeight * 0.35);
 
-      targetGx = Math.max(-1, Math.min(1, dx / maxDistX));
-      targetGy = Math.max(-1, Math.min(1, dy / maxDistY));
+      const maxDistX = Math.max(280, window.innerWidth * 0.42);
+      const maxDistY = Math.max(220, window.innerHeight * 0.36);
 
-      // 3D head tilt toward cursor
-      const rotY = targetGx * 8.5;
-      const rotX = -targetGy * 6.5;
-      container.style.transform = `perspective(900px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+      const normX = Math.max(-1, Math.min(1, dx / maxDistX));
+      const normY = Math.max(-1, Math.min(1, dy / maxDistY));
 
-      // Auto emotion transitions based on interaction
-      const distFromFace = Math.hypot(dx / (rect.width * 0.5), dy / (rect.height * 0.5));
-      if (speedSmoothed > 2.8) {
-        setAutoEmotion('amazed');
-      } else if (distFromFace < 0.8) {
-        setAutoEmotion('happy');
-      } else if (e.clientY < window.innerHeight * 0.16 || Math.abs(targetGx) > 0.75) {
-        setAutoEmotion('cyber');
-      } else if (e.clientY > window.innerHeight * 0.8) {
-        setAutoEmotion('happy');
-      } else {
-        setAutoEmotion('curious');
-      }
+      // 3D perspective rotation directly following the cursor
+      targetRotY = normX * 11.5;
+      targetRotX = -normY * 8.5;
+      targetTransX = normX * 7.0;
+      targetTransY = normY * 5.0;
+
+      // Specular catchlight moves across glasses
+      targetSpecX = 50 + normX * 22;
+      targetSpecY = 46 + normY * 18;
     };
 
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
 
-    let rafId = 0;
-    const t0 = performance.now();
-
-    const render = (now: number) => {
-      const timeSec = (now - t0) * 0.001;
-
-      // Subtle idle glancing if cursor inactive
-      if (now - lastMoveAt > 3500) {
-        targetGx = Math.sin(timeSec * 0.9) * 0.35;
-        targetGy = Math.cos(timeSec * 0.65) * 0.18;
+    const animate = (now: number) => {
+      // Natural ambient breathing & subtle glance when idle (> 3.5s)
+      if (now - lastMoveTime > 3500) {
+        const timeSec = (now - lastMoveTime) * 0.001;
+        targetRotY = Math.sin(timeSec * 0.8) * 3.2;
+        targetRotX = Math.cos(timeSec * 0.6) * 1.8;
+        targetTransX = Math.sin(timeSec * 0.8) * 1.5;
+        targetTransY = Math.cos(timeSec * 0.6) * 1.2;
+        targetSpecX = 50 + Math.sin(timeSec * 0.8) * 8;
+        targetSpecY = 46 + Math.cos(timeSec * 0.6) * 6;
       }
 
-      curGx += (targetGx - curGx) * 0.18;
-      curGy += (targetGy - curGy) * 0.18;
+      curRotY += (targetRotY - curRotY) * 0.14;
+      curRotX += (targetRotX - curRotX) * 0.14;
+      curTransX += (targetTransX - curTransX) * 0.14;
+      curTransY += (targetTransY - curTransY) * 0.14;
 
-      // Blinking
-      let isBlinking = false;
-      if (now >= nextBlinkAt) {
-        if (blinkEndAt === 0) blinkEndAt = now + 150;
-        if (now <= blinkEndAt) {
-          isBlinking = true;
-        } else {
-          blinkEndAt = 0;
-          nextBlinkAt = now + 2400 + Math.random() * 2600;
-        }
+      curSpecX += (targetSpecX - curSpecX) * 0.12;
+      curSpecY += (targetSpecY - curSpecY) * 0.12;
+
+      head.style.transform = `perspective(950px) rotateX(${curRotX.toFixed(2)}deg) rotateY(${curRotY.toFixed(2)}deg) translate3d(${curTransX.toFixed(2)}px, ${curTransY.toFixed(2)}px, 0)`;
+
+      if (specular) {
+        specular.style.background = `radial-gradient(circle at ${curSpecX.toFixed(1)}% ${curSpecY.toFixed(1)}%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0) 40%)`;
       }
 
-      const activeEmotion = emotionRef.current;
-      let targBlinkL = isBlinking ? 1.0 : 0.0;
-      let targBlinkR = isBlinking ? 1.0 : 0.0;
-      let targSquint = 0.0;
-      let targAmazed = 0.0;
-      let targCyber = 0.0;
-      let targLove = 0.0;
-
-      if (activeEmotion === 'happy') {
-        targSquint = 0.85;
-      } else if (activeEmotion === 'amazed') {
-        targAmazed = 1.0;
-      } else if (activeEmotion === 'cyber') {
-        targCyber = 1.0;
-        targSquint = 0.45;
-      } else if (activeEmotion === 'wink') {
-        targBlinkL = 1.0;
-        targSquint = 0.45;
-      } else if (activeEmotion === 'love') {
-        targLove = 1.0;
-        targSquint = 0.65;
-      }
-
-      curBlinkL += (targBlinkL - curBlinkL) * 0.32;
-      curBlinkR += (targBlinkR - curBlinkR) * 0.32;
-      curSquint += (targSquint - curSquint) * 0.22;
-      curAmazed += (targAmazed - curAmazed) * 0.2;
-      curCyber += (targCyber - curCyber) * 0.2;
-      curLove += (targLove - curLove) * 0.2;
-
-      if (textureLoaded) {
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        gl.uniform2f(uGaze, curGx, curGy);
-        gl.uniform1f(uBlinkL, curBlinkL);
-        gl.uniform1f(uBlinkR, curBlinkR);
-        gl.uniform1f(uSquint, curSquint);
-        gl.uniform1f(uAmazed, curAmazed);
-        gl.uniform1f(uCyber, curCyber);
-        gl.uniform1f(uLove, curLove);
-
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-      }
-
-      rafId = requestAnimationFrame(render);
+      rafId = requestAnimationFrame(animate);
     };
 
-    rafId = requestAnimationFrame(render);
+    rafId = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener('mousemove', handlePointerMove);
-      gl.deleteBuffer(quadBuffer);
-      gl.deleteProgram(program);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
-      gl.deleteTexture(texture);
     };
-  }, [avatarSrc]);
-
-  // Tap anywhere on avatar to cycle mood immediately
-  const handleTapAvatar = () => {
-    const idx = EMOTION_ORDER.indexOf(emotionRef.current);
-    const next = EMOTION_ORDER[(idx + 1) % EMOTION_ORDER.length];
-    emotionRef.current = next;
-    manualOverrideUntil.current = performance.now() + 5000;
-    setBounceKey((k) => k + 1);
-    playCyberSound('click');
-  };
+  }, []);
 
   return (
     <div
       ref={containerRef}
       onClick={handleTapAvatar}
-      className={`relative select-none w-full cursor-pointer transition-transform duration-150 ease-out ${
-        bounceKey > 0 ? 'animate-bounce-subtle' : ''
-      }`}
-      style={{ transformStyle: 'preserve-3d' }}
+      className="relative select-none w-full cursor-pointer"
+      title="Tanverse 3D Avatar (Auto-cycles every 5s • Tap to change emotion)"
     >
-      {/* Underlying original image as instant fallback & drop-shadow */}
-      <img
-        src={avatarSrc}
-        alt="Tanverse - 3D Portrait"
-        className={`w-full drop-shadow-2xl object-contain pointer-events-none transition-opacity duration-300 ${
-          isGlReady ? 'opacity-0' : 'opacity-100'
+      <div
+        ref={headRef}
+        key={bounceCount}
+        className={`relative w-full aspect-square will-change-transform ${
+          bounceCount > 0 ? 'animate-bounce-subtle' : ''
         }`}
-        loading="eager"
-      />
-      {/* High-performance WebGL Canvas rendering the avatar with seamless real-time 3D eye tracking */}
-      <canvas
-        ref={canvasRef}
-        width={1254}
-        height={1254}
-        className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 ${
-          isGlReady ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
-      <div className="alive-avatar-hair alive-avatar-hair-one" />
-      <div className="alive-avatar-hair alive-avatar-hair-two" />
-      <div className="alive-avatar-hair alive-avatar-hair-three" />
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt="Tanverse 3D Avatar"
+            className="w-full h-full object-contain pointer-events-none drop-shadow-2xl"
+            loading="eager"
+          />
+        ) : (
+          TANVERSE_EMOJI_MOODS.map((mood, idx) => {
+            const isActive = idx === activeMoodIndex;
+            return (
+              <img
+                key={mood.id}
+                src={mood.src}
+                alt={`Tanverse Emoji - ${mood.label}`}
+                className={`absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-700 ease-in-out ${
+                  isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
+                style={{
+                  filter: `drop-shadow(0 24px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 45px ${mood.glowColor})`,
+                }}
+                loading="eager"
+              />
+            );
+          })
+        )}
+
+        {/* Dynamic Specular Lens Catchlight reacting to cursor position */}
+        <div
+          ref={specularRef}
+          className="absolute inset-0 pointer-events-none rounded-full"
+          style={{ mixBlendMode: 'screen' }}
+        />
+
+        {/* Hair Wind & Cyber Ambient Motion Strands */}
+        <div className="alive-avatar-hair alive-avatar-hair-one" />
+        <div className="alive-avatar-hair alive-avatar-hair-two" />
+        <div className="alive-avatar-hair alive-avatar-hair-three" />
+      </div>
     </div>
   );
 }
@@ -937,7 +740,7 @@ function HeroSection({ avatarUrl }: { avatarUrl?: string }) {
       <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[250px] sm:w-[320px] md:w-[390px] lg:w-[460px] bottom-24 sm:bottom-0">
         <FadeIn delay={0.6} y={30}>
           <Magnet padding={150} strength={3}>
-            <InteractiveHeroAvatar avatarSrc={avatarUrl || tanverseAvatar} />
+            <InteractiveHeroAvatar avatarUrl={avatarUrl} />
           </Magnet>
         </FadeIn>
       </div>
