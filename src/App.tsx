@@ -197,45 +197,6 @@ export const playCyberSound = (type: 'click' | 'hover' | 'popup' | 'glide') => {
   }
 };
 
-// ==========================================
-// PROGRESSIVE IMAGE COMPONENT (Refinement 3)
-// ==========================================
-interface ProgressiveImageProps {
-  src: string;
-  alt: string;
-  className?: string;
-  loading?: 'lazy' | 'eager';
-}
-
-export function ProgressiveImage({ src, alt, className = '', loading = 'lazy' }: ProgressiveImageProps) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-
-  return (
-    <div className="relative w-full h-full overflow-hidden">
-      {/* Shimmer placeholder */}
-      {!loaded && !error && (
-        <div
-          className="absolute inset-0 animate-pulse"
-          style={{
-            background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 100%)',
-            backgroundSize: '200% 100%',
-          }}
-        />
-      )}
-      <img
-        src={src}
-        alt={alt}
-        loading={loading}
-        className={`${className} transition-all duration-700 ease-out ${
-          loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-[1.02]'
-        }`}
-        onLoad={() => setLoaded(true)}
-        onError={() => { setLoaded(true); setError(true); }}
-      />
-    </div>
-  );
-}
 
 // Reusable ContactButton Component
 export function ContactButton() {
@@ -270,25 +231,6 @@ export function ResumeButton() {
   );
 }
 
-// Reusable LiveProjectButton Component
-interface LiveProjectButtonProps {
-  href: string;
-}
-
-export function LiveProjectButton({ href }: LiveProjectButtonProps) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      onMouseEnter={() => playCyberSound('hover')}
-      onClick={() => playCyberSound('click')}
-      className="inline-flex justify-center items-center rounded-full border-2 border-[#D7E2EA] text-[#D7E2EA] font-medium uppercase tracking-widest text-sm sm:text-base px-8 py-3 sm:px-10 sm:py-3.5 transition-colors hover:bg-[#D7E2EA]/10 active:scale-98"
-    >
-      Live Project
-    </a>
-  );
-}
 
 // Reusable Magnet Component
 interface MagnetProps {
